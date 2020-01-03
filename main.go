@@ -36,6 +36,8 @@ func run() error {
 
 	debug.Verbose = viper.GetBool(verboseKey)
 	if debug.Verbose {
+		debug.SendEventsToJournal(logger.DaemonName, "Using verbose mode", journal.PriInfo)
+		// If in Verbose mode, start a goroutine to catch os signal and print stack trace
 		debug.StartStackTraceHandler()
 	}
 

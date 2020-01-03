@@ -14,7 +14,9 @@ either programmatically or with the [ctr](https://github.com/projectatomic/conta
 
 * When using containerd [`NewTask`](https://github.com/containerd/containerd/blob/release/1.3/container.go#L208) API 
 to start a container, simply provide the path to the built binary file `shim-loggers-for-containerd` and required 
-arguments.
+arguments. Note it's a good practice to clean up container resources with 
+[`Delete`](https://github.com/containerd/containerd/blob/release/1.3/task.go#L287) API call after container exited 
+as the container IO pipes are not closed if the shim process is still running. 
     * Example: 
         `NewTask(context, cio.BinaryIO("/usr/bin/shim-loggers-for-containerd", args))`
 * When using [ctr](https://github.com/projectatomic/containerd/blob/master/docs/cli.md) tool to run 
@@ -64,3 +66,12 @@ You can find more details [here](https://docs.docker.com/config/containers/loggi
 
 ## Supported values for mode
 * `blocking`: default mode
+* `non-blocking`: saving containerd logs to an intermediate buffer consumed by log driver, which unblocks container 
+performance if log driver has trouble sending logs to destination. Note in this mode, there may exist chance of losing 
+container logs when buffer is full. More info can be found 
+[here](https://docs.docker.com/config/containers/logging/configure/#configure-the-delivery-mode-of-log-messages-from-container-to-log-driver).
+
+## Supported values for max-buffer-size
+This value is only supported when `non-blocking` mode is enabled. Please provide it in a human readable format.
+* Example: `200`, `4k`, `1m`
+* Default to be 1 megabytes or `1m`.

@@ -38,6 +38,7 @@ type GlobalArgs struct {
 	MaxBufferSize int
 }
 
+// Basic Logger struct for all log drivers
 type Logger struct {
 	Info   *dockerlogger.Info
 	Stream client
@@ -55,9 +56,13 @@ type client interface {
 type LogDriver interface {
 	// Start functions starts sending container logs to destination.
 	Start(func() error) error
+	// GetPipes gets pipes of container that exposed by containerd.
+	GetPipes() (io.Reader, io.Reader)
+	// LogWithRetry sends logs to destination with retry.
+	LogWithRetry(line []byte, logTimestamp time.Time) error
 }
 
-// NewLogger creates a logDriver with the provided LoggerOpt
+// NewLogger creates a LogDriver with the provided LoggerOpt
 func NewLogger(options ...LoggerOpt) (LogDriver, error) {
 	l := &Logger{
 		Info: &dockerlogger.Info{},
@@ -69,7 +74,7 @@ func NewLogger(options ...LoggerOpt) (LogDriver, error) {
 }
 
 // Placeholder info. Expected that relevant parts will be modified
-// via the logger_opts.
+// via the common_opts.
 func NewInfo(containerID string, containerName string, options ...InfoOpt) *dockerlogger.Info {
 	info := &dockerlogger.Info{
 		Config:           make(map[string]string),
@@ -116,6 +121,11 @@ func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup) {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
+		if len(scanner.Text()) == 0 {
+			debug.SendEventsToJournal(DaemonName,
+				"Message is empty, skip saving", journal.PriInfo)
+			continue
+		}
 		if err := l.read(scanner); err != nil {
 			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
 			return
@@ -143,6 +153,11 @@ func (l *Logger) read(s *bufio.Scanner) error {
 	}
 
 	return nil
+}
+
+// GetPipes gets pipes of container that exposed by containerd.
+func (l *Logger) GetPipes() (io.Reader, io.Reader) {
+	return l.Stdout, l.Stderr
 }
 
 // LogWithRetry sends logs to destination with retry.
