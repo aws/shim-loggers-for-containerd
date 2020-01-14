@@ -26,7 +26,7 @@ func WithConfig(m map[string]string) InfoOpt {
 // WithRegion sets awslogs region of logger info
 func WithRegion(region string) InfoOpt {
 	return func(info *logger.Info) {
-		info.Config["awslogs-region"] = region
+		info.Config[RegionKey] = region
 	}
 }
 

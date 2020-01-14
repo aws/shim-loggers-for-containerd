@@ -11,6 +11,7 @@ import (
 
 const (
 	defaultMaxBufferSize = "1m"
+	blockingMode         = "blocking"
 	nonBlockingMode      = "non-blocking"
 )
 
@@ -18,30 +19,27 @@ const (
 func getGlobalArgs() (*logger.GlobalArgs, error) {
 	containerID, err := getRequiredValue(containerIDKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", containerIDKey)
+		return nil, err
 	}
 	containerName, err := getRequiredValue(containerNameKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", containerNameKey)
+		return nil, err
 	}
 	logDriver, err := getRequiredValue(logDriverTypeKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", logDriverTypeKey)
+		return nil, err
+	}
+	mode, maxBufferSize, err := getModeAndMaxBufferSize()
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to get value of flag %s and %s", modeKey, maxBufferSizeKey)
 	}
 
 	args := &logger.GlobalArgs{
 		ContainerID:   containerID,
 		ContainerName: containerName,
 		LogDriver:     logDriver,
-		Mode:          viper.GetString(modeKey),
-	}
-
-	if args.Mode == nonBlockingMode {
-		maxBufSize, err := getMaxBufferSize()
-		if err != nil {
-			return nil, err
-		}
-		args.MaxBufferSize = maxBufSize
+		Mode:          mode,
+		MaxBufferSize: maxBufferSize,
 	}
 
 	return args, nil
@@ -51,19 +49,19 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 func getAWSLogsArgs() (*awslogs.Args, error) {
 	group, err := getRequiredValue(awslogs.GroupKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", awslogs.GroupKey)
+		return nil, err
 	}
 	region, err := getRequiredValue(awslogs.RegionKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", awslogs.RegionKey)
+		return nil, err
 	}
 	stream, err := getRequiredValue(awslogs.StreamKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", awslogs.StreamKey)
+		return nil, err
 	}
 	credentialsEndpoint, err := getRequiredValue(awslogs.CredentialsEndpointKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag: %s", awslogs.CredentialsEndpointKey)
+		return nil, err
 	}
 
 	return &awslogs.Args{
@@ -87,6 +85,31 @@ func getRequiredValue(flag string) (string, error) {
 	val := viper.GetString(flag)
 
 	return val, nil
+}
+
+// getModeAndMaxBufferSize gets mode option and max buffer size if in blocking mode
+func getModeAndMaxBufferSize() (string, int, error) {
+	var (
+		mode       string
+		maxBufSize int
+		err        error
+	)
+
+	mode = viper.GetString(modeKey)
+	switch mode {
+	case "":
+		mode = blockingMode
+	case blockingMode:
+	case nonBlockingMode:
+		maxBufSize, err = getMaxBufferSize()
+		if err != nil {
+			return "", 0, errors.Wrap(err, "unable to get max buffer size")
+		}
+	default:
+		return "", 0, errors.Errorf("unknown mode type: %s", mode)
+	}
+
+	return mode, maxBufSize, nil
 }
 
 // getMaxBufferSize gets either customer asked buffer size or default size 1m

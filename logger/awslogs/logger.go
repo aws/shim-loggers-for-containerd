@@ -13,8 +13,8 @@ import (
 	"github.com/aws/amazon-ecs-agent/agent/utils/retry"
 	"github.com/containerd/containerd/runtime/v2/logging"
 	"github.com/coreos/go-systemd/journal"
-	dockerLogger "github.com/docker/docker/daemon/logger"
-	dockerAWSLogs "github.com/docker/docker/daemon/logger/awslogs"
+	dockerlogger "github.com/docker/docker/daemon/logger"
+	dockerawslogs "github.com/docker/docker/daemon/logger/awslogs"
 	"github.com/pkg/errors"
 )
 
@@ -52,8 +52,8 @@ type LoggerArgs struct {
 }
 
 type logDriver struct {
-	info   *dockerLogger.Info
-	stream dockerLogger.Logger
+	info   *dockerlogger.Info
+	stream client
 
 	stdout io.Reader
 	stderr io.Reader
@@ -67,29 +67,35 @@ func InitLogger(globalArgs *logger.GlobalArgs, awslogsArgs *Args) *LoggerArgs {
 	}
 }
 
+// client is a wrapper for docker logger's Log method, which is mostly used for testing
+// purposes.
+type client interface {
+	Log(*dockerlogger.Message) error
+}
+
 // NewLogger creates a awslogs logDriver with the provided LoggerOpt
 func NewLogger(options ...LoggerOpt) (logger.LogDriver, error) {
 	l := &logDriver{
-		info: &dockerLogger.Info{},
+		info: &dockerlogger.Info{},
 	}
 	for _, opt := range options {
 		opt(l)
 	}
-	stream, err := dockerAWSLogs.New(*l.info)
+	stream, err := dockerawslogs.New(*l.info)
 	if err != nil {
 		err = errors.Wrap(err, "unable to create awslogs driver")
 		return nil, err
 	}
 	l.stream = stream
-	return l, err
+	return l, nil
 }
 
 // RunLogDriver initiates an awslogs driver and starts driving container logs to cloudwatch
-func (al *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
-	loggerConfig := getAWSLogsConfig(al.args)
+func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
+	loggerConfig := getAWSLogsConfig(la.args)
 	info := newInfo(
-		al.globalArgs.ContainerID,
-		al.globalArgs.ContainerName,
+		la.globalArgs.ContainerID,
+		la.globalArgs.ContainerName,
 		WithConfig(loggerConfig),
 	)
 	l, err := NewLogger(
@@ -101,8 +107,8 @@ func (al *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		return err
 	}
 
-	if al.globalArgs.Mode == nonBlockingMode {
-		l = logger.NewBufferedLogger(l, al.globalArgs.MaxBufferSize)
+	if la.globalArgs.Mode == nonBlockingMode {
+		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize)
 	}
 
 	// Start awslogs driver
@@ -117,8 +123,8 @@ func (al *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 // Placeholder info. Expected that relevant parts will be modified
 // via the logger_opts.
-func newInfo(containerID string, containerName string, options ...InfoOpt) *dockerLogger.Info {
-	info := &dockerLogger.Info{
+func newInfo(containerID string, containerName string, options ...InfoOpt) *dockerlogger.Info {
+	info := &dockerlogger.Info{
 		Config:           make(map[string]string),
 		ContainerID:      containerID,
 		ContainerName:    containerName,
@@ -185,8 +191,8 @@ func (l *logDriver) Start(ready func() error) error {
 // sendLogs sends logs to aws cloudwatch logs.
 func (l *logDriver) sendLogs(f io.Reader, wg *sync.WaitGroup) {
 	defer wg.Done()
-
 	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		if err := l.read(scanner); err != nil {
 			debug.SendEventsToJournal(logger.DaemonName, err.Error(), journal.PriErr)
@@ -229,7 +235,7 @@ func (l *logDriver) LogWithRetry(line []byte, logTimestamp time.Time) error {
 			return l.stream.Log(message)
 		})
 	if err != nil {
-		err = errors.Wrapf(err, "sending container logs to cloudwatch has been retried for %d", retryTimes)
+		err = errors.Wrapf(err, "sending container logs to cloudwatch has been retried for %d times", retryTimes)
 		return err
 	}
 
@@ -246,8 +252,8 @@ func newBackoff() retry.Backoff {
 }
 
 // newMessage creates a new logger message.
-func newMessage(line []byte, source string, logTimestamp time.Time) *dockerLogger.Message {
-	msg := dockerLogger.NewMessage()
+func newMessage(line []byte, source string, logTimestamp time.Time) *dockerlogger.Message {
+	msg := dockerlogger.NewMessage()
 	msg.Line = line
 	msg.Source = source
 	msg.Timestamp = logTimestamp
