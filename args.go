@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"strconv"
+
+	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
+	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 
+	"github.com/coreos/go-systemd/journal"
 	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -32,6 +38,13 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	mode, maxBufferSize, err := getModeAndMaxBufferSize()
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get value of flag %s and %s", modeKey, maxBufferSizeKey)
+	}
+
+	if debug.Verbose {
+		debug.SendEventsToJournal(logger.DaemonName,
+			fmt.Sprintf("Container ID: %s, Container Name: %s, log driver: %s, mode: %s, max buffer size: %d",
+				containerID, containerName, logDriver, mode, maxBufferSize),
+			journal.PriDebug)
 	}
 
 	args := &logger.GlobalArgs{
@@ -73,6 +86,21 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 		MultilinePattern:    viper.GetString(awslogs.MultilinePatternKey),
 		DatetimeFormat:      viper.GetString(awslogs.DatetimeFormatKey),
 	}, nil
+}
+
+// getFluentdArgs gets fluentd specified arguments for fluentd log driver
+func getFluentdArgs() *fluentd.Args {
+	address := viper.GetString(fluentd.AddressKey)
+	tag := viper.GetString(fluentd.TagKey)
+
+	ac := viper.GetBool(fluentd.AsyncConnectKey)
+	asyncConnect := strconv.FormatBool(ac)
+
+	return &fluentd.Args{
+		Address:      address,
+		Tag:          tag,
+		AsyncConnect: asyncConnect,
+	}
 }
 
 // getRequiredValue parses required arguments or exits if any is missing

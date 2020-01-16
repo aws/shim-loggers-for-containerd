@@ -53,6 +53,14 @@ You can find more details [here](https://docs.docker.com/config/containers/loggi
         is set to `false`, the binary will directly exit with errors.
         * awslogs-multiline-pattern: no default value
         * awslogs-datetime-format: no default value
+        
+* `fluentd`: send container logs to [Fluentd](https://www.fluentd.org).
+You can find more details [here](https://docs.docker.com/config/containers/logging/fluentd/).
+    * Required arguments: No required arguments
+    * Optional arguments:
+        * fluentd-address: default to connect to port `24224`
+        * fluentd-async-connect: if connect fluentd in background. Default to be false.
+        * tag: tagging log message. Default to be first 12 characters of container ID.
 
 ## Supported values for mode
 * `blocking`: default mode
