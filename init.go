@@ -23,6 +23,10 @@ const (
 
 	// Verbose mode option
 	verboseKey = "verbose"
+
+	// UID/GID option
+	uidKey = "uid"
+	gidKey = "gid"
 )
 
 // initCommonLogOpts initialize common options that get used by any log drivers
@@ -40,6 +44,10 @@ func initCommonLogOpts() {
 
 	// verbose mode option
 	pflag.Bool(verboseKey, false, "If set, then more logs will be printed for debugging")
+
+	// set uid/gid option
+	pflag.Int(uidKey, -1, "Customized uid for all the goroutines in shim logger process")
+	pflag.Int(gidKey, -1, "Customized gid for all the goroutines in shim logger process")
 }
 
 // initAWSLogsOpts initialize awslogs driver specified options

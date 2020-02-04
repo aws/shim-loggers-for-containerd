@@ -81,7 +81,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	// Start awslogs driver
 	debug.SendEventsToJournal(logger.DaemonName, "Starting awslogs driver", journal.PriInfo)
-	err = l.Start(ready)
+	err = l.Start(la.globalArgs.UID, la.globalArgs.GID, ready)
 	if err != nil {
 		return errors.Wrap(err, "failed to start awslogs driver")
 	}

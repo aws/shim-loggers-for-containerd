@@ -46,6 +46,11 @@ func run() error {
 		return errors.Wrap(err, "unable to get global arguments")
 	}
 
+	// Set UID and/or GID of main goroutine if specified
+	if err = logger.SetUIDAndGID(globalArgs.UID, globalArgs.GID); err != nil {
+		return err
+	}
+
 	logDriver := globalArgs.LogDriver
 	debug.SendEventsToJournal(logger.DaemonName, "Driver: "+logDriver, journal.PriInfo)
 	switch logDriver {

@@ -40,6 +40,8 @@ the path.
 * Optional args:
     * mode
     * max-buffer-size
+    * uid: set customized uid. Value of zero is not supported.
+    * gid: set customized gid. Value of zero is not supported.
     * All other optional arguments for chosen log driver
 
 ## Supported log driver options

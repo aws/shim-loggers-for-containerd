@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
@@ -36,6 +37,8 @@ type GlobalArgs struct {
 	// Optional arguments
 	Mode          string
 	MaxBufferSize int
+	UID           int
+	GID           int
 }
 
 // Basic Logger struct for all log drivers
@@ -55,7 +58,7 @@ type client interface {
 // Interface for all log drivers
 type LogDriver interface {
 	// Start functions starts sending container logs to destination.
-	Start(func() error) error
+	Start(int, int, func() error) error
 	// GetPipes gets pipes of container that exposed by containerd.
 	GetPipes() (io.Reader, io.Reader)
 	// LogWithRetry sends logs to destination with retry.
@@ -95,15 +98,15 @@ func NewInfo(containerID string, containerName string, options ...InfoOpt) *dock
 }
 
 // Start starts the actual logger.
-func (l *Logger) Start(ready func() error) error {
+func (l *Logger) Start(uid int, gid int, ready func() error) error {
 	var wg sync.WaitGroup
 	if l.Stdout != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stdout, &wg)
+		go l.sendLogs(l.Stdout, &wg, uid, gid)
 	}
 	if l.Stderr != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stderr, &wg)
+		go l.sendLogs(l.Stderr, &wg, uid, gid)
 	}
 
 	// Signal that the container is ready to be started
@@ -116,8 +119,17 @@ func (l *Logger) Start(ready func() error) error {
 }
 
 // sendLogs sends logs to destintion.
-func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup) {
+func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
 	defer wg.Done()
+
+	// Set uid and/or gid for this goroutine. Currently the Setuid/SetGID syscall does not
+	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
+	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
+	if err := SetUIDAndGID(uid, gid); err != nil {
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+		return
+	}
+
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -197,4 +209,68 @@ func newMessage(line []byte, source string, logTimestamp time.Time) *dockerlogge
 	msg.Timestamp = logTimestamp
 
 	return msg
+}
+
+// SetUIDAndGID sets UID and/or GID for current goroutine.
+// TODO: move it to main package once the changes are released: https://go-review.googlesource.com/c/go/+/210639
+func SetUIDAndGID(uid int, gid int) error {
+	// gid<0 is assumed as gid argument is not set and is directly ignored.
+	switch {
+	case gid == 0:
+		// gid=0 is not supported in shim logger.
+		return errors.New("setting gid with value of zero is not supported")
+	case gid > 0:
+		if err := setGID(gid); err != nil {
+			return err
+		}
+	}
+
+	// uid<0 is assumed as uid argument is not set and is directly ignored.
+	switch {
+	case uid == 0:
+		// uid=0 is not supported in shim logger.
+		return errors.New("setting uid with value of zero is not supported")
+	case uid > 0:
+		if err := setUID(uid); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// setUID sets UID of current goroutine.
+func setUID(id int) error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_SETUID, uintptr(id), 0, 0); errno != 0 {
+		return errors.Wrap(errors.New(errno.Error()), "unable to set uid")
+	}
+
+	// Check if uid set correctly
+	u := syscall.Getuid()
+	if u != id {
+		return errors.New(fmt.Sprintf("want uid %d, but get uid %d", id, u))
+	}
+	debug.SendEventsToJournal(DaemonName,
+		fmt.Sprintf("Set uid: %d", u),
+		journal.PriInfo)
+
+	return nil
+}
+
+// setGID sets GID of current goroutine.
+func setGID(id int) error {
+	if _, _, errno := syscall.Syscall(syscall.SYS_SETGID, uintptr(id), 0, 0); errno != 0 {
+		return errors.Wrap(errors.New(errno.Error()), "unable to set gid")
+	}
+
+	// Check if gid set correctly
+	g := syscall.Getgid()
+	if g != id {
+		return errors.New(fmt.Sprintf("want gid %d, but get gid %d", id, g))
+	}
+	debug.SendEventsToJournal(DaemonName,
+		fmt.Sprintf("Set gid %d", g),
+		journal.PriInfo)
+
+	return nil
 }

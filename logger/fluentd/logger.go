@@ -69,7 +69,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	// Start fluentd driver
 	debug.SendEventsToJournal(logger.DaemonName, "Starting fluentd driver", journal.PriInfo)
-	err = l.Start(ready)
+	err = l.Start(la.globalArgs.UID, la.globalArgs.GID, ready)
 	if err != nil {
 		return errors.Wrap(err, "failed to start fluentd driver")
 	}

@@ -53,6 +53,8 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 		LogDriver:     logDriver,
 		Mode:          mode,
 		MaxBufferSize: maxBufferSize,
+		UID:           viper.GetInt(uidKey),
+		GID:           viper.GetInt(gidKey),
 	}
 
 	return args, nil

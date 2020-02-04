@@ -134,7 +134,7 @@ func TestSendLogs(t *testing.T) {
 	f, err := os.Open(tmpIOSource.Name())
 	require.NoError(t, err)
 	defer f.Close()
-	go l.sendLogs(f, &wg)
+	go l.sendLogs(f, &wg, -1, -1)
 	wg.Wait()
 
 	// Make sure the new scanned log message has been written to the tmp file by sendLogs

@@ -76,7 +76,7 @@ func newLoggerBuffer(maxBufferSize int) *logBuffer {
 }
 
 // Start starts the non-blocking mode logger.
-func (bl *bufferedLogger) Start(ready func() error) error {
+func (bl *bufferedLogger) Start(uid int, gid int, ready func() error) error {
 	var wg sync.WaitGroup
 	stdout, stderr := bl.l.GetPipes()
 	if stdout != nil {
@@ -84,14 +84,14 @@ func (bl *bufferedLogger) Start(ready func() error) error {
 		debug.SendEventsToJournal(DaemonName,
 			"Starting reading from stdout pipe",
 			journal.PriInfo)
-		go bl.saveLogsToBuffer(stdout, &wg)
+		go bl.saveLogsToBuffer(stdout, &wg, uid, gid)
 	}
 	if stderr != nil {
 		wg.Add(1)
 		debug.SendEventsToJournal(DaemonName,
 			"Starting reading from stderr pipe",
 			journal.PriInfo)
-		go bl.saveLogsToBuffer(stderr, &wg)
+		go bl.saveLogsToBuffer(stderr, &wg, uid, gid)
 	}
 
 	// Signal that the container is ready to be started
@@ -102,7 +102,7 @@ func (bl *bufferedLogger) Start(ready func() error) error {
 
 	// Start the underling log driver to send logs to destination
 	wg.Add(1)
-	go bl.sendLogs(&wg)
+	go bl.sendLogs(&wg, uid, gid)
 
 	wg.Wait()
 	debug.SendEventsToJournal(DaemonName,
@@ -113,8 +113,16 @@ func (bl *bufferedLogger) Start(ready func() error) error {
 }
 
 // saveLogsToBuffer saves container logs to intermediate buffer.
-func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup) {
+func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
 	defer wg.Done()
+
+	// Set uid for this goroutine. Currently the Setuid syscall does not
+	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
+	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
+	if err := SetUIDAndGID(uid, gid); err != nil {
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+		return
+	}
 
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
@@ -165,8 +173,16 @@ func (bl *bufferedLogger) read(s *bufio.Scanner) error {
 
 // sendLogs consumes logs from intermediate buffer and use the
 // underlying log drive to send logs to destination.
-func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup) {
+func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int) {
 	defer wg.Done()
+
+	// Set uid for this goroutine. Currently the Setuid syscall does not
+	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
+	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
+	if err := SetUIDAndGID(uid, gid); err != nil {
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+		return
+	}
 
 	count := 0
 	for {
