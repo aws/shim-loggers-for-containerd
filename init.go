@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/spf13/pflag"
 )
@@ -20,6 +21,7 @@ const (
 	logDriverTypeKey  = "log-driver"
 	awslogsDriverName = "awslogs"
 	fluentdDriverName = "fluentd"
+	splunkDriverName  = "splunk"
 
 	// Verbose mode option
 	verboseKey = "verbose"
@@ -65,5 +67,26 @@ func initAWSLogsOpts() {
 func initFluentdOpts() {
 	pflag.String(fluentd.AddressKey, "", "The address connected to Fluentd daemon")
 	pflag.Bool(fluentd.AsyncConnectKey, false, "If connecting Fluentd daemon in background")
-	pflag.String(fluentd.TagKey, "", "The tag used to identify log messages")
+	pflag.String(fluentd.FluentdTagKey, "", "The tag used to identify log messages")
+}
+
+// initSplunkOpts initialize splunk driver specified options
+// Argument usage taken from https://docs.docker.com/config/containers/logging/splunk/
+func initSplunkOpts() {
+	pflag.String(splunk.TokenKey, "", "Splunk HTTP Event Collector token.")
+	pflag.String(splunk.URLKey, "", "Path to your Splunk Enterprise, self-service Splunk Cloud instance, or Splunk Cloud managed cluster (including port and scheme used by HTTP Event Collector).")
+	pflag.String(splunk.SourceKey, "", "Event source.")
+	pflag.String(splunk.SourcetypeKey, "", "Event source type.")
+	pflag.String(splunk.IndexKey, "", "Event index.")
+	pflag.String(splunk.CapathKey, "", "Path to root certificate.")
+	pflag.String(splunk.CanameKey, "", "Name to use for validating server certificate; by default the hostname of the splunk-url is used.")
+	pflag.String(splunk.InsecureskipverifyKey, "", "Ignore server certificate validation.")
+	pflag.String(splunk.FormatKey, "", "Message format. Can be inline, json or raw. Defaults to inline.")
+	pflag.String(splunk.VerifyConnectionKey, "", "Verify on start, that docker can connect to Splunk server. Defaults to true.")
+	pflag.String(splunk.GzipKey, "", "Enable/disable gzip compression to send events to Splunk Enterprise or Splunk Cloud instance. Defaults to false.")
+	pflag.String(splunk.GzipLevelKey, "", "Set compression level for gzip. Valid values are -1 (default), 0 (no compression), 1 (best speed) ... 9 (best compression). Defaults to DefaultCompression.")
+	pflag.String(splunk.SplunkTagKey, "", "Specify tag for message, which interpret some markup.")
+	pflag.String(splunk.LabelsKey, "", "Comma-separated list of keys of labels, which should be included in message, if these labels are specified for container.")
+	pflag.String(splunk.EnvKey, "", "Comma-separated list of keys of environment variables, which should be included in message, if these variables are specified for container.")
+	pflag.String(splunk.EnvRegexKey, "", "Similar to and compatible with env. A regular expression to match logging-related environment variables. Used for advanced log tag options.")
 }

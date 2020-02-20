@@ -8,6 +8,7 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/coreos/go-systemd/journal"
 	"github.com/docker/go-units"
@@ -93,7 +94,7 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 // getFluentdArgs gets fluentd specified arguments for fluentd log driver
 func getFluentdArgs() *fluentd.Args {
 	address := viper.GetString(fluentd.AddressKey)
-	tag := viper.GetString(fluentd.TagKey)
+	tag := viper.GetString(fluentd.FluentdTagKey)
 
 	ac := viper.GetBool(fluentd.AsyncConnectKey)
 	asyncConnect := strconv.FormatBool(ac)
@@ -103,6 +104,37 @@ func getFluentdArgs() *fluentd.Args {
 		Tag:          tag,
 		AsyncConnect: asyncConnect,
 	}
+}
+
+// getSplunkArgs gets Splunk specified arguments for Splunk log driver
+func getSplunkArgs() (*splunk.Args, error) {
+	token, err := getRequiredValue(splunk.TokenKey)
+	if err != nil {
+		return nil, err
+	}
+	url, err := getRequiredValue(splunk.URLKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &splunk.Args{
+		Token:              token,
+		URL:                url,
+		Source:             viper.GetString(splunk.SourceKey),
+		Sourcetype:         viper.GetString(splunk.SourcetypeKey),
+		Index:              viper.GetString(splunk.IndexKey),
+		Capath:             viper.GetString(splunk.CapathKey),
+		Caname:             viper.GetString(splunk.CanameKey),
+		Insecureskipverify: viper.GetString(splunk.InsecureskipverifyKey),
+		Format:             viper.GetString(splunk.FormatKey),
+		VerifyConnection:   viper.GetString(splunk.VerifyConnectionKey),
+		Gzip:               viper.GetString(splunk.GzipKey),
+		GzipLevel:          viper.GetString(splunk.GzipLevelKey),
+		Tag:                viper.GetString(splunk.SplunkTagKey),
+		Labels:             viper.GetString(splunk.LabelsKey),
+		Env:                viper.GetString(splunk.EnvKey),
+		EnvRegex:           viper.GetString(splunk.EnvRegexKey),
+	}, nil
 }
 
 // getRequiredValue parses required arguments or exits if any is missing

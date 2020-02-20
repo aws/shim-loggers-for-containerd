@@ -23,7 +23,7 @@ const (
 	CredentialsEndpointKey = "awslogs-credentials-endpoint"
 )
 
-// AWS logs driver specified arguments
+// Args represents AWSlogs driver arguments
 type Args struct {
 	// Required arguments
 	Group               string

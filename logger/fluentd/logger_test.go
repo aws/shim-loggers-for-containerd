@@ -26,7 +26,7 @@ func TestGetFluentdConfig(t *testing.T) {
 	expectedConfig := map[string]string{
 		AddressKey:      testAddress,
 		AsyncConnectKey: testAsyncConnect,
-		TagKey:          testTag,
+		tagKey:          testTag,
 	}
 
 	config := getFluentdConfig(args)

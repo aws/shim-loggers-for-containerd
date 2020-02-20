@@ -15,10 +15,14 @@ import (
 const (
 	AddressKey      = "fluentd-address"
 	AsyncConnectKey = "fluentd-async-connect"
-	TagKey          = "tag"
+	FluentdTagKey   = "fluentd-tag"
+
+	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag"
+	// This is to distinguish between the "tag" parameter from the splunk input
+	tagKey = "tag"
 )
 
-// Fluentd logs driver specified arguments
+// Args represents fluentd log driver arguments
 type Args struct {
 	// Optional arguments
 	Address      string
@@ -81,7 +85,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 // getFluentdConfig sets values for fluentd config
 func getFluentdConfig(args *Args) map[string]string {
 	config := make(map[string]string)
-	config[TagKey] = args.Tag
+	config[tagKey] = args.Tag
 	config[AddressKey] = args.Address
 	config[AsyncConnectKey] = args.AsyncConnect
 

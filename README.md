@@ -64,7 +64,28 @@ You can find more details [here](https://docs.docker.com/config/containers/loggi
     * Optional arguments:
         * fluentd-address: default to connect to port `24224`
         * fluentd-async-connect: if connect fluentd in background. Default to be false.
-        * tag: tagging log message. Default to be first 12 characters of container ID.
+        * fluentd-tag: tagging log message. Default to be first 12 characters of container ID.
+
+* `splunk`: send container log to [splunk](www.splunk.com).
+You can find more details [here](https://docs.docker.com/config/containers/logging/splunk/).
+    * Required arguments:
+        * splunk-token
+        * splunk-url
+    * Optional arguments:
+        * splunk-source: Event source.
+        * splunk-sourcetype: Event source type.
+        * splunk-index: Event index.
+        * splunk-capath: Path to root certificate.
+        * splunk-caname: Name to use for validating server certificate; by default the hostname of the `splunk-url` is used.
+        * splunk-insecureskipverify: Ignore server certificate validation.
+        * splunk-format: Message format. Can be `inline`, `json` or `raw`. Defaults to `inline`.
+        * splunk-verify-connection: Verify on start, that docker can connect to Splunk server. Defaults to true.
+        * splunk-gzip: Enable/disable gzip compression to send events to Splunk Enterprise or Splunk Cloud instance. Defaults to false.
+        * splunk-gzip-level: Set compression level for gzip. Valid values are `-1` (default), `0` (no compression), `1` (best speed) ... `9` (best compression). Defaults to DefaultCompression.
+        * splunk-tag: Specify tag for message, which interpret some markup. Default value is `{{.ID}}` (12 characters of the container ID). 
+        * labels: Comma-separated list of keys of labels, which should be included in message, if these labels are specified for container.
+        * env: Comma-separated list of keys of environment variables, which should be included in message, if these variables are specified for container.
+        * env-regex: Similar to and compatible with `env`. A regular expression to match logging-related environment variables. Used for advanced log tag options.
 
 ## Supported values for mode
 * `blocking`: default mode

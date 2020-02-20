@@ -7,6 +7,7 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
 	"github.com/coreos/go-systemd/journal"
@@ -19,6 +20,7 @@ func init() {
 	initCommonLogOpts()
 	initAWSLogsOpts()
 	initFluentdOpts()
+	initSplunkOpts()
 }
 
 func main() {
@@ -60,6 +62,10 @@ func run() error {
 		}
 	case fluentdDriverName:
 		runFluentdDriver(globalArgs)
+	case splunkDriverName:
+		if err := runSplunkDriver(globalArgs); err != nil {
+			return errors.Wrap(err, "unable to run splunk driver")
+		}
 	default:
 		return errors.Errorf("unknown log driver: %s", logDriver)
 	}
@@ -82,4 +88,15 @@ func runFluentdDriver(globalArgs *logger.GlobalArgs) {
 	args := getFluentdArgs()
 	loggerArgs := fluentd.InitLogger(globalArgs, args)
 	logging.Run(loggerArgs.RunLogDriver)
+}
+
+func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
+	args, err := getSplunkArgs()
+	if err != nil {
+		return errors.Wrap(err, "unable to get splunk specified arguments")
+	}
+	loggerArgs := splunk.InitLogger(globalArgs, args)
+	logging.Run(loggerArgs.RunLogDriver)
+
+	return nil
 }

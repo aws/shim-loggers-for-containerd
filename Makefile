@@ -19,3 +19,7 @@ $(AWS_CONTAINERD_LOGGERS_BINARY):
 
 test: $(SOURCES)
 	go test -tags unit -race -timeout 30s -cover $(shell go list ./...) --count=1
+
+.PHONY: clean
+clean:
+	@rm -f $(BINPATH)/*
