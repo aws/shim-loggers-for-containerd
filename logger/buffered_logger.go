@@ -45,10 +45,11 @@ type logBuffer struct {
 	queue []*msg
 }
 
-// msg stores a single line of log message
-// and the timestamp that the log obtained from the pipe
+// msg stores a single line of log message, source pipe name (stdout/stderr),
+// and the timestamp that the log obtained from the pipe.
 type msg struct {
 	line    []byte
+	source  string
 	logTime time.Time
 }
 
@@ -84,14 +85,14 @@ func (bl *bufferedLogger) Start(uid int, gid int, ready func() error) error {
 		debug.SendEventsToJournal(DaemonName,
 			"Starting reading from stdout pipe",
 			journal.PriInfo)
-		go bl.saveLogsToBuffer(stdout, &wg, uid, gid)
+		go bl.saveLogsToBuffer(stdout, &wg, sourceSTDOUT, uid, gid)
 	}
 	if stderr != nil {
 		wg.Add(1)
 		debug.SendEventsToJournal(DaemonName,
 			"Starting reading from stderr pipe",
 			journal.PriInfo)
-		go bl.saveLogsToBuffer(stderr, &wg, uid, gid)
+		go bl.saveLogsToBuffer(stderr, &wg, sourceSTDERR, uid, gid)
 	}
 
 	// Signal that the container is ready to be started
@@ -113,7 +114,7 @@ func (bl *bufferedLogger) Start(uid int, gid int, ready func() error) error {
 }
 
 // saveLogsToBuffer saves container logs to intermediate buffer.
-func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
+func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, source string, uid int, gid int) {
 	defer wg.Done()
 
 	// Set uid for this goroutine. Currently the Setuid syscall does not
@@ -134,7 +135,7 @@ func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, uid 
 				"Message is empty, skip saving", journal.PriInfo)
 			continue
 		}
-		if err := bl.read(scanner); err != nil {
+		if err := bl.read(scanner, source); err != nil {
 			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
 			return
 		}
@@ -146,7 +147,7 @@ func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, uid 
 }
 
 // read reads a single log message from pipe and saves it to buffer.
-func (bl *bufferedLogger) read(s *bufio.Scanner) error {
+func (bl *bufferedLogger) read(s *bufio.Scanner, source string) error {
 	if s.Err() != nil {
 		return errors.Wrap(s.Err(), "failed to get logs from container")
 	}
@@ -161,6 +162,7 @@ func (bl *bufferedLogger) read(s *bufio.Scanner) error {
 
 	logMsg := &msg{
 		line:    s.Bytes(),
+		source:  source,
 		logTime: time.Now(),
 	}
 	err := bl.buffer.Enqueue(logMsg)
@@ -217,7 +219,7 @@ func (bl *bufferedLogger) send() error {
 		return errors.Wrap(err, "failed to read logs from buffer")
 	}
 
-	err = bl.LogWithRetry(msg.line, msg.logTime)
+	err = bl.LogWithRetry(msg.line, msg.source, msg.logTime)
 	if err != nil {
 		return errors.Wrap(err, "failed to send logs to destination")
 	}
@@ -230,7 +232,7 @@ func (bl *bufferedLogger) send() error {
 func (bl *bufferedLogger) flushMessages() error {
 	messages := bl.buffer.Flush()
 	for _, msg := range messages {
-		err := bl.LogWithRetry(msg.line, msg.logTime)
+		err := bl.LogWithRetry(msg.line, msg.source, msg.logTime)
 		if err != nil {
 			return errors.Wrap(err, "unable to flush the remaining messages to destination")
 		}
@@ -245,13 +247,13 @@ func (bl *bufferedLogger) GetPipes() (io.Reader, io.Reader) {
 }
 
 // LogWithRetry lets underlying log driver send logs to destination.
-func (bl *bufferedLogger) LogWithRetry(line []byte, logTimestamp time.Time) error {
+func (bl *bufferedLogger) LogWithRetry(line []byte, source string, logTimestamp time.Time) error {
 	if debug.Verbose {
 		debug.SendEventsToJournal(DaemonName,
 			fmt.Sprintf("[BUFFER] Sending message: %s", string(line)),
 			journal.PriDebug)
 	}
-	return bl.l.LogWithRetry(line, logTimestamp)
+	return bl.l.LogWithRetry(line, source, logTimestamp)
 }
 
 // Adopted from https://github.com/moby/moby/blob/master/daemon/logger/ring.go#L155

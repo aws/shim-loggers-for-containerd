@@ -27,6 +27,7 @@ const (
 
 var (
 	dummyLogMsg            = []byte("test log message")
+	dummySource            = "stdout"
 	dummyTime              = time.Date(2020, time.January, 14, 01, 59, 0, 0, time.UTC)
 	logDestinationFileName string
 )
@@ -76,7 +77,7 @@ func testLogWithRetryDoesNotRetry(t *testing.T) {
 		Stream: mockStream,
 	}
 	mockStream.EXPECT().Log(gomock.Any()).Return(nil).Times(1)
-	err := l.LogWithRetry(dummyLogMsg, dummyTime)
+	err := l.LogWithRetry(dummyLogMsg, dummySource, dummyTime)
 	require.NoError(t, err)
 }
 
@@ -94,7 +95,7 @@ func testLogWithRetryWithError(t *testing.T) {
 	mockStream.EXPECT().Log(gomock.Any()).Return(errors.New(testErrMsg)).Times(maxRetries)
 	expectErrMsg := fmt.Sprintf("sending container logs to destination has been retried for %d times: %s",
 		maxRetries, testErrMsg)
-	err := l.LogWithRetry(dummyLogMsg, dummyTime)
+	err := l.LogWithRetry(dummyLogMsg, dummySource, dummyTime)
 	require.Error(t, err)
 	require.Contains(t, expectErrMsg, err.Error())
 }
@@ -134,7 +135,7 @@ func TestSendLogs(t *testing.T) {
 	f, err := os.Open(tmpIOSource.Name())
 	require.NoError(t, err)
 	defer f.Close()
-	go l.sendLogs(f, &wg, -1, -1)
+	go l.sendLogs(f, &wg, dummySource, -1, -1)
 	wg.Wait()
 
 	// Make sure the new scanned log message has been written to the tmp file by sendLogs

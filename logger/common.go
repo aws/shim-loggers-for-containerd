@@ -20,6 +20,10 @@ const (
 	DaemonName      = "shim-loggers-for-containerd"
 	NonBlockingMode = "non-blocking"
 
+	// source pipe of log message
+	sourceSTDOUT = "stdout"
+	sourceSTDERR = "stderr"
+
 	// Define the retry parameters for retrying driving logs to destination
 	LogRetryMaxAttempts = 3
 	LogRetryMinBackoff  = 500 * time.Millisecond
@@ -62,7 +66,7 @@ type LogDriver interface {
 	// GetPipes gets pipes of container that exposed by containerd.
 	GetPipes() (io.Reader, io.Reader)
 	// LogWithRetry sends logs to destination with retry.
-	LogWithRetry(line []byte, logTimestamp time.Time) error
+	LogWithRetry([]byte, string, time.Time) error
 }
 
 // NewLogger creates a LogDriver with the provided LoggerOpt
@@ -102,11 +106,11 @@ func (l *Logger) Start(uid int, gid int, ready func() error) error {
 	var wg sync.WaitGroup
 	if l.Stdout != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stdout, &wg, uid, gid)
+		go l.sendLogs(l.Stdout, &wg, sourceSTDOUT, uid, gid)
 	}
 	if l.Stderr != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stderr, &wg, uid, gid)
+		go l.sendLogs(l.Stderr, &wg, sourceSTDERR, uid, gid)
 	}
 
 	// Signal that the container is ready to be started
@@ -119,7 +123,7 @@ func (l *Logger) Start(uid int, gid int, ready func() error) error {
 }
 
 // sendLogs sends logs to destintion.
-func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
+func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, source string, uid int, gid int) {
 	defer wg.Done()
 
 	// Set uid and/or gid for this goroutine. Currently the Setuid/SetGID syscall does not
@@ -138,7 +142,7 @@ func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
 				"Message is empty, skip saving", journal.PriInfo)
 			continue
 		}
-		if err := l.read(scanner); err != nil {
+		if err := l.read(scanner, source); err != nil {
 			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
 			return
 		}
@@ -148,7 +152,7 @@ func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, uid int, gid int) {
 // read gets container logs and sends to destination.
 // More log messages will be sent to system journal
 // in verbose mdoe for debugging.
-func (l *Logger) read(s *bufio.Scanner) error {
+func (l *Logger) read(s *bufio.Scanner, source string) error {
 	if s.Err() != nil {
 		return errors.Wrap(s.Err(), "failed to get logs from container")
 	}
@@ -159,7 +163,7 @@ func (l *Logger) read(s *bufio.Scanner) error {
 			journal.PriDebug)
 	}
 	// Send logs to destination with underlying log driver
-	err := l.LogWithRetry(s.Bytes(), time.Now())
+	err := l.LogWithRetry(s.Bytes(), source, time.Now())
 	if err != nil {
 		return errors.Wrap(s.Err(), "failed to send logs to destination")
 	}
@@ -173,9 +177,9 @@ func (l *Logger) GetPipes() (io.Reader, io.Reader) {
 }
 
 // LogWithRetry sends logs to destination with retry.
-func (l *Logger) LogWithRetry(line []byte, logTimestamp time.Time) error {
+func (l *Logger) LogWithRetry(line []byte, source string, logTimestamp time.Time) error {
 	retryTimes := 0
-	message := newMessage(line, l.Info.ContainerID, logTimestamp)
+	message := newMessage(line, source, logTimestamp)
 	backoff := newBackoff()
 	err := retry.RetryNWithBackoff(
 		backoff,
