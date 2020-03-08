@@ -24,7 +24,7 @@ const (
 	sourceSTDOUT = "stdout"
 	sourceSTDERR = "stderr"
 
-	// Define the retry parameters for retrying driving logs to destination
+	// Define the retry parameters for retrying sending logs to destination
 	LogRetryMaxAttempts = 3
 	LogRetryMinBackoff  = 500 * time.Millisecond
 	LogRetryMaxBackoff  = 1 * time.Second
@@ -48,14 +48,14 @@ type GlobalArgs struct {
 // Basic Logger struct for all log drivers
 type Logger struct {
 	Info   *dockerlogger.Info
-	Stream client
+	Stream Client
 	Stdout io.Reader
 	Stderr io.Reader
 }
 
-// client is a wrapper for docker logger's Log method, which is mostly used for testing
+// Client is a wrapper for docker logger's Log method, which is mostly used for testing
 // purposes.
-type client interface {
+type Client interface {
 	Log(*dockerlogger.Message) error
 }
 

@@ -25,7 +25,7 @@ var (
 // started by containerd, we can check the logs using `journalctl -u containerd.service`.
 func SendEventsToJournal(syslogIdentifier string, msg string, msgType journal.Priority) {
 	vars := map[string]string{"SYSLOG_IDENTIFIER": syslogIdentifier}
-	journal.Send(msg, msgType, vars)
+	journal.Send(msg, msgType, vars) //nolint:errcheck
 }
 
 // StartStackTraceHandler is used when the process catches signals, we will print the stack trace and write

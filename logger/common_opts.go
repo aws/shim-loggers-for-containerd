@@ -44,7 +44,7 @@ func WithInfo(info *dockerlogger.Info) LoggerOpt {
 	}
 }
 
-func WithStream(stream client) LoggerOpt {
+func WithStream(stream Client) LoggerOpt {
 	return func(l *Logger) {
 		l.Stream = stream
 	}
