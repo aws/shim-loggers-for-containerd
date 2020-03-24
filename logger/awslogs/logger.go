@@ -7,10 +7,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
-	apierrors "github.com/aws/amazon-ecs-agent/agent/api/errors"
-	"github.com/aws/amazon-ecs-agent/agent/utils/retry"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/containerd/containerd/runtime/v2/logging"
 	"github.com/coreos/go-systemd/journal"
 	dockerlogger "github.com/docker/docker/daemon/logger"
@@ -76,7 +72,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		la.globalArgs.ContainerName,
 		logger.WithConfig(loggerConfig),
 	)
-	stream, err := createStreamWithRetry(dockerawslogs.New, info)
+	stream, err := dockerawslogs.New(*info)
 	if err != nil {
 		return errors.Wrap(err, "unable to create stream")
 	}
@@ -130,71 +126,4 @@ func getAWSLogsConfig(args *Args) map[string]string {
 	}
 
 	return config
-}
-
-// createStreamWithRetry creates log stream with reties if the returned error is retriable error.
-func createStreamWithRetry(createStream loggerStream, info *dockerlogger.Info) (logger.Client, error) {
-	var (
-		stream     logger.Client
-		cErr       error
-		retryTimes int
-	)
-	backoff := newCreateStreamBackoff()
-	err := retry.RetryNWithBackoff(
-		backoff,
-		createStreamRetryMaxAttempts,
-		func() error {
-			retryTimes += 1
-			stream, cErr = createStreamOnce(createStream, info)
-			return cErr
-		})
-	if err != nil {
-		return nil, errors.Wrapf(err, "creating log stream has been retried %d time(s)", retryTimes)
-	}
-
-	return stream, nil
-}
-
-// createStreamOnce creates log stream and return an retriable error.
-func createStreamOnce(createStream loggerStream, info *dockerlogger.Info) (logger.Client, error) {
-	var (
-		stream logger.Client
-		err    error
-	)
-	stream, err = createStream(*info)
-	if err == nil {
-		return stream, nil
-	}
-
-	return nil, createStreamRetriableError(errors.Cause(err))
-}
-
-// createStreamRetriableError checks if error returned by cloudwatch logs CreateLogGroup or CreateLogStream
-// API is retriable and returns corresponding error. For now we only retry on error of OperationAbortedException
-// and ResourceAlreadyExistsException. Note that ResourceAlreadyExistsException is already checked by docker:
-//		https://github.com/moby/moby/blob/master/daemon/logger/awslogs/cloudwatchlogs.go#L468
-// We do double check here for safety.
-// Reference: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogGroup.html
-func createStreamRetriableError(err error) error {
-	retriable := false
-	aerr, ok := err.(awserr.Error)
-	if ok {
-		switch aerr.Code() {
-		case cloudwatchlogs.ErrCodeOperationAbortedException:
-			retriable = true
-		case cloudwatchlogs.ErrCodeResourceAlreadyExistsException:
-			retriable = true
-		}
-	}
-
-	return apierrors.NewRetriableError(apierrors.NewRetriable(retriable), err)
-}
-
-// newCreateStreamBackoff creates a new Backoff object used for creating stream.
-func newCreateStreamBackoff() retry.Backoff {
-	return retry.NewExponentialBackoff(
-		createStreamRetryMinBackoff,
-		createStreamRetryMaxBackoff,
-		createStreamRetryJitter,
-		createStreamRetryMultiple)
 }
