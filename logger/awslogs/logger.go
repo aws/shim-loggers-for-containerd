@@ -15,14 +15,12 @@ package awslogs
 
 import (
 	"context"
-	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
 	"github.com/coreos/go-systemd/journal"
-	dockerlogger "github.com/docker/docker/daemon/logger"
 	dockerawslogs "github.com/docker/docker/daemon/logger/awslogs"
 	"github.com/pkg/errors"
 )
@@ -36,13 +34,6 @@ const (
 	MultilinePatternKey    = "awslogs-multiline-pattern"
 	DatetimeFormatKey      = "awslogs-datetime-format"
 	CredentialsEndpointKey = "awslogs-credentials-endpoint"
-
-	// Define the retry parameters for retrying creating stream
-	createStreamRetryMaxAttempts = 5
-	createStreamRetryMinBackoff  = 500 * time.Millisecond
-	createStreamRetryMaxBackoff  = 2 * time.Second
-	createStreamRetryJitter      = 1
-	createStreamRetryMultiple    = 2
 )
 
 // Args represents AWSlogs driver arguments
@@ -64,10 +55,6 @@ type LoggerArgs struct {
 	globalArgs *logger.GlobalArgs
 	args       *Args
 }
-
-// loggerStream is a type of function of docker new logger API for awslogs
-// log driver. This is defined mostly for testing purpose.
-type loggerStream func(dockerlogger.Info) (dockerlogger.Logger, error)
 
 // InitLogger initialize the input arguments
 func InitLogger(globalArgs *logger.GlobalArgs, awslogsArgs *Args) *LoggerArgs {
