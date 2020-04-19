@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"math"
 	"testing"
-
-	"github.com/aws/shim-loggers-for-containerd/logger"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"gotest.tools/assert"
 )
 
 const (
@@ -49,17 +49,14 @@ func testGetGlobalArgsNoError(t *testing.T) {
 	viper.Set(containerNameKey, testContainerName)
 	viper.Set(logDriverTypeKey, testLogDriver)
 
-	expectedArgs := &logger.GlobalArgs{
-		ContainerID:   testContainerID,
-		ContainerName: testContainerName,
-		LogDriver:     testLogDriver,
-		Mode:          blockingMode,
-		MaxBufferSize: 0,
-	}
-
 	args, err := getGlobalArgs()
 	require.NoError(t, err)
-	require.Equal(t, expectedArgs, args)
+	assert.Equal(t, args.ContainerID, testContainerID)
+	assert.Equal(t, args.ContainerName, testContainerName)
+	assert.Equal(t, args.LogDriver, testLogDriver)
+	assert.Equal(t, args.Mode, blockingMode)
+	assert.Equal(t, args.MaxBufferSize, 0)
+	assert.Equal(t, *args.CleanupTime, time.Duration(5*time.Second))
 }
 
 // testGetGlobalArgsWithError is a sub-test of TestGetGlobalArgs. It tests
@@ -143,7 +140,7 @@ func TestGetMaxBufferSize(t *testing.T) {
 	t.Run("WithError", testGetMaxBufferSizeWithError)
 }
 
-// testGetMaxBufferSizeNoError is a sub-test of testGetMaxBufferSizeNoError. It tests
+// testGetMaxBufferSizeNoError is a sub-test of TestGetMaxBufferSize. It tests
 // getMaxBufferSize with multiple valid user-set values.
 func testGetMaxBufferSizeNoError(t *testing.T) {
 	// Unset all keys used for this test
@@ -167,7 +164,7 @@ func testGetMaxBufferSizeNoError(t *testing.T) {
 	}
 }
 
-// testGetMaxBufferSizeWithError is a sub-test of testGetMaxBufferSizeNoError. It tests
+// testGetMaxBufferSizeWithError is a sub-test of TestGetMaxBufferSize. It tests
 // getMaxBufferSize with multiple invalid user-set values.
 func testGetMaxBufferSizeWithError(t *testing.T) {
 	// Unset all keys used for this test
@@ -183,6 +180,55 @@ func testGetMaxBufferSizeWithError(t *testing.T) {
 	for _, tc := range testCasesWithError {
 		viper.Set(maxBufferSizeKey, tc.bufferSize)
 		_, err := getMaxBufferSize()
+		require.Error(t, err)
+	}
+}
+
+// TestGetCleanupTime tests getCleanupTime with/without valid setting cleanup time options
+func TestGetCleanupTime(t *testing.T) {
+	t.Run("NoError", testGetCleanupTimeNoError)
+	t.Run("WithError", testGetCleanupTimeWithError)
+}
+
+// testGetCleanupTimeNoError is a sub-test of TestGetCleanupTime. It tests getCleanupTime
+// with multiple valid user-set values.
+func testGetCleanupTimeNoError(t *testing.T) {
+	// Unset all keys used for this test
+	defer viper.Reset()
+
+	testCasesNoError := []struct {
+		cleanupTime         string
+		expectedCleanupTime time.Duration
+	}{
+		{"3s", time.Duration(3 * time.Second)},
+		{"10s", time.Duration(10 * time.Second)},
+		{"12s", time.Duration(12 * time.Second)},
+	}
+
+	for _, tc := range testCasesNoError {
+		viper.Set(cleanupTimeKey, tc.cleanupTime)
+		cleanupTime, err := getCleanupTime()
+		require.NoError(t, err)
+		require.Equal(t, tc.expectedCleanupTime, *cleanupTime)
+	}
+}
+
+// testGetCleanupTimeWithError is a sub-test of TestGetCleanupTime. It tests getCleanupTime
+// with multiple invalid user-set values.
+func testGetCleanupTimeWithError(t *testing.T) {
+	// Unset all keys used for this test
+	defer viper.Reset()
+
+	testCasesWithError := []struct {
+		cleanupTime string
+	}{
+		{"3"},
+		{"15s"},
+	}
+
+	for _, tc := range testCasesWithError {
+		viper.Set(cleanupTimeKey, tc.cleanupTime)
+		_, err := getCleanupTime()
 		require.Error(t, err)
 	}
 }

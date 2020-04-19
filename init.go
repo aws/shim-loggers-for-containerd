@@ -42,6 +42,9 @@ const (
 	// UID/GID option
 	uidKey = "uid"
 	gidKey = "gid"
+
+	// cleanup time option
+	cleanupTimeKey = "cleanup-time"
 )
 
 // initCommonLogOpts initialize common options that get used by any log drivers
@@ -63,6 +66,9 @@ func initCommonLogOpts() {
 	// set uid/gid option
 	pflag.Int(uidKey, -1, "Customized uid for all the goroutines in shim logger process")
 	pflag.Int(gidKey, -1, "Customized gid for all the goroutines in shim logger process")
+
+	// cleanup time option
+	pflag.String(cleanupTimeKey, "5s", "Cleanup time after pipes are closed, default to 5 seconds")
 }
 
 // initAWSLogsOpts initialize awslogs driver specified options

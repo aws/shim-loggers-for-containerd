@@ -56,6 +56,7 @@ type GlobalArgs struct {
 	MaxBufferSize int
 	UID           int
 	GID           int
+	CleanupTime   *time.Duration
 }
 
 // Basic Logger struct for all log drivers
@@ -75,7 +76,7 @@ type Client interface {
 // Interface for all log drivers
 type LogDriver interface {
 	// Start functions starts sending container logs to destination.
-	Start(int, int, func() error) error
+	Start(int, int, *time.Duration, func() error) error
 	// GetPipes gets pipes of container that exposed by containerd.
 	GetPipes() (io.Reader, io.Reader)
 	// LogWithRetry sends logs to destination with retry.
@@ -115,15 +116,15 @@ func NewInfo(containerID string, containerName string, options ...InfoOpt) *dock
 }
 
 // Start starts the actual logger.
-func (l *Logger) Start(uid int, gid int, ready func() error) error {
+func (l *Logger) Start(uid int, gid int, cleanupTime *time.Duration, ready func() error) error {
 	var wg sync.WaitGroup
 	if l.Stdout != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stdout, &wg, sourceSTDOUT, uid, gid)
+		go l.sendLogs(l.Stdout, &wg, sourceSTDOUT, uid, gid, cleanupTime)
 	}
 	if l.Stderr != nil {
 		wg.Add(1)
-		go l.sendLogs(l.Stderr, &wg, sourceSTDERR, uid, gid)
+		go l.sendLogs(l.Stderr, &wg, sourceSTDERR, uid, gid, cleanupTime)
 	}
 
 	// Signal that the container is ready to be started
@@ -135,8 +136,8 @@ func (l *Logger) Start(uid int, gid int, ready func() error) error {
 	return nil
 }
 
-// sendLogs sends logs to destintion.
-func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, source string, uid int, gid int) {
+// sendLogs sends logs to destination.
+func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, source string, uid int, gid int, cleanupTime *time.Duration) {
 	defer wg.Done()
 
 	// Set uid and/or gid for this goroutine. Currently the Setuid/SetGID syscall does not
@@ -160,6 +161,10 @@ func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, source string, uid in
 			return
 		}
 	}
+	debug.SendEventsToJournal(DaemonName,
+		fmt.Sprintf("Pipe is closed. Sleeping %s for cleanning up.", cleanupTime.String()),
+		journal.PriInfo)
+	time.Sleep(*cleanupTime)
 }
 
 // read gets container logs and sends to destination.

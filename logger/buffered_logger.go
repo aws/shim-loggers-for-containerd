@@ -90,7 +90,7 @@ func newLoggerBuffer(maxBufferSize int) *logBuffer {
 }
 
 // Start starts the non-blocking mode logger.
-func (bl *bufferedLogger) Start(uid int, gid int, ready func() error) error {
+func (bl *bufferedLogger) Start(uid int, gid int, cleanupTime *time.Duration, ready func() error) error {
 	var wg sync.WaitGroup
 	stdout, stderr := bl.l.GetPipes()
 	if stdout != nil {
@@ -116,7 +116,7 @@ func (bl *bufferedLogger) Start(uid int, gid int, ready func() error) error {
 
 	// Start the underling log driver to send logs to destination
 	wg.Add(1)
-	go bl.sendLogs(&wg, uid, gid)
+	go bl.sendLogs(&wg, uid, gid, cleanupTime)
 
 	wg.Wait()
 	debug.SendEventsToJournal(DaemonName,
@@ -188,7 +188,7 @@ func (bl *bufferedLogger) read(s *bufio.Scanner, source string) error {
 
 // sendLogs consumes logs from intermediate buffer and use the
 // underlying log drive to send logs to destination.
-func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int) {
+func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int, cleanupTime *time.Duration) {
 	defer wg.Done()
 
 	// Set uid for this goroutine. Currently the Setuid syscall does not
@@ -214,6 +214,11 @@ func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int) {
 					debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
 					return
 				}
+
+				debug.SendEventsToJournal(DaemonName,
+					fmt.Sprintf("Sleeping %s for cleanning up.", cleanupTime.String()),
+					journal.PriInfo)
+				time.Sleep(*cleanupTime)
 				return
 			}
 		default:

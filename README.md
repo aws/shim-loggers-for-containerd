@@ -53,6 +53,7 @@ The following list of arguments apply to all of the shim logger binaries in this
 | max-buffer-size | No | Only supported in `non-blocking` mode. Set to `1m` (1MiB) by default. Example values: `200`, `4k`, `1m` etc. |
 | uid | No | Set a custom uid for the shim logger process. `0` is not supported. |
 | gid | No | Set a custom gid for the shim logger process. `0` is not supported. |
+| cleanup-time | No | Set a custom time for the shim logger process clean up itself. Set to `5s` (5 seconds) by default. Note the maximum supported value is 12 seconds, since containerd shim sets shim logger cleanup timeout value as 12 seconds. See [reference](https://github.com/containerd/containerd/commit/0dc7c8595627e38ca2b83d17a062b51f384c2025). |
 
 
 ### Additional log driver options

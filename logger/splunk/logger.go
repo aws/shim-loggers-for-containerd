@@ -116,7 +116,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	// Start splunk log driver
 	debug.SendEventsToJournal(logger.DaemonName, "Starting splunk driver", journal.PriInfo)
-	err = l.Start(la.globalArgs.UID, la.globalArgs.GID, ready)
+	err = l.Start(la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
 		return errors.Wrap(err, "failed to start splunk driver")
 	}

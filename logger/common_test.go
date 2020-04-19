@@ -42,6 +42,7 @@ var (
 	dummyLogMsg            = []byte("test log message")
 	dummySource            = "stdout"
 	dummyTime              = time.Date(2020, time.January, 14, 01, 59, 0, 0, time.UTC)
+	dummyCleanupTime       = time.Duration(2 * time.Second)
 	logDestinationFileName string
 )
 
@@ -148,7 +149,7 @@ func TestSendLogs(t *testing.T) {
 	f, err := os.Open(tmpIOSource.Name())
 	require.NoError(t, err)
 	defer f.Close()
-	go l.sendLogs(f, &wg, dummySource, -1, -1)
+	go l.sendLogs(f, &wg, dummySource, -1, -1, &dummyCleanupTime)
 	wg.Wait()
 
 	// Make sure the new scanned log message has been written to the tmp file by sendLogs

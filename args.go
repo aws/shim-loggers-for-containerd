@@ -16,6 +16,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
@@ -31,6 +32,7 @@ import (
 
 const (
 	defaultMaxBufferSize = "1m"
+	defaultCleanupTime   = "5s"
 	blockingMode         = "blocking"
 	nonBlockingMode      = "non-blocking"
 )
@@ -53,6 +55,10 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get value of flag %s and %s", modeKey, maxBufferSizeKey)
 	}
+	cleanupTime, err := getCleanupTime()
+	if err != nil {
+		return nil, err
+	}
 
 	if debug.Verbose {
 		debug.SendEventsToJournal(logger.DaemonName,
@@ -69,6 +75,7 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 		MaxBufferSize: maxBufferSize,
 		UID:           viper.GetInt(uidKey),
 		GID:           viper.GetInt(gidKey),
+		CleanupTime:   cleanupTime,
 	}
 
 	return args, nil
@@ -205,4 +212,21 @@ func getMaxBufferSize() (int, error) {
 	}
 
 	return int(size), nil
+}
+
+// getCleanupTime gets either customized cleanup time or default duration of 5s
+func getCleanupTime() (*time.Duration, error) {
+	cleanupTime := viper.GetString(cleanupTimeKey)
+	if cleanupTime == "" {
+		cleanupTime = defaultCleanupTime
+	}
+	duration, err := time.ParseDuration(cleanupTime)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse clean up time")
+	}
+	if duration > time.Duration(12*time.Second) {
+		return nil, errors.Errorf("invalid time %s, maximum timeout is 12 seconds.", duration.String())
+	}
+
+	return &duration, nil
 }
