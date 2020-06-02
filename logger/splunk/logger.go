@@ -88,6 +88,8 @@ func InitLogger(globalArgs *logger.GlobalArgs, splunkArgs *Args) *LoggerArgs {
 
 // RunLogDriver initiates the splunk driver
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
+	defer debug.DeferFuncForRunLogDriver()
+
 	loggerConfig := getSplunkConfig(la.args)
 	info := logger.NewInfo(
 		la.globalArgs.ContainerID,
@@ -96,7 +98,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	)
 	stream, err := dockersplunk.New(*info)
 	if err != nil {
-		return errors.Wrap(err, "unable to create stream")
+		debug.LoggerErr = errors.Wrap(err, "unable to create stream")
+		return debug.LoggerErr
 	}
 
 	l, err := logger.NewLogger(
@@ -106,21 +109,28 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithStream(stream),
 	)
 	if err != nil {
-		return errors.Wrap(err, "unable to create splunk log driver")
+		debug.LoggerErr = errors.Wrap(err, "unable to create splunk log driver")
+		return debug.LoggerErr
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
-		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo)
+		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo, 0)
 		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize)
 	}
 
 	// Start splunk log driver
-	debug.SendEventsToJournal(logger.DaemonName, "Starting splunk driver", journal.PriInfo)
-	err = l.Start(la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
+	debug.SendEventsToJournal(logger.DaemonName, "Starting splunk driver", journal.PriInfo, 0)
+	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		return errors.Wrap(err, "failed to start splunk driver")
+		debug.LoggerErr = errors.Wrap(err, "failed to run splunk driver")
+		// Do not return error if log driver has issue sending logs to destination, because if error
+		// returned here, containerd will identify this error and kill shim process, which will kill
+		// the container process accordingly.
+		// Note: the container will continue to run if shim logger exits after.
+		// Reference: https://github.com/containerd/containerd/blob/release/1.3/runtime/v2/logging/logging.go
+		return nil
 	}
-	debug.SendEventsToJournal(logger.DaemonName, "Logging finished", journal.PriInfo)
+	debug.SendEventsToJournal(logger.DaemonName, "Logging finished", journal.PriInfo, 1)
 
 	return nil
 }

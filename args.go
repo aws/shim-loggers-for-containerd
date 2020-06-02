@@ -64,7 +64,7 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 		debug.SendEventsToJournal(logger.DaemonName,
 			fmt.Sprintf("Container ID: %s, Container Name: %s, log driver: %s, mode: %s, max buffer size: %d",
 				containerID, containerName, logDriver, mode, maxBufferSize),
-			journal.PriDebug)
+			journal.PriDebug, 0)
 	}
 
 	args := &logger.GlobalArgs{
