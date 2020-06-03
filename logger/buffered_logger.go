@@ -244,7 +244,7 @@ func (bl *bufferedLogger) send() error {
 		return errors.Wrap(err, "failed to read logs from buffer")
 	}
 
-	err = bl.LogWithRetry(msg.line, msg.source, msg.logTime)
+	err = bl.Log(msg.line, msg.source, msg.logTime)
 	if err != nil {
 		return errors.Wrap(err, "failed to send logs to destination")
 	}
@@ -257,7 +257,7 @@ func (bl *bufferedLogger) send() error {
 func (bl *bufferedLogger) flushMessages() error {
 	messages := bl.buffer.Flush()
 	for _, msg := range messages {
-		err := bl.LogWithRetry(msg.line, msg.source, msg.logTime)
+		err := bl.Log(msg.line, msg.source, msg.logTime)
 		if err != nil {
 			return errors.Wrap(err, "unable to flush the remaining messages to destination")
 		}
@@ -271,14 +271,14 @@ func (bl *bufferedLogger) GetPipes() (io.Reader, io.Reader) {
 	return bl.l.GetPipes()
 }
 
-// LogWithRetry lets underlying log driver send logs to destination.
-func (bl *bufferedLogger) LogWithRetry(line []byte, source string, logTimestamp time.Time) error {
+// Log lets underlying log driver send logs to destination.
+func (bl *bufferedLogger) Log(line []byte, source string, logTimestamp time.Time) error {
 	if debug.Verbose {
 		debug.SendEventsToJournal(DaemonName,
 			fmt.Sprintf("[BUFFER] Sending message: %s", string(line)),
 			journal.PriDebug, 0)
 	}
-	return bl.l.LogWithRetry(line, source, logTimestamp)
+	return bl.l.Log(line, source, logTimestamp)
 }
 
 // Adopted from https://github.com/moby/moby/blob/master/daemon/logger/ring.go#L155

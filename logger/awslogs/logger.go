@@ -34,6 +34,13 @@ const (
 	MultilinePatternKey    = "awslogs-multiline-pattern"
 	DatetimeFormatKey      = "awslogs-datetime-format"
 	CredentialsEndpointKey = "awslogs-credentials-endpoint"
+
+	// There are 26 bytes additional bytes for each log event:
+	// See more details in: http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
+	perEventBytes = 26
+	// The value of maximumBytesPerEvent is adopted from Docker. Reference:
+	// https://github.com/moby/moby/blob/19.03/daemon/logger/awslogs/cloudwatchlogs.go#L58
+	maximumBytesPerEvent = 262144 - perEventBytes
 )
 
 // Args represents AWSlogs driver arguments
@@ -85,6 +92,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithStderr(config.Stderr),
 		logger.WithInfo(info),
 		logger.WithStream(stream),
+		logger.WithBufferSizeInBytes(maximumBytesPerEvent),
 	)
 	if err != nil {
 		debug.LoggerErr = errors.Wrap(err, "unable to create awslogs driver")

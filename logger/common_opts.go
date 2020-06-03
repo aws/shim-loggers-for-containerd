@@ -57,8 +57,24 @@ func WithInfo(info *dockerlogger.Info) LoggerOpt {
 	}
 }
 
+// WithStream sets the actual stream of log driver.
 func WithStream(stream Client) LoggerOpt {
 	return func(l *Logger) {
 		l.Stream = stream
+	}
+}
+
+// WithBufferSizeInBytes sets the buffer size of log driver.
+func WithBufferSizeInBytes(size int) LoggerOpt {
+	return func(l *Logger) {
+		l.bufferSizeInBytes = size
+	}
+}
+
+// WithMaxReadBytes sets how many bytes will be read from container
+// pipe per iteration.
+func WithMaxReadBytes(size int) LoggerOpt {
+	return func(l *Logger) {
+		l.maxReadBytes = size
 	}
 }
