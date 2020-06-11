@@ -15,6 +15,7 @@ package logger
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"sync"
@@ -90,27 +91,33 @@ func newLoggerBuffer(maxBufferSize int) *logBuffer {
 }
 
 // Start starts the non-blocking mode logger.
-func (bl *bufferedLogger) Start(uid int, gid int, cleanupTime *time.Duration, ready func() error) error {
-	var wg sync.WaitGroup
+func (bl *bufferedLogger) Start(
+	ctx context.Context,
+	uid int,
+	gid int,
+	cleanupTime *time.Duration,
+	ready func() error,
+) error {
 	stdout, stderr := bl.l.GetPipes()
-	if stdout != nil {
-		wg.Add(1)
-		debug.SendEventsToJournal(DaemonName,
-			"Starting reading from stdout pipe",
-			journal.PriInfo)
-		go bl.saveLogsToBuffer(stdout, &wg, sourceSTDOUT, uid, gid)
+	if stdout == nil || stderr == nil {
+		return errors.New("no stdout/stderr pipe opened")
 	}
-	if stderr != nil {
-		wg.Add(1)
-		debug.SendEventsToJournal(DaemonName,
-			"Starting reading from stderr pipe",
-			journal.PriInfo)
-		go bl.saveLogsToBuffer(stderr, &wg, sourceSTDERR, uid, gid)
-	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	debug.SendEventsToJournal(DaemonName,
+		"Starting reading from stdout pipe",
+		journal.PriInfo, 0)
+	go bl.saveLogsToBuffer(stdout, &wg, sourceSTDOUT, uid, gid)
+
+	wg.Add(1)
+	debug.SendEventsToJournal(DaemonName,
+		"Starting reading from stderr pipe",
+		journal.PriInfo, 0)
+	go bl.saveLogsToBuffer(stderr, &wg, sourceSTDERR, uid, gid)
 
 	// Signal that the container is ready to be started
 	if err := ready(); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
 		return errors.Wrap(err, "failed to notify container ready status to containerd")
 	}
 
@@ -121,7 +128,7 @@ func (bl *bufferedLogger) Start(uid int, gid int, cleanupTime *time.Duration, re
 	wg.Wait()
 	debug.SendEventsToJournal(DaemonName,
 		"All logs saved to buffer has been sent to destination",
-		journal.PriInfo)
+		journal.PriInfo, 1)
 
 	return nil
 }
@@ -134,7 +141,7 @@ func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, sour
 	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
 	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
 	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 		return
 	}
 
@@ -145,17 +152,17 @@ func (bl *bufferedLogger) saveLogsToBuffer(f io.Reader, wg *sync.WaitGroup, sour
 	for scanner.Scan() {
 		if len(scanner.Text()) == 0 {
 			debug.SendEventsToJournal(DaemonName,
-				"Message is empty, skip saving", journal.PriInfo)
+				"Message is empty, skip saving", journal.PriInfo, 0)
 			continue
 		}
 		if err := bl.read(scanner, source); err != nil {
-			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 			return
 		}
 	}
 
 	// No messages in the pipe, send signal to closed pipe channel
-	debug.SendEventsToJournal(DaemonName, "Pipe closed", journal.PriInfo)
+	debug.SendEventsToJournal(DaemonName, "Pipe closed", journal.PriInfo, 1)
 	bl.closedPipes <- true
 }
 
@@ -167,10 +174,10 @@ func (bl *bufferedLogger) read(s *bufio.Scanner, source string) error {
 	if debug.Verbose {
 		debug.SendEventsToJournal(DaemonName,
 			fmt.Sprintf("[SCANNER] Scanned msg: %s", s.Text()),
-			journal.PriDebug)
+			journal.PriDebug, 0)
 		debug.SendEventsToJournal(DaemonName,
 			fmt.Sprintf("current buffer size: %d", bl.buffer.curSizeInBytes),
-			journal.PriDebug)
+			journal.PriDebug, 0)
 	}
 
 	logMsg := &msg{
@@ -195,7 +202,7 @@ func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int, cleanup
 	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
 	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
 	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 		return
 	}
 
@@ -209,21 +216,21 @@ func (bl *bufferedLogger) sendLogs(wg *sync.WaitGroup, uid int, gid int, cleanup
 			if count == 2 {
 				debug.SendEventsToJournal(DaemonName,
 					"All pipes are closed, closing buffer",
-					journal.PriInfo)
+					journal.PriInfo, 0)
 				if err := bl.flushMessages(); err != nil {
-					debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+					debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 					return
 				}
 
 				debug.SendEventsToJournal(DaemonName,
 					fmt.Sprintf("Sleeping %s for cleanning up.", cleanupTime.String()),
-					journal.PriInfo)
+					journal.PriInfo, 0)
 				time.Sleep(*cleanupTime)
 				return
 			}
 		default:
 			if err := bl.send(); err != nil {
-				debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
+				debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 				return
 			}
 		}
@@ -269,7 +276,7 @@ func (bl *bufferedLogger) LogWithRetry(line []byte, source string, logTimestamp 
 	if debug.Verbose {
 		debug.SendEventsToJournal(DaemonName,
 			fmt.Sprintf("[BUFFER] Sending message: %s", string(line)),
-			journal.PriDebug)
+			journal.PriDebug, 0)
 	}
 	return bl.l.LogWithRetry(line, source, logTimestamp)
 }
@@ -289,13 +296,13 @@ func (b *logBuffer) Enqueue(msg *msg) error {
 		if debug.Verbose {
 			debug.SendEventsToJournal(DaemonName,
 				"buffer is full/message is too long, waiting for available bytes",
-				journal.PriDebug)
+				journal.PriDebug, 0)
 			debug.SendEventsToJournal(DaemonName,
 				fmt.Sprintf("message size: %d, current buffer size: %d, max buffer size %d",
 					lineSizeInBytes,
 					b.curSizeInBytes,
 					b.maxSizeInBytes),
-				journal.PriDebug)
+				journal.PriDebug, 0)
 		}
 
 		// Wake up "Dequeue" or the other "Enqueue" go routine (called by the other pipe)
@@ -325,7 +332,7 @@ func (b *logBuffer) Dequeue() (*msg, error) {
 		if debug.Verbose {
 			debug.SendEventsToJournal(DaemonName,
 				"No messages in queue, waiting...",
-				journal.PriDebug)
+				journal.PriDebug, 0)
 		}
 		b.wait.Wait()
 	}

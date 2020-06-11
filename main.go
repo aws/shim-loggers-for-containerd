@@ -39,7 +39,7 @@ func init() {
 func main() {
 	pflag.Parse()
 	if err := run(); err != nil {
-		debug.SendEventsToJournal(logger.DaemonName, err.Error(), journal.PriErr)
+		debug.SendEventsToJournal(logger.DaemonName, err.Error(), journal.PriErr, 1)
 		os.Exit(1)
 	}
 }
@@ -51,7 +51,7 @@ func run() error {
 
 	debug.Verbose = viper.GetBool(verboseKey)
 	if debug.Verbose {
-		debug.SendEventsToJournal(logger.DaemonName, "Using verbose mode", journal.PriInfo)
+		debug.SendEventsToJournal(logger.DaemonName, "Using verbose mode", journal.PriInfo, 0)
 		// If in Verbose mode, start a goroutine to catch os signal and print stack trace
 		debug.StartStackTraceHandler()
 	}
@@ -67,7 +67,7 @@ func run() error {
 	}
 
 	logDriver := globalArgs.LogDriver
-	debug.SendEventsToJournal(logger.DaemonName, "Driver: "+logDriver, journal.PriInfo)
+	debug.SendEventsToJournal(logger.DaemonName, "Driver: "+logDriver, journal.PriInfo, 0)
 	switch logDriver {
 	case awslogsDriverName:
 		if err := runAWSLogsDriver(globalArgs); err != nil {

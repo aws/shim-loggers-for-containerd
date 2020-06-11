@@ -16,10 +16,11 @@
 package logger
 
 import (
+	"context"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"io/ioutil"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -144,13 +145,16 @@ func TestSendLogs(t *testing.T) {
 	defer os.Remove(tmpDest.Name())
 	logDestinationFileName = tmpDest.Name()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	f, err := os.Open(tmpIOSource.Name())
 	require.NoError(t, err)
 	defer f.Close()
-	go l.sendLogs(f, &wg, dummySource, -1, -1, &dummyCleanupTime)
-	wg.Wait()
+
+	var errGroup errgroup.Group
+	errGroup.Go(func() error {
+		return l.sendLogs(context.TODO(), f, dummySource, -1, -1, &dummyCleanupTime)
+	})
+	err = errGroup.Wait()
+	require.NoError(t, err)
 
 	// Make sure the new scanned log message has been written to the tmp file by sendLogs
 	// goroutine.

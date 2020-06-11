@@ -15,9 +15,9 @@ package logger
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
-	"sync"
 	"syscall"
 	"time"
 
@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/go-systemd/journal"
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -76,7 +77,7 @@ type Client interface {
 // Interface for all log drivers
 type LogDriver interface {
 	// Start functions starts sending container logs to destination.
-	Start(int, int, *time.Duration, func() error) error
+	Start(context.Context, int, int, *time.Duration, func() error) error
 	// GetPipes gets pipes of container that exposed by containerd.
 	GetPipes() (io.Reader, io.Reader)
 	// LogWithRetry sends logs to destination with retry.
@@ -116,55 +117,98 @@ func NewInfo(containerID string, containerName string, options ...InfoOpt) *dock
 }
 
 // Start starts the actual logger.
-func (l *Logger) Start(uid int, gid int, cleanupTime *time.Duration, ready func() error) error {
-	var wg sync.WaitGroup
-	if l.Stdout != nil {
-		wg.Add(1)
-		go l.sendLogs(l.Stdout, &wg, sourceSTDOUT, uid, gid, cleanupTime)
+func (l *Logger) Start(
+	ctx context.Context,
+	uid int,
+	gid int,
+	cleanupTime *time.Duration,
+	ready func() error,
+) error {
+	if l.Stdout == nil || l.Stderr == nil {
+		return errors.New("no stdout/stderr pipe opened")
 	}
-	if l.Stderr != nil {
-		wg.Add(1)
-		go l.sendLogs(l.Stderr, &wg, sourceSTDERR, uid, gid, cleanupTime)
-	}
+
+	errGroup, ctx := errgroup.WithContext(ctx)
+	errGroup.Go(func() error {
+		err := l.sendLogs(ctx, l.Stdout, sourceSTDOUT, uid, gid, cleanupTime)
+		if err != nil {
+			stdoutErr := errors.Wrapf(err, "failed to send logs from pipe %s", sourceSTDOUT)
+			debug.SendEventsToJournal(DaemonName, stdoutErr.Error(), journal.PriErr, 1)
+			return stdoutErr
+		}
+		return nil
+	})
+	errGroup.Go(func() error {
+		err := l.sendLogs(ctx, l.Stderr, sourceSTDERR, uid, gid, cleanupTime)
+		if err != nil {
+			stderrErr := errors.Wrapf(err, "failed to send logs from pipe %s", sourceSTDERR)
+			debug.SendEventsToJournal(DaemonName, stderrErr.Error(), journal.PriErr, 1)
+			return stderrErr
+		}
+		return nil
+	})
 
 	// Signal that the container is ready to be started
 	if err := ready(); err != nil {
 		return errors.Wrap(err, "failed to check container ready status")
 	}
-	wg.Wait()
 
-	return nil
+	// Wait() will return the first error it receives.
+	return errGroup.Wait()
 }
 
 // sendLogs sends logs to destination.
-func (l *Logger) sendLogs(f io.Reader, wg *sync.WaitGroup, source string, uid int, gid int, cleanupTime *time.Duration) {
-	defer wg.Done()
-
+func (l *Logger) sendLogs(
+	ctx context.Context,
+	f io.Reader,
+	source string,
+	uid int, gid int,
+	cleanupTime *time.Duration,
+) error {
 	// Set uid and/or gid for this goroutine. Currently the Setuid/SetGID syscall does not
 	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
 	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
 	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
-		return
+		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+		return err
 	}
 
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
-	for scanner.Scan() {
-		if len(scanner.Text()) == 0 {
+	for {
+		select {
+		case <-ctx.Done():
 			debug.SendEventsToJournal(DaemonName,
-				"Message is empty, skip saving", journal.PriInfo)
-			continue
-		}
-		if err := l.read(scanner, source); err != nil {
-			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr)
-			return
+				fmt.Sprintf("context canceled in pipe %s", source),
+				journal.PriDebug,
+				1)
+			return nil
+		default:
+			if scanner.Scan() {
+				if len(scanner.Text()) == 0 {
+					debug.SendEventsToJournal(DaemonName,
+						"Message is empty, skip saving", journal.PriInfo, 0)
+					continue
+				}
+				if err := l.read(scanner, source); err != nil {
+					debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+					return err
+				}
+			}
+			if scanner.Err() != nil {
+				err := errors.Wrapf(scanner.Err(), "failed to scan logs from %s pipe", source)
+				debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+				return err
+			}
+
+			debug.SendEventsToJournal(DaemonName,
+				fmt.Sprintf("Pipe %s is closed. Sleeping %s for cleanning up.", source, cleanupTime.String()),
+				journal.PriInfo,
+				0)
+			time.Sleep(*cleanupTime)
+			return nil
 		}
 	}
-	debug.SendEventsToJournal(DaemonName,
-		fmt.Sprintf("Pipe is closed. Sleeping %s for cleanning up.", cleanupTime.String()),
-		journal.PriInfo)
-	time.Sleep(*cleanupTime)
 }
 
 // read gets container logs and sends to destination.
@@ -178,7 +222,7 @@ func (l *Logger) read(s *bufio.Scanner, source string) error {
 	if debug.Verbose {
 		debug.SendEventsToJournal(l.Info.ContainerID,
 			fmt.Sprintf("[SCANNER] Scanned message: %s", s.Text()),
-			journal.PriDebug)
+			journal.PriDebug, 0)
 	}
 	// Send logs to destination with underlying log driver
 	err := l.LogWithRetry(s.Bytes(), source, time.Now())
@@ -274,7 +318,7 @@ func setUID(id int) error {
 	}
 	debug.SendEventsToJournal(DaemonName,
 		fmt.Sprintf("Set uid: %d", u),
-		journal.PriInfo)
+		journal.PriInfo, 1)
 
 	return nil
 }
@@ -292,7 +336,7 @@ func setGID(id int) error {
 	}
 	debug.SendEventsToJournal(DaemonName,
 		fmt.Sprintf("Set gid %d", g),
-		journal.PriInfo)
+		journal.PriInfo, 1)
 
 	return nil
 }

@@ -31,14 +31,16 @@ const (
 var (
 	// When this set to true, logger will print more events for debugging
 	Verbose = false
+	LoggerErr error
 )
 
 // This is a temporary solution for logging the shim-loggers-for-containerd package itself. We directly
 // send the events to system journal and they are identified by the package name. Since this process is
 // started by containerd, we can check the logs using `journalctl -u containerd.service`.
-func SendEventsToJournal(syslogIdentifier string, msg string, msgType journal.Priority) {
+func SendEventsToJournal(syslogIdentifier string, msg string, msgType journal.Priority, delaySeconds time.Duration) {
 	vars := map[string]string{"SYSLOG_IDENTIFIER": syslogIdentifier}
 	journal.Send(msg, msgType, vars) //nolint:errcheck
+	time.Sleep(delaySeconds * time.Second)
 }
 
 // StartStackTraceHandler is used when the process catches signals, we will print the stack trace and write
@@ -55,9 +57,15 @@ func StartStackTraceHandler() {
 				"\n====== STACKTRACE ======\n%v\n%s\n====== /STACKTRACE ======\n",
 				time.Now(),
 				stackDump,
-			), journal.PriDebug)
+			), journal.PriDebug, 2)
 		}
 
 		os.Exit(1)
 	}()
+}
+
+func DeferFuncForRunLogDriver() {
+	if LoggerErr != nil {
+		SendEventsToJournal(daemonName, LoggerErr.Error(), journal.PriErr, 1)
+	}
 }
