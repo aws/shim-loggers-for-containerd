@@ -16,20 +16,17 @@
 package logger
 
 import (
+	"bytes"
 	"context"
-	"fmt"
-	"golang.org/x/sync/errgroup"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
-	mock_logger "github.com/aws/shim-loggers-for-containerd/logger/mocks"
-
 	dockerlogger "github.com/docker/docker/daemon/logger"
-	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -73,94 +70,91 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 	return nil
 }
 
-// TestLogWithRetry tests function LogWithRetry does not retry on success or retries
-// on error.
-func TestLogWithRetry(t *testing.T) {
-	t.Run("DoesNotRetry", testLogWithRetryDoesNotRetry)
-	t.Run("WithError", testLogWithRetryWithError)
-}
-
-// testLogWithRetryDoesNotRetry tests LogWithRetry function did not retry on no error
-// returned from Log function.
-func testLogWithRetryDoesNotRetry(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockStream := mock_logger.NewMockclient(ctrl)
-	l := &Logger{
-		Info:   &dockerlogger.Info{},
-		Stream: mockStream,
-	}
-	mockStream.EXPECT().Log(gomock.Any()).Return(nil).Times(1)
-	err := l.LogWithRetry(dummyLogMsg, dummySource, dummyTime)
-	require.NoError(t, err)
-}
-
-// testLogWithRetryWithError tests LogWithRetry function retries on error returned from
-// Log function.
-func testLogWithRetryWithError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockStream := mock_logger.NewMockclient(ctrl)
-	l := &Logger{
-		Info:   &dockerlogger.Info{},
-		Stream: mockStream,
-	}
-	mockStream.EXPECT().Log(gomock.Any()).Return(errors.New(testErrMsg)).Times(maxRetries)
-	expectErrMsg := fmt.Sprintf("sending container logs to destination has been retried for %d times: %s",
-		maxRetries, testErrMsg)
-	err := l.LogWithRetry(dummyLogMsg, dummySource, dummyTime)
-	require.Error(t, err)
-	require.Contains(t, expectErrMsg, err.Error())
-}
-
 // TestSendLogs tests sendLogs goroutine that gets log message from mock io pipe and sends
 // to mock destination. In this test case, the source and destination are both tmp files that
 // read from and write to inside the customized Log function.
 func TestSendLogs(t *testing.T) {
-	l := &Logger{
-		Info:   &dockerlogger.Info{},
-		Stream: &dummyClient{},
+
+	for _, tc := range []struct {
+		testName           string
+		bufferSizeInBytes  int
+		maxReadBytes       int
+		logMessages        []string
+		expectedNumOfLines int
+	}{
+		{
+			testName:          "general case",
+			bufferSizeInBytes: 100,
+			maxReadBytes:      80, // Larger than the sum of sizes of two log messages.
+			logMessages: []string{
+				"First line to write",
+				"Second line to write",
+			},
+			expectedNumOfLines: 2,
+		},
+		{
+			testName:          "long log message",
+			bufferSizeInBytes: 8,
+			maxReadBytes:      4,
+			logMessages: []string{
+				"First line to write", // Larger than buffer size.
+			},
+			expectedNumOfLines: 2, // Should be split to 2 lines in destination.
+		},
+		{
+			testName:          "partial log message",
+			bufferSizeInBytes: 100,
+			maxReadBytes:      4,
+			logMessages: []string{
+				"First line to write", // Larger than maximum allowed read bytes from pipe.
+				"Second line to write",
+			},
+			expectedNumOfLines: 2, // Should still be 2 lines in destination.
+		},
+	} {
+		t.Run(tc.testName, func(t *testing.T) {
+			l := &Logger{
+				Info:              &dockerlogger.Info{},
+				Stream:            &dummyClient{},
+				bufferSizeInBytes: tc.bufferSizeInBytes,
+				maxReadBytes:      tc.maxReadBytes,
+			}
+			// Create a tmp file that used to mock the io pipe where the logger reads log
+			// messages from.
+			tmpIOSource, err := ioutil.TempFile("", "")
+			require.NoError(t, err)
+			defer os.Remove(tmpIOSource.Name())
+			var (
+				expectedSize int64
+				testPipe     bytes.Buffer
+			)
+			for _, logMessage := range tc.logMessages {
+				expectedSize += int64(len([]rune(logMessage)))
+				_, err := testPipe.WriteString(logMessage)
+				require.NoError(t, err)
+			}
+
+			// Create a tmp file that used to inside customized dummy Log function where the
+			// logger sends log messages to.
+			tmpDest, err := ioutil.TempFile(os.TempDir(), "")
+			require.NoError(t, err)
+			defer os.Remove(tmpDest.Name())
+			logDestinationFileName = tmpDest.Name()
+
+			var errGroup errgroup.Group
+			errGroup.Go(func() error {
+				return l.sendLogs(context.TODO(), &testPipe, dummySource, -1, -1, &dummyCleanupTime)
+			})
+			err = errGroup.Wait()
+			require.NoError(t, err)
+
+			// Make sure the new scanned log message has been written to the tmp file by sendLogs
+			// goroutine.
+			logDestinationInfo, err := os.Stat(logDestinationFileName)
+			require.NoError(t, err)
+			require.Equal(t, expectedSize, logDestinationInfo.Size())
+		})
 	}
-	// Create a tmp file that used to mock the io pipe where the logger reads log
-	// messages from.
-	tmpIOSource, err := ioutil.TempFile("", "")
-	require.NoError(t, err)
-	defer os.Remove(tmpIOSource.Name())
-	var expectedSize int64
-	lines := []string{
-		"First line to write",
-		"Second line to write",
-	}
-	for _, line := range lines {
-		expectedSize += int64(len(line))
-		tmpIOSource.WriteString(line)
-	}
-
-	// Create a tmp file that used to inside customized dummy Log function where the
-	// logger sends log messages to.
-	tmpDest, err := ioutil.TempFile(os.TempDir(), "")
-	require.NoError(t, err)
-	defer os.Remove(tmpDest.Name())
-	logDestinationFileName = tmpDest.Name()
-
-	f, err := os.Open(tmpIOSource.Name())
-	require.NoError(t, err)
-	defer f.Close()
-
-	var errGroup errgroup.Group
-	errGroup.Go(func() error {
-		return l.sendLogs(context.TODO(), f, dummySource, -1, -1, &dummyCleanupTime)
-	})
-	err = errGroup.Wait()
-	require.NoError(t, err)
-
-	// Make sure the new scanned log message has been written to the tmp file by sendLogs
-	// goroutine.
-	logDestinationInfo, err := os.Stat(logDestinationFileName)
-	require.NoError(t, err)
-	require.Equal(t, expectedSize, logDestinationInfo.Size())
 }
 
 // TestNewInfo tests if NewInfo function creates logger info correctly.
