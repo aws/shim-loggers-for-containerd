@@ -410,7 +410,7 @@ func (l *Logger) Log(line []byte, source string, logTimestamp time.Time) error {
 // newMessage creates a new logger message.
 func newMessage(line []byte, source string, logTimestamp time.Time) *dockerlogger.Message {
 	msg := dockerlogger.NewMessage()
-	msg.Line = line
+	msg.Line = append(msg.Line, line...)
 	msg.Source = source
 	msg.Timestamp = logTimestamp
 
