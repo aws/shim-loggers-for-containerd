@@ -66,6 +66,14 @@ type GlobalArgs struct {
 	CleanupTime   *time.Duration
 }
 
+// Optional docker config arguments
+type DockerConfigs struct {
+	ContainerImageID 	string
+	ContainerImageName  string
+	ContainerEnv        []string
+	ContainerLabels     map[string]string
+}
+
 // Basic Logger struct for all log drivers
 type Logger struct {
 	Info   *dockerlogger.Info
@@ -128,6 +136,15 @@ func NewInfo(containerID string, containerName string, options ...InfoOpt) *dock
 		opt(info)
 	}
 
+	return info
+}
+
+// UpdateDockerConfigs updates the docker config fields to the logger info.
+func UpdateDockerConfigs(info *dockerlogger.Info, dockerConfigs *DockerConfigs) *dockerlogger.Info {
+	info.ContainerImageName = dockerConfigs.ContainerImageName
+	info.ContainerImageID = dockerConfigs.ContainerImageID
+	info.ContainerLabels = dockerConfigs.ContainerLabels
+	info.ContainerEnv = dockerConfigs.ContainerEnv
 	return info
 }
 

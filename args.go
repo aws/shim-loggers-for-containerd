@@ -14,6 +14,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -76,6 +77,43 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 		UID:           viper.GetInt(uidKey),
 		GID:           viper.GetInt(gidKey),
 		CleanupTime:   cleanupTime,
+	}
+
+	return args, nil
+}
+
+// getDockerConfigs gets the optional docker config variables
+func getDockerConfigs() (*logger.DockerConfigs, error) {
+	containerLabelsString := viper.GetString(ContainerLabelsKey)
+	containerLabels := make(map[string]string)
+	if containerLabelsString != "" {
+		err := json.Unmarshal([]byte(containerLabelsString), &containerLabels)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	containerEnvString := viper.GetString(ContainerEnvKey)
+	containerEnv := make([]string, 0)
+	if containerEnvString != "" {
+		containerEnvMap := make(map[string]string)
+		err := json.Unmarshal([]byte(containerEnvString), &containerEnvMap)
+		if err != nil {
+			return nil, err
+		}
+		// Docker logging use a slice to store the environment variables
+		// Each item is in the format of "key=value"
+		// ref: https://github.com/moby/moby/blob/c833222d54c00d64a0fc44c561a5973ecd414053/daemon/logger/loginfo.go#L60
+		for envKey, envVal := range containerEnvMap {
+			containerEnv = append(containerEnv, envKey+"="+envVal)
+		}
+	}
+
+	args := &logger.DockerConfigs{
+		ContainerImageID:   viper.GetString(ContainerImageIDKey),
+		ContainerImageName: viper.GetString(ContainerImageNameKey),
+		ContainerEnv:       containerEnv,
+		ContainerLabels:    containerLabels,
 	}
 
 	return args, nil

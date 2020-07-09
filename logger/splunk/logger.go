@@ -75,13 +75,15 @@ type Args struct {
 // LoggerArgs stores global logger args and splunk specific args
 type LoggerArgs struct {
 	globalArgs *logger.GlobalArgs
+	dockerConfigs *logger.DockerConfigs
 	args       *Args
 }
 
 // InitLogger initialize the input arguments
-func InitLogger(globalArgs *logger.GlobalArgs, splunkArgs *Args) *LoggerArgs {
+func InitLogger(globalArgs *logger.GlobalArgs, dockerConfigs *logger.DockerConfigs, splunkArgs *Args) *LoggerArgs {
 	return &LoggerArgs{
 		globalArgs: globalArgs,
+		dockerConfigs: dockerConfigs,
 		args:       splunkArgs,
 	}
 }
@@ -96,6 +98,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		la.globalArgs.ContainerName,
 		logger.WithConfig(loggerConfig),
 	)
+	info = logger.UpdateDockerConfigs(info, la.dockerConfigs)
+
 	stream, err := dockersplunk.New(*info)
 	if err != nil {
 		debug.LoggerErr = errors.Wrap(err, "unable to create stream")

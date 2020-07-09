@@ -54,7 +54,10 @@ The following list of arguments apply to all of the shim logger binaries in this
 | uid | No | Set a custom uid for the shim logger process. `0` is not supported. |
 | gid | No | Set a custom gid for the shim logger process. `0` is not supported. |
 | cleanup-time | No | Set a custom time for the shim logger process clean up itself. Set to `5s` (5 seconds) by default. Note the maximum supported value is 12 seconds, since containerd shim sets shim logger cleanup timeout value as 12 seconds. See [reference](https://github.com/containerd/containerd/commit/0dc7c8595627e38ca2b83d17a062b51f384c2025). |
-
+| container-image-id | No | The container image id. This is part of the docker config variables that can be logged by splunk log driver. |
+| container-image-name | No | The container image name. This is part of the docker config variables that can be logged by splunk log driver. |
+| container-env | No | The container environment variables map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
+| container-labels | No | The container labels map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
 
 ### Additional log driver options
 #### Amazon CloudWatch Logs
