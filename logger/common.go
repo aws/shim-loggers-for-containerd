@@ -68,10 +68,10 @@ type GlobalArgs struct {
 
 // Optional docker config arguments
 type DockerConfigs struct {
-	ContainerImageID 	string
-	ContainerImageName  string
-	ContainerEnv        []string
-	ContainerLabels     map[string]string
+	ContainerImageID   string
+	ContainerImageName string
+	ContainerEnv       []string
+	ContainerLabels    map[string]string
 }
 
 // Basic Logger struct for all log drivers

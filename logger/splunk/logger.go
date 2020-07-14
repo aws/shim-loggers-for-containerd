@@ -74,17 +74,17 @@ type Args struct {
 
 // LoggerArgs stores global logger args and splunk specific args
 type LoggerArgs struct {
-	globalArgs *logger.GlobalArgs
+	globalArgs    *logger.GlobalArgs
 	dockerConfigs *logger.DockerConfigs
-	args       *Args
+	args          *Args
 }
 
 // InitLogger initialize the input arguments
 func InitLogger(globalArgs *logger.GlobalArgs, dockerConfigs *logger.DockerConfigs, splunkArgs *Args) *LoggerArgs {
 	return &LoggerArgs{
-		globalArgs: globalArgs,
+		globalArgs:    globalArgs,
 		dockerConfigs: dockerConfigs,
-		args:       splunkArgs,
+		args:          splunkArgs,
 	}
 }
 
