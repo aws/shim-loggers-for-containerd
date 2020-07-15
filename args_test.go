@@ -32,8 +32,8 @@ const (
 	testContainerName = "test-container-name"
 	testLogDriver     = "test-log-driver"
 
-	testContainerImageName = "test-contaienr-image-name"
-	testContainerImageID   = "test-contaienr-image-id"
+	testContainerImageName = "test-container-image-name"
+	testContainerImageID   = "test-container-image-id"
 	testContainerLabels    = "{\"label0\":\"labelValue0\",\"label1\":\"labelValue1\"}"
 	testContainerEnv       = "{\"env0\":\"envValue0\",\"env1\":\"envValue1\"}"
 )
@@ -258,7 +258,7 @@ func TestGetDockerConfigs(t *testing.T) {
 	t.Run("WithError", testGetDockerConfigsWithError)
 }
 
-// testGetDockerConfigsNoError tests that the correctly formated input can be parsed without error
+// testGetDockerConfigsNoError tests that the correctly formatted input can be parsed without error
 func testGetDockerConfigsNoError(t *testing.T) {
 	defer viper.Reset()
 
@@ -269,11 +269,11 @@ func testGetDockerConfigsNoError(t *testing.T) {
 
 	args, err := getDockerConfigs()
 	require.NoError(t, err)
-	assert.Equal(t, args.ContainerImageName, testContainerImageName)
-	assert.Equal(t, args.ContainerImageID, testContainerImageID)
+	assert.Equal(t, testContainerImageName, args.ContainerImageName)
+	assert.Equal(t, testContainerImageID, args.ContainerImageID)
 	assert.Equal(t, true, reflect.DeepEqual(args.ContainerLabels, testContainerLabelsMap))
 	for i := range args.ContainerEnv {
-		assert.Equal(t, args.ContainerEnv[i], testContainerEnvSlice[i])
+		assert.Equal(t, testContainerEnvSlice[i], args.ContainerEnv[i])
 	}
 }
 
