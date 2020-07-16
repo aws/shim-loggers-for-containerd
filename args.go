@@ -109,6 +109,8 @@ func getDockerConfigs() (*logger.DockerConfigs, error) {
 		}
 	}
 
+	// Docker config variables are optional
+	// If no docker config variables are passed to shim logger, we will use empty values for them.
 	args := &logger.DockerConfigs{
 		ContainerImageID:   viper.GetString(ContainerImageIDKey),
 		ContainerImageName: viper.GetString(ContainerImageNameKey),

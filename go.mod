@@ -35,3 +35,5 @@ require (
 	google.golang.org/grpc v1.26.0 // indirect
 	gotest.tools v2.2.0+incompatible
 )
+
+go 1.13
