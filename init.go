@@ -17,7 +17,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
-
 	"github.com/spf13/pflag"
 )
 
@@ -45,6 +44,12 @@ const (
 
 	// cleanup time option
 	cleanupTimeKey = "cleanup-time"
+
+	// docker config options
+	ContainerImageIDKey   = "container-image-id"
+	ContainerImageNameKey = "container-image-name"
+	ContainerEnvKey       = "container-env"
+	ContainerLabelsKey    = "container-labels"
 )
 
 // initCommonLogOpts initialize common options that get used by any log drivers
@@ -69,6 +74,14 @@ func initCommonLogOpts() {
 
 	// cleanup time option
 	pflag.String(cleanupTimeKey, "5s", "Cleanup time after pipes are closed, default to 5 seconds")
+}
+
+// initDockerConfigOpts initialize the docker configuration variables for the container
+func initDockerConfigOpts() {
+	pflag.String(ContainerImageIDKey, "", "Image id of the container")
+	pflag.String(ContainerImageNameKey, "", "Image name of the container")
+	pflag.String(ContainerEnvKey, "", "Environment variables of the container")
+	pflag.String(ContainerLabelsKey, "", "Labels of the container")
 }
 
 // initAWSLogsOpts initialize awslogs driver specified options

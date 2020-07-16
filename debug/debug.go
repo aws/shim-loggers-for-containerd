@@ -30,7 +30,7 @@ const (
 
 var (
 	// When this set to true, logger will print more events for debugging
-	Verbose = false
+	Verbose   = false
 	LoggerErr error
 )
 

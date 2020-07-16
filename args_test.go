@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"testing"
 	"time"
 
@@ -30,6 +31,23 @@ const (
 	testContainerID   = "test-container-id"
 	testContainerName = "test-container-name"
 	testLogDriver     = "test-log-driver"
+
+	testContainerImageName = "test-container-image-name"
+	testContainerImageID   = "test-container-image-id"
+	testContainerLabels    = "{\"label0\":\"labelValue0\",\"label1\":\"labelValue1\"}"
+	testContainerEnv       = "{\"env0\":\"envValue0\",\"env1\":\"envValue1\"}"
+)
+
+var (
+	testContainerLabelsMap = map[string]string{
+		"label0": "labelValue0",
+		"label1": "labelValue1",
+	}
+
+	testContainerEnvSlice = [2]string{
+		"env0=envValue0",
+		"env1=envValue1",
+	}
 )
 
 // TestGetGlobalArgs tests getGlobalArgs with/without correct settings of
@@ -231,4 +249,49 @@ func testGetCleanupTimeWithError(t *testing.T) {
 		_, err := getCleanupTime()
 		require.Error(t, err)
 	}
+}
+
+// TestGetDockerConfigs tests that we can correctly get the docker config input parameters
+func TestGetDockerConfigs(t *testing.T) {
+	t.Run("NoError", testGetDockerConfigsNoError)
+	t.Run("Empty", testGetDockerConfigsEmpty)
+	t.Run("WithError", testGetDockerConfigsWithError)
+}
+
+// testGetDockerConfigsNoError tests that the correctly formatted input can be parsed without error
+func testGetDockerConfigsNoError(t *testing.T) {
+	defer viper.Reset()
+
+	viper.Set(ContainerImageNameKey, testContainerImageName)
+	viper.Set(ContainerImageIDKey, testContainerImageID)
+	viper.Set(ContainerLabelsKey, testContainerLabels)
+	viper.Set(ContainerEnvKey, testContainerEnv)
+
+	args, err := getDockerConfigs()
+	require.NoError(t, err)
+	assert.Equal(t, testContainerImageName, args.ContainerImageName)
+	assert.Equal(t, testContainerImageID, args.ContainerImageID)
+	assert.Equal(t, true, reflect.DeepEqual(args.ContainerLabels, testContainerLabelsMap))
+	for i := range args.ContainerEnv {
+		assert.Equal(t, testContainerEnvSlice[i], args.ContainerEnv[i])
+	}
+}
+
+// testGetDockerConfigsEmpty tests that empty docker config input parameter generates no error
+func testGetDockerConfigsEmpty(t *testing.T) {
+	defer viper.Reset()
+
+	_, err := getDockerConfigs()
+	require.NoError(t, err)
+}
+
+// testGetDockerConfigsWithError tests that malformat docker config results in an error
+func testGetDockerConfigsWithError(t *testing.T) {
+	defer viper.Reset()
+	testCaseWithError := "{invalidJsonMap"
+
+	viper.Set(ContainerLabelsKey, testCaseWithError)
+	viper.Set(ContainerEnvKey, testCaseWithError)
+	_, err := getDockerConfigs()
+	require.Error(t, err)
 }

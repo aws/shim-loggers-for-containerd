@@ -31,6 +31,7 @@ import (
 
 func init() {
 	initCommonLogOpts()
+	initDockerConfigOpts()
 	initAWSLogsOpts()
 	initFluentdOpts()
 	initSplunkOpts()
@@ -104,11 +105,17 @@ func runFluentdDriver(globalArgs *logger.GlobalArgs) {
 }
 
 func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
+	dockerConfigs, err := getDockerConfigs()
+	if err != nil {
+		return errors.Wrap(err, "unable to get docker config arguments")
+	}
+
 	args, err := getSplunkArgs()
 	if err != nil {
 		return errors.Wrap(err, "unable to get splunk specified arguments")
 	}
-	loggerArgs := splunk.InitLogger(globalArgs, args)
+
+	loggerArgs := splunk.InitLogger(globalArgs, dockerConfigs, args)
 	logging.Run(loggerArgs.RunLogDriver)
 
 	return nil
