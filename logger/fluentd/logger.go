@@ -85,7 +85,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
 		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo, 0)
-		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize)
+		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start fluentd driver
