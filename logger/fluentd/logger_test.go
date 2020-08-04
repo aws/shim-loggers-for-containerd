@@ -22,24 +22,27 @@ import (
 )
 
 const (
-	testAddress      = "testAddress"
-	testAsyncConnect = "false"
-	testTag          = "testTag"
+	testAddress            = "testAddress"
+	testAsyncConnect       = "false"
+	testTag                = "testTag"
+	testSubsecondPrecision = "true"
 )
 
 var (
 	args = &Args{
-		Address:      testAddress,
-		AsyncConnect: testAsyncConnect,
-		Tag:          testTag,
+		Address:            testAddress,
+		AsyncConnect:       testAsyncConnect,
+		SubsecondPrecision: testSubsecondPrecision,
+		Tag:                testTag,
 	}
 )
 
 func TestGetFluentdConfig(t *testing.T) {
 	expectedConfig := map[string]string{
-		AddressKey:      testAddress,
-		AsyncConnectKey: testAsyncConnect,
-		tagKey:          testTag,
+		AddressKey:            testAddress,
+		AsyncConnectKey:       testAsyncConnect,
+		SubsecondPrecisionKey: testSubsecondPrecision,
+		tagKey:                testTag,
 	}
 
 	config := getFluentdConfig(args)
