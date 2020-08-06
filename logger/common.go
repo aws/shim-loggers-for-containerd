@@ -100,9 +100,13 @@ type LogDriver interface {
 	// Start functions starts sending container logs to destination.
 	Start(context.Context, int, int, *time.Duration, func() error) error
 	// GetPipes gets pipes of container that exposed by containerd.
-	GetPipes() (io.Reader, io.Reader)
+	GetPipes() (map[string]io.Reader, error)
 	// Log sends logs to destination.
 	Log([]byte, string, time.Time) error
+	// Read reads a single log message from container pipe and sends it to
+	// destination or saves it to ring buffer, depending on the mode of log
+	// driver.
+	Read(context.Context, io.Reader, string, int, sendLogToDestFunc) error
 }
 
 // NewLogger creates a LogDriver with the provided LoggerOpt
@@ -156,12 +160,9 @@ func (l *Logger) Start(
 	cleanupTime *time.Duration,
 	ready func() error,
 ) error {
-	if l.Stdout == nil || l.Stderr == nil {
-		return errors.New("no stdout/stderr pipe opened")
-	}
-	pipeNameToPipe := map[string]io.Reader{
-		sourceSTDOUT: l.Stdout,
-		sourceSTDERR: l.Stderr,
+	pipeNameToPipe, err := l.GetPipes()
+	if err != nil {
+		return err
 	}
 
 	errGroup, ctx := errgroup.WithContext(ctx)
@@ -206,7 +207,7 @@ func (l *Logger) sendLogs(
 		return err
 	}
 
-	if err := l.read(ctx, f, source); err != nil {
+	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
 		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
 		return err
@@ -222,10 +223,25 @@ func (l *Logger) sendLogs(
 	return nil
 }
 
-// read gets container logs, saves them to our own buffer. Then we will read logs line by line
-// and send them to destination. More log messages will be sent to system journal in verbose mdoe
-// for debugging.
-func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error {
+// sendLogToDestFunc is type a function that gets used in read function, which is defined by
+// the underlying logger.
+type sendLogToDestFunc func(
+	line []byte,
+	source string,
+	isFirstPartial, isPartialMsg bool,
+	partialTimestamp time.Time,
+) (error, time.Time, bool, bool)
+
+// Read gets container logs, saves them to our own buffer. Then we will read logs line by line
+// and send them to destination. In non-blocking mode, the destination is the ring buffer. More
+// log messages will be sent to system journal in verbose mode for debugging.
+func (l *Logger) Read(
+	ctx context.Context,
+	pipe io.Reader,
+	source string,
+	bufferSizeInBytes int,
+	sendLogMsgToDest sendLogToDestFunc,
+) error {
 	var (
 		partialTimestamp time.Time
 		bytesInBuffer    int
@@ -233,7 +249,7 @@ func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error 
 		eof              bool
 	)
 	// Initiate an in-memory buffer to hold bytes read from container pipe.
-	buf := make([]byte, l.bufferSizeInBytes)
+	buf := make([]byte, bufferSizeInBytes)
 	// isFirstPartial indicates if current message saved in buffer is not a complete line,
 	// and is the first partial of the whole log message. Initialize to true.
 	isFirstPartial := true
@@ -247,7 +263,7 @@ func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error 
 				journal.PriDebug, 0)
 			return nil
 		default:
-			eof, bytesInBuffer, err = l.readFromContainerPipe(pipe, buf, bytesInBuffer)
+			eof, bytesInBuffer, err = readFromContainerPipe(pipe, buf, bytesInBuffer, l.maxReadBytes)
 			if err != nil {
 				return err
 			}
@@ -263,7 +279,7 @@ func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error 
 			lenOfLine := bytes.IndexByte(buf[head:bytesInBuffer], newline)
 			for lenOfLine >= 0 {
 				curLine := buf[head : head+lenOfLine]
-				err, partialTimestamp, _, _ = l.sendLogMsgToDest(
+				err, partialTimestamp, _, _ = sendLogMsgToDest(
 					curLine,
 					source,
 					isFirstPartial,
@@ -291,7 +307,7 @@ func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error 
 				// Still bytes left in the buffer after we identified all newline symbols.
 				if head < bytesInBuffer {
 					curLine := buf[head:bytesInBuffer]
-					err, partialTimestamp, isFirstPartial, isPartialMsg = l.sendLogMsgToDest(
+					err, partialTimestamp, isFirstPartial, isPartialMsg = sendLogMsgToDest(
 						curLine,
 						source,
 						isFirstPartial,
@@ -323,13 +339,13 @@ func (l *Logger) read(ctx context.Context, pipe io.Reader, source string) error 
 }
 
 // readFromContainerPipe reads bytes from container pipe, upto max read size in bytes of 2048.
-func (l *Logger) readFromContainerPipe(pipe io.Reader, buf []byte, bytesInBuffer int) (bool, int, error) {
+func readFromContainerPipe(pipe io.Reader, buf []byte, bytesInBuffer, maxReadBytes int) (bool, int, error) {
 	// eof indicates if we have already met EOF error.
 	eof := false
 	// Decide how many bytes we can read from container pipe for this iteration. It's either
 	// the current bytes in buffer plus 2048 bytes or the available spaces left, whichever is
 	// smaller.
-	readBytesUpto := int(math.Min(float64(bytesInBuffer+l.maxReadBytes), float64(cap(buf))))
+	readBytesUpto := int(math.Min(float64(bytesInBuffer+maxReadBytes), float64(cap(buf))))
 	// Read logs from container pipe if there are available spaces for new log messages.
 	if readBytesUpto > bytesInBuffer {
 		readBytesFromPipe, err := pipe.Read(buf[bytesInBuffer:readBytesUpto])
@@ -358,10 +374,11 @@ func (l *Logger) sendLogMsgToDest(
 	isFirstPartial, isPartialMsg bool,
 	partialTimestamp time.Time,
 ) (error, time.Time, bool, bool) {
-	msgTimestamp, partialTimestamp, isFirstPartial, isPartialMsg := l.getLogTimestamp(
+	msgTimestamp, partialTimestamp, isFirstPartial, isPartialMsg := getLogTimestamp(
 		isFirstPartial,
 		isPartialMsg,
 		partialTimestamp,
+		l.Info.ContainerID,
 	)
 	if debug.Verbose {
 		debug.SendEventsToJournal(l.Info.ContainerID,
@@ -380,9 +397,10 @@ func (l *Logger) sendLogMsgToDest(
 // getLogTimestamp gets the timestamp of a log message. It could be current timestamp
 // if it's a new line, or the recorded timestamp from the first partial if it's the other partial
 // messages.
-func (l *Logger) getLogTimestamp(
+func getLogTimestamp(
 	isFirstPartial, isPartialMsg bool,
 	partialTimestamp time.Time,
+	containerID string,
 ) (time.Time, time.Time, bool, bool) {
 	msgTimestamp := time.Now().UTC()
 
@@ -392,7 +410,7 @@ func (l *Logger) getLogTimestamp(
 	if isFirstPartial {
 		partialTimestamp = msgTimestamp
 		if debug.Verbose {
-			debug.SendEventsToJournal(l.Info.ContainerID,
+			debug.SendEventsToJournal(containerID,
 				fmt.Sprintf("Saving first partial at time %s", partialTimestamp.String()),
 				journal.PriDebug, 0)
 		}
@@ -404,7 +422,7 @@ func (l *Logger) getLogTimestamp(
 		// recorded timestamp as it of the current message as well.
 		msgTimestamp = partialTimestamp
 		if debug.Verbose {
-			debug.SendEventsToJournal(l.Info.ContainerID,
+			debug.SendEventsToJournal(containerID,
 				fmt.Sprintf("Setting partial log message to time %s", msgTimestamp.String()),
 				journal.PriDebug, 0)
 		}
@@ -434,9 +452,18 @@ func newMessage(line []byte, source string, logTimestamp time.Time) *dockerlogge
 	return msg
 }
 
-// GetPipes gets pipes of container that exposed by containerd.
-func (l *Logger) GetPipes() (io.Reader, io.Reader) {
-	return l.Stdout, l.Stderr
+// GetPipes gets pipes of container and its name that exposed by containerd.
+func (l *Logger) GetPipes() (map[string]io.Reader, error) {
+	if l.Stdout == nil || l.Stderr == nil {
+		return nil, errors.New("no stdout/stderr pipe opened")
+	}
+
+	pipeNameToPipe := map[string]io.Reader{
+		sourceSTDOUT: l.Stdout,
+		sourceSTDERR: l.Stderr,
+	}
+
+	return pipeNameToPipe, nil
 }
 
 // SetUIDAndGID sets UID and/or GID for current goroutine.

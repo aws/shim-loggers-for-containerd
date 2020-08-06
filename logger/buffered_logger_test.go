@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"testing"
 
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,17 +28,17 @@ const (
 )
 
 var (
-	messages = []*msg{
-		{line: []byte("line1"), logTime: dummyTime},
-		{line: []byte("line2"), logTime: dummyTime},
-		{line: []byte("line3"), logTime: dummyTime},
-		{line: []byte("testLine4"), logTime: dummyTime},
+	messages = []*dockerlogger.Message{
+		{Line: []byte("line1"), Timestamp: dummyTime},
+		{Line: []byte("line2"), Timestamp: dummyTime},
+		{Line: []byte("line3"), Timestamp: dummyTime},
+		{Line: []byte("testLine4"), Timestamp: dummyTime},
 	}
 )
 
 // testEnqueue tests Enqueue operation without error and gets used
 // as initialization of buffer in Dequeue and Flush tests.
-func testEnqueue(t *testing.T) *logBuffer {
+func testEnqueue(t *testing.T) *ringBuffer {
 	lb := newLoggerBuffer(testBufferSize)
 	require.Equal(t, testBufferSize, lb.maxSizeInBytes)
 	require.Equal(t, 0, lb.curSizeInBytes)
@@ -47,7 +48,7 @@ func testEnqueue(t *testing.T) *logBuffer {
 		expectedCurBufferSize int
 	)
 	for _, msg := range messages {
-		expectedCurBufferSize += len(msg.line)
+		expectedCurBufferSize += len(msg.Line)
 		err = lb.Enqueue(msg)
 		require.NoError(t, err)
 	}
