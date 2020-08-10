@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	AddressKey      = "fluentd-address"
-	AsyncConnectKey = "fluentd-async-connect"
-	FluentdTagKey   = "fluentd-tag"
+	AddressKey            = "fluentd-address"
+	AsyncConnectKey       = "fluentd-async-connect"
+	FluentdTagKey         = "fluentd-tag"
+	SubsecondPrecisionKey = "fluentd-sub-second-precision"
 
 	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag"
 	// This is to distinguish between the "tag" parameter from the splunk input
@@ -38,9 +39,10 @@ const (
 // Args represents fluentd log driver arguments
 type Args struct {
 	// Optional arguments
-	Address      string
-	AsyncConnect string
-	Tag          string
+	Address            string
+	AsyncConnect       string
+	Tag                string
+	SubsecondPrecision string
 }
 
 // LoggerArgs stores global logger args and fluentd specific args
@@ -111,6 +113,7 @@ func getFluentdConfig(args *Args) map[string]string {
 	config[tagKey] = args.Tag
 	config[AddressKey] = args.Address
 	config[AsyncConnectKey] = args.AsyncConnect
+	config[SubsecondPrecisionKey] = args.SubsecondPrecision
 
 	return config
 }

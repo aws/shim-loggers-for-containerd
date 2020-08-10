@@ -159,10 +159,14 @@ func getFluentdArgs() *fluentd.Args {
 	ac := viper.GetBool(fluentd.AsyncConnectKey)
 	asyncConnect := strconv.FormatBool(ac)
 
+	precision := viper.GetBool(fluentd.SubsecondPrecisionKey)
+	subsecondPrecision := strconv.FormatBool(precision)
+
 	return &fluentd.Args{
-		Address:      address,
-		Tag:          tag,
-		AsyncConnect: asyncConnect,
+		Address:            address,
+		Tag:                tag,
+		AsyncConnect:       asyncConnect,
+		SubsecondPrecision: subsecondPrecision,
 	}
 }
 
