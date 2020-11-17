@@ -144,14 +144,6 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 	source string,
 	uid int, gid int,
 ) error {
-	// Set uid for this goroutine. Currently the Setuid syscall does not
-	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
-	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
-	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
-		return err
-	}
-
 	if err := bl.Read(ctx, f, source, defaultBufSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
 		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
@@ -213,14 +205,6 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 // sendLogMessagesToDestination consumes logs from ring buffer and use the
 // underlying log driver to send logs to destination.
 func (bl *bufferedLogger) sendLogMessagesToDestination(uid int, gid int, cleanupTime *time.Duration) error {
-	// Set uid for this goroutine. Currently the Setuid syscall does not
-	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
-	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
-	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
-		return err
-	}
-
 	// Keep sending log message to destination defined by the underlying log driver until
 	// the ring buffer is closed.
 	for !bl.buffer.isClosed {
