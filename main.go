@@ -62,7 +62,12 @@ func run() error {
 		return errors.Wrap(err, "unable to get global arguments")
 	}
 
-	// Set UID and/or GID of main goroutine if specified
+	// Set UID and/or GID of main goroutine/shim logger process if specified.
+	// If you are building with go version includes the following commit, you only need
+	// to call this once in main goroutine. Otherwise you need call this function in all
+	// goroutines to let this syscall work properly.
+	// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
+	// TODO: remove the above comment once the changes are released: https://go-review.googlesource.com/c/go/+/210639
 	if err = logger.SetUIDAndGID(globalArgs.UID, globalArgs.GID); err != nil {
 		return err
 	}

@@ -199,14 +199,6 @@ func (l *Logger) sendLogs(
 	uid int, gid int,
 	cleanupTime *time.Duration,
 ) error {
-	// Set uid and/or gid for this goroutine. Currently the Setuid/SetGID syscall does not
-	// apply on threads in golang, see issue: https://github.com/golang/go/issues/1435
-	// TODO: remove it once the changes are released: https://go-review.googlesource.com/c/go/+/210639
-	if err := SetUIDAndGID(uid, gid); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
-		return err
-	}
-
 	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
 		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
@@ -466,8 +458,11 @@ func (l *Logger) GetPipes() (map[string]io.Reader, error) {
 	return pipeNameToPipe, nil
 }
 
-// SetUIDAndGID sets UID and/or GID for current goroutine.
-// TODO: move it to main package once the changes are released: https://go-review.googlesource.com/c/go/+/210639
+// SetUIDAndGID sets UID and/or GID for current goroutine/process.
+// If you are building with go version includes the following commit, you only need to call this once. Otherwise
+// you need call this function in all goroutines.
+// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
+// TODO: remove the above comment once the changes are released: https://go-review.googlesource.com/c/go/+/210639
 func SetUIDAndGID(uid int, gid int) error {
 	// gid<0 is assumed as gid argument is not set and is directly ignored.
 	switch {
@@ -494,10 +489,14 @@ func SetUIDAndGID(uid int, gid int) error {
 	return nil
 }
 
-// setUID sets UID of current goroutine.
+// setUID sets UID of current goroutine/process.
+// If you are building with go version includes the following commit, this syscall would apply
+// to current process, otherwise it would only apply to current goroutine.
+// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
 func setUID(id int) error {
-	if _, _, errno := syscall.Syscall(syscall.SYS_SETUID, uintptr(id), 0, 0); errno != 0 {
-		return errors.Wrap(errors.New(errno.Error()), "unable to set uid")
+	err := syscall.Setuid(id)
+	if err != nil {
+		return errors.Wrap(err, "unable to set uid")
 	}
 
 	// Check if uid set correctly
@@ -512,10 +511,14 @@ func setUID(id int) error {
 	return nil
 }
 
-// setGID sets GID of current goroutine.
+// setGID sets GID of current goroutine/process.
+// If you are building with go version includes the following commit, this syscall would apply
+// to current process, otherwise it would only apply to current goroutine.
+// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
 func setGID(id int) error {
-	if _, _, errno := syscall.Syscall(syscall.SYS_SETGID, uintptr(id), 0, 0); errno != 0 {
-		return errors.Wrap(errors.New(errno.Error()), "unable to set gid")
+	err := syscall.Setgid(id)
+	if err != nil {
+		return errors.Wrap(err, "unable to set gid")
 	}
 
 	// Check if gid set correctly
