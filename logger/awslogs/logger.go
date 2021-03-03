@@ -15,12 +15,15 @@ package awslogs
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
 	"github.com/coreos/go-systemd/journal"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	dockerawslogs "github.com/docker/docker/daemon/logger/awslogs"
 	"github.com/pkg/errors"
 )
@@ -30,6 +33,7 @@ const (
 	RegionKey              = "awslogs-region"
 	GroupKey               = "awslogs-group"
 	CreateGroupKey         = "awslogs-create-group"
+	CreateStreamKey        = "awslogs-create-stream"
 	StreamKey              = "awslogs-stream"
 	MultilinePatternKey    = "awslogs-multiline-pattern"
 	DatetimeFormatKey      = "awslogs-datetime-format"
@@ -53,6 +57,7 @@ type Args struct {
 
 	// Optional arguments
 	CreateGroup      string
+	CreateStream     string
 	MultilinePattern string
 	DatetimeFormat   string
 }
@@ -81,9 +86,10 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		la.globalArgs.ContainerName,
 		logger.WithConfig(loggerConfig),
 	)
-	stream, err := dockerawslogs.New(*info)
+
+	stream, err := la.initialize(info)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "unable to create stream")
+		debug.LoggerErr = errors.Wrap(err, "failed to initialize awslogs driver")
 		return debug.LoggerErr
 	}
 
@@ -100,12 +106,13 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
-		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo, 0)
+		debug.SendEventsToJournal(logger.DaemonName, "Starting log streaming for non-blocking mode awslogs driver",
+			journal.PriInfo, 0)
 		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start awslogs driver
-	debug.SendEventsToJournal(logger.DaemonName, "Starting awslogs driver", journal.PriInfo, 0)
+	debug.SendEventsToJournal(logger.DaemonName, "Starting log streaming for awslogs driver", journal.PriInfo, 0)
 	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
 		debug.LoggerErr = errors.Wrap(err, "failed to run awslogs driver")
@@ -117,6 +124,77 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		return nil
 	}
 	debug.SendEventsToJournal(logger.DaemonName, "Logging finished", journal.PriInfo, 1)
+
+	return nil
+}
+
+// initialize creates log stream config, CloudWatch Logs client, and log stream in CloudWatch Logs
+// if specified. It also starts a routine to collect batch before container starts streaming logs.
+// It breaks down the steps in awslogs logger New function from moby:
+// https://github.com/moby/moby/blob/ad1b781e44fa1e44b9e654e5078929aec56aed66/daemon/logger/awslogs/cloudwatchlogs.go#L140
+// This is added as a work-around to make CreateLogStream API call optional.
+func (la *LoggerArgs) initialize(info *dockerlogger.Info) (*dockerawslogs.LogStream, error) {
+	containerStreamConfig, err := dockerawslogs.NewStreamConfig(*info)
+	if err != nil {
+		debug.LoggerErr = errors.Wrap(err, "unable to create CloudWatch stream config")
+		return nil, debug.LoggerErr
+	}
+
+	debug.SendEventsToJournal(logger.DaemonName, "Creating CloudWatch logs client", journal.PriInfo, 0)
+	client, err := dockerawslogs.NewAWSLogsClient(*info)
+	if err != nil {
+		debug.LoggerErr = errors.Wrap(err, "unable to create CloudWatch client for awslogs driver")
+		return nil, debug.LoggerErr
+	}
+	debug.SendEventsToJournal(logger.DaemonName, "CloudWatch logs client created", journal.PriInfo, 0)
+
+	containerStream := &dockerawslogs.LogStream{
+		LogStreamName:    containerStreamConfig.LogStreamName,
+		LogGroupName:     containerStreamConfig.LogGroupName,
+		LogCreateGroup:   containerStreamConfig.LogCreateGroup,
+		MultilinePattern: containerStreamConfig.MultilinePattern,
+		Client:           client,
+		Messages:         make(chan *dockerlogger.Message, dockerawslogs.DefaultMaxBufferedEvents),
+	}
+
+	// This channel is a required input parameter for CollectBatch function.
+	creationDone := make(chan bool)
+	err = la.createLogStream(containerStream)
+	if err != nil {
+		debug.LoggerErr = errors.Wrap(err, "unable to create CloudWatch log stream")
+		return nil, debug.LoggerErr
+	}
+	close(creationDone)
+
+	// Start collecting batches and send log events by evoking PutLogEvents API calls.
+	go containerStream.CollectBatch(creationDone)
+
+	return containerStream, nil
+}
+
+// createLogStream creates log stream in CloudWatch Logs for container if required.
+func (la *LoggerArgs) createLogStream(containerStream *dockerawslogs.LogStream) error {
+	createStream, err := strconv.ParseBool(la.args.CreateStream)
+	if err != nil {
+		debug.LoggerErr = errors.Wrap(err, "unable to parse create log stream boolean value")
+		return debug.LoggerErr
+	}
+	if !createStream {
+		debug.SendEventsToJournal(logger.DaemonName, "Skipping log stream creation", journal.PriInfo, 0)
+		return nil
+	}
+
+	debug.SendEventsToJournal(logger.DaemonName,
+		fmt.Sprintf("Creating log group %s and log stream %s",
+			containerStream.LogGroupName,
+			containerStream.LogStreamName),
+		journal.PriInfo, 0)
+	err = containerStream.Create()
+	if err != nil {
+		debug.LoggerErr = errors.Wrap(err, "unable to create stream in CloudWatch")
+		return debug.LoggerErr
+	}
+	debug.SendEventsToJournal(logger.DaemonName, "Log group and log stream created", journal.PriInfo, 0)
 
 	return nil
 }

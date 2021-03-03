@@ -3,7 +3,6 @@ module github.com/aws/shim-loggers-for-containerd
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/aws/amazon-ecs-agent v1.35.0
 	github.com/aws/aws-sdk-go v1.26.8 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/containerd/containerd v1.3.0
@@ -25,7 +24,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.4.0
@@ -35,5 +33,8 @@ require (
 	google.golang.org/grpc v1.26.0 // indirect
 	gotest.tools v2.2.0+incompatible
 )
+
+// Workaround for optionally calling create log stream API
+replace github.com/docker/docker v0.7.3-0.20190918143018-ad1b781e44fa => github.com/xia-wu/moby v17.12.0-ce-rc1.0.20210304010046-8a8fdde89542+incompatible
 
 go 1.13
