@@ -70,6 +70,7 @@ The following additional arguments are supported for the `awslogs` shim logger b
 | awslogs-region | Yes | The region name in which the log group and log stream needs to be created in.|
 | awslogs-credentials-endpoint | Yes | The endpoint from which credentials are retrieved from to connect to Amazon CloudWatch Logs.|
 | awslogs-create-group | No | Set to `false` by default. If the provided log group name does not exist and this value is set to `false`, the binary will directly exit with an error|
+| awslogs-create-stream | No | Set to `true` by default. The log stream will always be created unless this value specified to `false` explicitly.|
 | awslogs-multiline-pattern | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-multiline-pattern).|
 | awslogs-datetime-format | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-datetime-format)|
 

@@ -31,6 +31,7 @@ const (
 	GroupKey               = "awslogs-group"
 	CreateGroupKey         = "awslogs-create-group"
 	StreamKey              = "awslogs-stream"
+	CreateStreamKey        = "awslogs-create-stream"
 	MultilinePatternKey    = "awslogs-multiline-pattern"
 	DatetimeFormatKey      = "awslogs-datetime-format"
 	CredentialsEndpointKey = "awslogs-credentials-endpoint"
@@ -53,6 +54,7 @@ type Args struct {
 
 	// Optional arguments
 	CreateGroup      string
+	CreateStream     string
 	MultilinePattern string
 	DatetimeFormat   string
 }
@@ -100,12 +102,13 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
-		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo, 0)
+		debug.SendEventsToJournal(logger.DaemonName, "Starting log streaming for non-blocking mode awslogs driver",
+			journal.PriInfo, 0)
 		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start awslogs driver
-	debug.SendEventsToJournal(logger.DaemonName, "Starting awslogs driver", journal.PriInfo, 0)
+	debug.SendEventsToJournal(logger.DaemonName, "Starting log streaming for awslogs driver", journal.PriInfo, 0)
 	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
 		debug.LoggerErr = errors.Wrap(err, "failed to run awslogs driver")
@@ -133,6 +136,10 @@ func getAWSLogsConfig(args *Args) map[string]string {
 	createGroup := args.CreateGroup
 	if createGroup != "" {
 		config[CreateGroupKey] = createGroup
+	}
+	createStream := args.CreateStream
+	if createStream != "" {
+		config[CreateStreamKey] = createStream
 	}
 	multilinePattern := args.MultilinePattern
 	if multilinePattern != "" {

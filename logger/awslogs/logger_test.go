@@ -27,6 +27,7 @@ const (
 	testStream              = "test-stream"
 	testCredentialsEndpoint = "test-credential-endpoints"
 	testCreateGroup         = "true"
+	testCreateStream        = "true"
 	testMultilinePattern    = "test-multiline-pattern"
 	testDatetimeFormat      = "test-datetime-format"
 )
@@ -38,6 +39,7 @@ var (
 		Stream:              testStream,
 		CredentialsEndpoint: testCredentialsEndpoint,
 		CreateGroup:         testCreateGroup,
+		CreateStream:        testCreateStream,
 		MultilinePattern:    testMultilinePattern,
 		DatetimeFormat:      testDatetimeFormat,
 	}
@@ -52,6 +54,7 @@ func TestGetAWSLogsConfig(t *testing.T) {
 		StreamKey:              testStream,
 		CredentialsEndpointKey: testCredentialsEndpoint,
 		CreateGroupKey:         testCreateGroup,
+		CreateStreamKey:        testCreateStream,
 		MultilinePatternKey:    testMultilinePattern,
 		DatetimeFormatKey:      testDatetimeFormat,
 	}
