@@ -146,6 +146,7 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 		Stream:              stream,
 		CredentialsEndpoint: credentialsEndpoint,
 		CreateGroup:         viper.GetString(awslogs.CreateGroupKey),
+		CreateStream:        viper.GetString(awslogs.CreateStreamKey),
 		MultilinePattern:    viper.GetString(awslogs.MultilinePatternKey),
 		DatetimeFormat:      viper.GetString(awslogs.DatetimeFormatKey),
 	}, nil
