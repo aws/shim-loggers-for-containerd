@@ -28,6 +28,7 @@ import (
 	"github.com/coreos/go-systemd/journal"
 	"github.com/docker/go-units"
 	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -196,6 +197,7 @@ func getSplunkArgs() (*splunk.Args, error) {
 		Gzip:               viper.GetString(splunk.GzipKey),
 		GzipLevel:          viper.GetString(splunk.GzipLevelKey),
 		Tag:                viper.GetString(splunk.SplunkTagKey),
+		TagSpecified:       isFlagPassed(splunk.SplunkTagKey),
 		Labels:             viper.GetString(splunk.LabelsKey),
 		Env:                viper.GetString(splunk.EnvKey),
 		EnvRegex:           viper.GetString(splunk.EnvRegexKey),
@@ -274,4 +276,15 @@ func getCleanupTime() (*time.Duration, error) {
 	}
 
 	return &duration, nil
+}
+
+// isFlagPassed determines whether a flag was passed by the client.
+func isFlagPassed(name string) bool {
+	passed := false
+	pflag.Visit(func(f *pflag.Flag) {
+		if f.Name == name {
+			passed = true
+		}
+	})
+	return passed
 }

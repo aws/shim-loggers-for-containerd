@@ -18,10 +18,12 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -294,4 +296,37 @@ func testGetDockerConfigsWithError(t *testing.T) {
 	viper.Set(ContainerEnvKey, testCaseWithError)
 	_, err := getDockerConfigs()
 	require.Error(t, err)
+}
+
+// TestIsFlagPassed tests that we are correctly determining whether a flag is passed or not.
+// Do not parallelize this test (or any test which interacts with flag parsing and OS args).
+func TestIsFlagPassed(t *testing.T) {
+	t.Run("No", testIsFlagPassedNo)
+	t.Run("Yes", testIsFlagPassedYes)
+}
+
+// testIsFlagPassedNo creates a flag but doesn't pass it, and confirms that we don't interpret it to be set.
+func testIsFlagPassedNo(t *testing.T) {
+	defer func() {
+		pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
+	}()
+
+	pflag.String("test-flag", "", "test flag description")
+	pflag.Parse()
+	require.False(t, isFlagPassed("test-flag"))
+}
+
+// testIsFlagPassedYes creates a flag and mimics it being passed. Then, it confirms the flag was passed.
+func testIsFlagPassedYes(t *testing.T) {
+	defer func() {
+		os.Args = os.Args[:len(os.Args)-1]
+		pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
+	}()
+
+	testFlag := "test-flag"
+	pflag.String(testFlag, "", "test flag description")
+	// pass the flag via os.Args
+	os.Args = append(os.Args, "--"+testFlag+"=")
+	pflag.Parse()
+	require.True(t, isFlagPassed("test-flag"))
 }
