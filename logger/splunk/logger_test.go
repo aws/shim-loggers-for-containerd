@@ -33,6 +33,7 @@ const (
 	testGzip               = "true"
 	testGzipLevel          = "0"
 	testSplunkTag          = "tag"
+	testSplunkTagSpecified = true
 	testLabels             = "label0, label1"
 	testEnv                = "envVar0, envVar1"
 	testEnvRegex           = "envVar*"
@@ -53,6 +54,7 @@ var (
 		Gzip:               testGzip,
 		GzipLevel:          testGzipLevel,
 		Tag:                testSplunkTag,
+		TagSpecified:       testSplunkTagSpecified,
 		Labels:             testLabels,
 		Env:                testEnv,
 		EnvRegex:           testEnvRegex,

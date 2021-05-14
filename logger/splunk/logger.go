@@ -67,9 +67,13 @@ type Args struct {
 	Gzip               string
 	GzipLevel          string
 	Tag                string
-	Labels             string
-	Env                string
-	EnvRegex           string
+	// TagSpecified represents whether a splunk tag was specified. It is used to differentiate between the default value
+	// of the splunk tag when the flag is initialized and the client specifying the default value of the tag,
+	// as they may be the same.
+	TagSpecified bool
+	Labels       string
+	Env          string
+	EnvRegex     string
 }
 
 // LoggerArgs stores global logger args and splunk specific args
@@ -176,7 +180,7 @@ func getSplunkConfig(arg *Args) map[string]string {
 	if arg.GzipLevel != "" {
 		config[GzipLevelKey] = arg.GzipLevel
 	}
-	if arg.Tag != "" {
+	if arg.TagSpecified {
 		config[tagKey] = arg.Tag
 	}
 	if arg.Labels != "" {
