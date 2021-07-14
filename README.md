@@ -59,6 +59,14 @@ The following list of arguments apply to all of the shim logger binaries in this
 | container-env | No | The container environment variables map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
 | container-labels | No | The container labels map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
 
+### Windows specific arguments
+The following list of arguments apply to Windows shim logger binaries in this repo:
+
+|Name|Required|Description|
+|-|-|-|
+| log-file-dir | No | Only supported in Windows. Will be the path where shim logger's log files are written. By default it is `\ProgramData\Amazon\ECS\log\shim-logger`
+| proxy-variable | No | Only supported in Windows. The proxy variable will set the `HTTP_PROXY` and `HTTPS_PROXY` environment variables.
+
 ### Additional log driver options
 #### Amazon CloudWatch Logs
 The following additional arguments are supported for the `awslogs` shim logger binary, which can be used to send container logs to [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
@@ -107,4 +115,3 @@ The following additional arguments are supported for the `fluentd` shim logger b
 ## License
 
 This project is licensed under the Apache-2.0 License.
-

@@ -1,3 +1,5 @@
+// +build windows
+
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
@@ -11,23 +13,18 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-package debug
+package logger
 
-const (
-	daemonName = "shim-loggers-for-containerd"
-	INFO       = "info"
-	ERROR      = "err"
-	DEBUG      = "debug"
+import (
+	"errors"
 )
 
-var (
-	// When this set to true, logger will print more events for debugging
-	Verbose   = false
-	LoggerErr error
-)
+// UID not supported in Windows
+func setUID(id int) error {
+	return errors.New("UID not supported in Windows")
+}
 
-func DeferFuncForRunLogDriver() {
-	if LoggerErr != nil {
-		SendEventsToLog(daemonName, LoggerErr.Error(), ERROR, 1)
-	}
+// GID not supported in Windows
+func setGID(id int) error {
+	return errors.New("GID not supported in Windows")
 }

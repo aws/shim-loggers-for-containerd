@@ -17,7 +17,6 @@ import (
 	"context"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
-	"github.com/coreos/go-systemd/journal"
 	dockersplunk "github.com/docker/docker/daemon/logger/splunk"
 	"github.com/pkg/errors"
 
@@ -122,12 +121,12 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
-		debug.SendEventsToJournal(logger.DaemonName, "Starting non-blocking mode driver", journal.PriInfo, 0)
+		debug.SendEventsToLog(logger.DaemonName, "Starting non-blocking mode driver", debug.INFO, 0)
 		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start splunk log driver
-	debug.SendEventsToJournal(logger.DaemonName, "Starting splunk driver", journal.PriInfo, 0)
+	debug.SendEventsToLog(logger.DaemonName, "Starting splunk driver", debug.INFO, 0)
 	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
 		debug.LoggerErr = errors.Wrap(err, "failed to run splunk driver")
@@ -138,7 +137,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		// Reference: https://github.com/containerd/containerd/blob/release/1.3/runtime/v2/logging/logging.go
 		return nil
 	}
-	debug.SendEventsToJournal(logger.DaemonName, "Logging finished", journal.PriInfo, 1)
+	debug.SendEventsToLog(logger.DaemonName, "Logging finished", debug.INFO, 1)
 
 	return nil
 }

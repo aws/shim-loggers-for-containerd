@@ -19,12 +19,10 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"syscall"
 	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 
-	"github.com/coreos/go-systemd/journal"
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -87,6 +85,12 @@ type Logger struct {
 	// maxReadBytes defines how many bytes we want to read from container pipe
 	// per iteration. It's default to 2 * 1024.
 	maxReadBytes int
+}
+
+// WindowsArgs struct for Windows configuration
+type WindowsArgs struct {
+	ProxyEnvVar   string
+	LogFileDir    string
 }
 
 // Client is a wrapper for docker logger's Log method, which is mostly used for testing
@@ -175,7 +179,7 @@ func (l *Logger) Start(
 			logErr := l.sendLogs(ctx, pipe, source, uid, gid, cleanupTime)
 			if logErr != nil {
 				err := errors.Wrapf(logErr, "failed to send logs from pipe %s", source)
-				debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 				return err
 			}
 			return nil
@@ -201,15 +205,15 @@ func (l *Logger) sendLogs(
 ) error {
 	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
 	}
 
 	// Sleep sometime to let shim logger clean up, for example, to allow enough time for the last
 	// few log messages be flushed to destination like CloudWatch.
-	debug.SendEventsToJournal(DaemonName,
+	debug.SendEventsToLog(DaemonName,
 		fmt.Sprintf("Pipe %s is closed. Sleeping %s for cleanning up.", source, cleanupTime.String()),
-		journal.PriInfo,
+		debug.INFO,
 		0)
 	time.Sleep(*cleanupTime)
 	return nil
@@ -226,7 +230,7 @@ type sendLogToDestFunc func(
 
 // Read gets container logs, saves them to our own buffer. Then we will read logs line by line
 // and send them to destination. In non-blocking mode, the destination is the ring buffer. More
-// log messages will be sent to system journal in verbose mode for debugging.
+// log messages will be sent in verbose mode for debugging.
 func (l *Logger) Read(
 	ctx context.Context,
 	pipe io.Reader,
@@ -250,9 +254,9 @@ func (l *Logger) Read(
 	for {
 		select {
 		case <-ctx.Done():
-			debug.SendEventsToJournal(l.Info.ContainerID,
+			debug.SendEventsToLog(l.Info.ContainerID,
 				fmt.Sprintf("Logging stopped in pipe %s", source),
-				journal.PriDebug, 0)
+				debug.DEBUG, 0)
 			return nil
 		default:
 			eof, bytesInBuffer, err = readFromContainerPipe(pipe, buf, bytesInBuffer, l.maxReadBytes)
@@ -373,9 +377,9 @@ func (l *Logger) sendLogMsgToDest(
 		l.Info.ContainerID,
 	)
 	if debug.Verbose {
-		debug.SendEventsToJournal(l.Info.ContainerID,
+		debug.SendEventsToLog(l.Info.ContainerID,
 			fmt.Sprintf("[Pipe %s] Scanned message: %s", source, string(line)),
-			journal.PriDebug, 0)
+			debug.DEBUG, 0)
 	}
 
 	err := l.Log(line, source, msgTimestamp)
@@ -402,9 +406,9 @@ func getLogTimestamp(
 	if isFirstPartial {
 		partialTimestamp = msgTimestamp
 		if debug.Verbose {
-			debug.SendEventsToJournal(containerID,
+			debug.SendEventsToLog(containerID,
 				fmt.Sprintf("Saving first partial at time %s", partialTimestamp.String()),
-				journal.PriDebug, 0)
+				debug.DEBUG, 0)
 		}
 		// Set isFirstPartial to false and set indicator of partial log message to be true.
 		isFirstPartial = false
@@ -414,9 +418,9 @@ func getLogTimestamp(
 		// recorded timestamp as it of the current message as well.
 		msgTimestamp = partialTimestamp
 		if debug.Verbose {
-			debug.SendEventsToJournal(containerID,
+			debug.SendEventsToLog(containerID,
 				fmt.Sprintf("Setting partial log message to time %s", msgTimestamp.String()),
-				journal.PriDebug, 0)
+				debug.DEBUG, 0)
 		}
 	}
 
@@ -485,50 +489,6 @@ func SetUIDAndGID(uid int, gid int) error {
 			return err
 		}
 	}
-
-	return nil
-}
-
-// setUID sets UID of current goroutine/process.
-// If you are building with go version includes the following commit, this syscall would apply
-// to current process, otherwise it would only apply to current goroutine.
-// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
-func setUID(id int) error {
-	err := syscall.Setuid(id)
-	if err != nil {
-		return errors.Wrap(err, "unable to set uid")
-	}
-
-	// Check if uid set correctly
-	u := syscall.Getuid()
-	if u != id {
-		return errors.New(fmt.Sprintf("want uid %d, but get uid %d", id, u))
-	}
-	debug.SendEventsToJournal(DaemonName,
-		fmt.Sprintf("Set uid: %d", u),
-		journal.PriInfo, 1)
-
-	return nil
-}
-
-// setGID sets GID of current goroutine/process.
-// If you are building with go version includes the following commit, this syscall would apply
-// to current process, otherwise it would only apply to current goroutine.
-// Commit: https://github.com/golang/go/commit/d1b1145cace8b968307f9311ff611e4bb810710c
-func setGID(id int) error {
-	err := syscall.Setgid(id)
-	if err != nil {
-		return errors.Wrap(err, "unable to set gid")
-	}
-
-	// Check if gid set correctly
-	g := syscall.Getgid()
-	if g != id {
-		return errors.New(fmt.Sprintf("want gid %d, but get gid %d", id, g))
-	}
-	debug.SendEventsToJournal(DaemonName,
-		fmt.Sprintf("Set gid %d", g),
-		journal.PriInfo, 1)
 
 	return nil
 }
