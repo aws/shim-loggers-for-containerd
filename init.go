@@ -50,6 +50,10 @@ const (
 	ContainerImageNameKey = "container-image-name"
 	ContainerEnvKey       = "container-env"
 	ContainerLabelsKey    = "container-labels"
+
+	// Windows config options
+	ProxyEnvVarKey = "proxy-variable"
+	LogFileDirKey  = "log-file-dir"
 )
 
 // initCommonLogOpts initialize common options that get used by any log drivers
@@ -82,6 +86,14 @@ func initDockerConfigOpts() {
 	pflag.String(ContainerImageNameKey, "", "Image name of the container")
 	pflag.String(ContainerEnvKey, "", "Environment variables of the container")
 	pflag.String(ContainerLabelsKey, "", "Labels of the container")
+}
+
+// initWindowsOpts initialize the Windows specific options
+func initWindowsOpts() {
+	// Optional proxy environment variable
+	pflag.String(ProxyEnvVarKey, "", "Set `HTTP_PROXY` and `HTTPS_PROXY` environment variable")
+	// Optional file log directory
+	pflag.String(LogFileDirKey, "", "The log file dir will be used to set the path for debug log files for Windows")
 }
 
 // initAWSLogsOpts initialize awslogs driver specified options

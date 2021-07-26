@@ -22,7 +22,6 @@ import (
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 
-	"github.com/coreos/go-systemd/journal"
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
@@ -107,7 +106,7 @@ func (bl *bufferedLogger) Start(
 	// Start the goroutine of underlying log driver to consume logs from ring buffer and
 	// send logs to destination when there's any.
 	errGroup.Go(func() error {
-		debug.SendEventsToJournal(DaemonName, "Starting consuming logs from ring buffer", journal.PriInfo, 0)
+		debug.SendEventsToLog(DaemonName, "Starting consuming logs from ring buffer", debug.INFO, 0)
 		return bl.sendLogMessagesToDestination(uid, gid, cleanupTime)
 	})
 
@@ -121,7 +120,7 @@ func (bl *bufferedLogger) Start(
 			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source, uid, gid)
 			if logErr != nil {
 				err := errors.Wrapf(logErr, "failed to send logs from pipe %s", source)
-				debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 				return err
 			}
 			return nil
@@ -146,12 +145,12 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 ) error {
 	if err := bl.Read(ctx, f, source, defaultBufSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
 	}
 
 	// No messages in the pipe, send signal to closed pipe channel.
-	debug.SendEventsToJournal(DaemonName, fmt.Sprintf("Pipe %s is closed", source), journal.PriInfo, 1)
+	debug.SendEventsToLog(DaemonName, fmt.Sprintf("Pipe %s is closed", source), debug.INFO, 1)
 	bl.buffer.closedPipesCount++
 	// If both container pipes are closed, wake up the Dequeue goroutine which is waiting on wait.
 	if bl.buffer.closedPipesCount == expectedNumOfPipes {
@@ -187,9 +186,9 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 		bl.containerID,
 	)
 	if debug.Verbose {
-		debug.SendEventsToJournal(bl.containerID,
+		debug.SendEventsToLog(bl.containerID,
 			fmt.Sprintf("[Pipe %s] Scanned message: %s", source, string(line)),
-			journal.PriDebug, 0)
+			debug.DEBUG, 0)
 	}
 
 	message := newMessage(line, source, msgTimestamp)
@@ -209,22 +208,22 @@ func (bl *bufferedLogger) sendLogMessagesToDestination(uid int, gid int, cleanup
 	// the ring buffer is closed.
 	for !bl.buffer.isClosed {
 		if err := bl.sendLogMessageToDestination(); err != nil {
-			debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+			debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 			return err
 		}
 	}
 	// If both container pipes are closed, flush messages left in ring buffer.
-	debug.SendEventsToJournal(DaemonName, "All pipes are closed, flushing buffer.", journal.PriInfo, 0)
+	debug.SendEventsToLog(DaemonName, "All pipes are closed, flushing buffer.", debug.INFO, 0)
 	if err := bl.flushMessages(); err != nil {
-		debug.SendEventsToJournal(DaemonName, err.Error(), journal.PriErr, 1)
+		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
 	}
 
 	// Sleep sometime to let shim logger clean up, for example, to allow enough time for the last
 	// few log messages be flushed to destination like CloudWatch.
-	debug.SendEventsToJournal(DaemonName,
+	debug.SendEventsToLog(DaemonName,
 		fmt.Sprintf("Sleeping %s for cleanning up.", cleanupTime.String()),
-		journal.PriInfo, 0)
+		debug.INFO, 0)
 	time.Sleep(*cleanupTime)
 	return nil
 }
@@ -265,9 +264,9 @@ func (bl *bufferedLogger) flushMessages() error {
 // Log lets underlying log driver send logs to destination.
 func (bl *bufferedLogger) Log(line []byte, source string, logTimestamp time.Time) error {
 	if debug.Verbose {
-		debug.SendEventsToJournal(DaemonName,
+		debug.SendEventsToLog(DaemonName,
 			fmt.Sprintf("[BUFFER] Sending message: %s", string(line)),
-			journal.PriDebug, 0)
+			debug.DEBUG, 0)
 	}
 	return bl.l.Log(line, source, logTimestamp)
 }
@@ -291,15 +290,15 @@ func (b *ringBuffer) Enqueue(msg *dockerlogger.Message) error {
 	if len(b.queue) > 0 &&
 		b.curSizeInBytes+lineSizeInBytes > b.maxSizeInBytes {
 		if debug.Verbose {
-			debug.SendEventsToJournal(DaemonName,
+			debug.SendEventsToLog(DaemonName,
 				"buffer is full/message is too long, waiting for available bytes",
-				journal.PriDebug, 0)
-			debug.SendEventsToJournal(DaemonName,
+				debug.DEBUG, 0)
+			debug.SendEventsToLog(DaemonName,
 				fmt.Sprintf("message size: %d, current buffer size: %d, max buffer size %d",
 					lineSizeInBytes,
 					b.curSizeInBytes,
 					b.maxSizeInBytes),
-				journal.PriDebug, 0)
+				debug.DEBUG, 0)
 		}
 
 		// Wake up "Dequeue" or the other "Enqueue" go routine (called by the other pipe)
@@ -328,9 +327,9 @@ func (b *ringBuffer) Dequeue() (*dockerlogger.Message, error) {
 	// suspends current go routine.
 	for len(b.queue) == 0 && !b.isClosed {
 		if debug.Verbose {
-			debug.SendEventsToJournal(DaemonName,
+			debug.SendEventsToLog(DaemonName,
 				"No messages in queue, waiting...",
-				journal.PriDebug, 0)
+				debug.DEBUG, 0)
 		}
 		b.wait.Wait()
 	}

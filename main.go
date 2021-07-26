@@ -15,6 +15,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
@@ -23,7 +24,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
-	"github.com/coreos/go-systemd/journal"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -31,6 +31,7 @@ import (
 
 func init() {
 	initCommonLogOpts()
+	initWindowsOpts()
 	initDockerConfigOpts()
 	initAWSLogsOpts()
 	initFluentdOpts()
@@ -40,7 +41,7 @@ func init() {
 func main() {
 	pflag.Parse()
 	if err := run(); err != nil {
-		debug.SendEventsToJournal(logger.DaemonName, err.Error(), journal.PriErr, 1)
+		debug.SendEventsToLog(logger.DaemonName, err.Error(), debug.ERROR, 1)
 		os.Exit(1)
 	}
 }
@@ -50,18 +51,27 @@ func run() error {
 		return errors.Wrap(err, "unable to bind command line flags")
 	}
 
-	debug.Verbose = viper.GetBool(verboseKey)
-	if debug.Verbose {
-		debug.SendEventsToJournal(logger.DaemonName, "Using verbose mode", journal.PriInfo, 0)
-		// If in Verbose mode, start a goroutine to catch os signal and print stack trace
-		debug.StartStackTraceHandler()
-	}
-
 	globalArgs, err := getGlobalArgs()
 	if err != nil {
 		return errors.Wrap(err, "unable to get global arguments")
 	}
 
+	// Read the Windows specific options and set the environment up accordingly
+	if runtime.GOOS == "windows" {
+		windowsArgs := getWindowsArgs()
+		err = setWindowsEnv(windowsArgs.LogFileDir, globalArgs.ContainerName, windowsArgs.ProxyEnvVar)
+		if err != nil {
+			return errors.Wrap(err, "failed to set up Windows env with options")
+		}
+		defer cleanWindowsEnv(windowsArgs.ProxyEnvVar)
+	}
+
+	debug.Verbose = viper.GetBool(verboseKey)
+	if debug.Verbose {
+		debug.SendEventsToLog(logger.DaemonName, "Using verbose mode", debug.INFO, 0)
+		// If in Verbose mode, start a goroutine to catch os signal and print stack trace
+		debug.StartStackTraceHandler()
+	}
 	// Set UID and/or GID of main goroutine/shim logger process if specified.
 	// If you are building with go version includes the following commit, you only need
 	// to call this once in main goroutine. Otherwise you need call this function in all
@@ -73,7 +83,7 @@ func run() error {
 	}
 
 	logDriver := globalArgs.LogDriver
-	debug.SendEventsToJournal(logger.DaemonName, "Driver: "+logDriver, journal.PriInfo, 0)
+	debug.SendEventsToLog(logger.DaemonName, "Driver: "+logDriver, debug.INFO, 0)
 	switch logDriver {
 	case awslogsDriverName:
 		if err := runAWSLogsDriver(globalArgs); err != nil {
@@ -124,4 +134,38 @@ func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
 	logging.Run(loggerArgs.RunLogDriver)
 
 	return nil
+}
+
+// setWindowsEnv reads the Windows options and sets them up
+func setWindowsEnv(logDir, containerName, proxyEnvVar string) error {
+	if logDir != "" {
+		err := debug.SetLogFilePath(logDir, containerName)
+		if err != nil {
+			// Will include an error line if log-file-dir option is set for non-Windows in logs
+			// Will ignore and continue to log with journald
+			debug.SendEventsToLog(logger.DaemonName, err.Error(), debug.ERROR, 1)
+			return err
+		}
+	}
+	// proxyEnvVar will set the HTTP_PROXY and HTTPS_PROXY environment variables
+	if proxyEnvVar != "" {
+		err := os.Setenv("HTTP_PROXY", proxyEnvVar)
+		if err != nil {
+			return err
+		}
+		err = os.Setenv("HTTPS_PROXY", proxyEnvVar)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// cleanWindowsEnv flushes the file logs for Windows and unsets the proxy env variables
+func cleanWindowsEnv(proxyEnvVar string) {
+	debug.FlushLog()
+	if proxyEnvVar != "" {
+		os.Unsetenv("HTTP_PROXY")
+		os.Unsetenv("HTTPS_PROXY")
+	}
 }

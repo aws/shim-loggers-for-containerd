@@ -25,7 +25,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
-	"github.com/coreos/go-systemd/journal"
 	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -63,10 +62,10 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	}
 
 	if debug.Verbose {
-		debug.SendEventsToJournal(logger.DaemonName,
+		debug.SendEventsToLog(logger.DaemonName,
 			fmt.Sprintf("Container ID: %s, Container Name: %s, log driver: %s, mode: %s, max buffer size: %d",
 				containerID, containerName, logDriver, mode, maxBufferSize),
-			journal.PriDebug, 0)
+			debug.DEBUG, 0)
 	}
 
 	args := &logger.GlobalArgs{
@@ -81,6 +80,17 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	}
 
 	return args, nil
+}
+
+// getWindowsArgs gets the optional Windows arguments
+func getWindowsArgs() *logger.WindowsArgs {
+	proxyVar := viper.GetString(ProxyEnvVarKey)
+	logDir := viper.GetString(LogFileDirKey)
+
+	return &logger.WindowsArgs{
+		ProxyEnvVar:   proxyVar,
+		LogFileDir:    logDir,
+	}
 }
 
 // getDockerConfigs gets the optional docker config variables
