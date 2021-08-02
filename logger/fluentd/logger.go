@@ -29,6 +29,7 @@ const (
 	AsyncConnectKey       = "fluentd-async-connect"
 	FluentdTagKey         = "fluentd-tag"
 	SubsecondPrecisionKey = "fluentd-sub-second-precision"
+	BufferLimitKey        = "fluentd-buffer-limit"
 
 	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag"
 	// This is to distinguish between the "tag" parameter from the splunk input
@@ -42,6 +43,7 @@ type Args struct {
 	AsyncConnect       string
 	Tag                string
 	SubsecondPrecision string
+	BufferLimit        string
 }
 
 // LoggerArgs stores global logger args and fluentd specific args
@@ -113,6 +115,7 @@ func getFluentdConfig(args *Args) map[string]string {
 	config[AddressKey] = args.Address
 	config[AsyncConnectKey] = args.AsyncConnect
 	config[SubsecondPrecisionKey] = args.SubsecondPrecision
+	config[BufferLimitKey] = args.BufferLimit
 
 	return config
 }

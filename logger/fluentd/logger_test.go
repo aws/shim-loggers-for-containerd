@@ -26,6 +26,7 @@ const (
 	testAsyncConnect       = "false"
 	testTag                = "testTag"
 	testSubsecondPrecision = "true"
+	testBufferLimit        = "12345"
 )
 
 var (
@@ -34,6 +35,7 @@ var (
 		AsyncConnect:       testAsyncConnect,
 		SubsecondPrecision: testSubsecondPrecision,
 		Tag:                testTag,
+		BufferLimit:        testBufferLimit,
 	}
 )
 
@@ -43,6 +45,7 @@ func TestGetFluentdConfig(t *testing.T) {
 		AsyncConnectKey:       testAsyncConnect,
 		SubsecondPrecisionKey: testSubsecondPrecision,
 		tagKey:                testTag,
+		BufferLimitKey:        testBufferLimit,
 	}
 
 	config := getFluentdConfig(args)
