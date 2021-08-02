@@ -113,6 +113,7 @@ func initFluentdOpts() {
 	pflag.String(fluentd.AddressKey, "", "The address connected to Fluentd daemon")
 	pflag.Bool(fluentd.AsyncConnectKey, false, "If connecting Fluentd daemon in background")
 	pflag.Bool(fluentd.SubsecondPrecisionKey, true, "Ensures event logs are generated in nanosecond resolution.")
+	pflag.Int(fluentd.BufferLimitKey, -1, "The number of events buffered on the memory")
 	pflag.String(fluentd.FluentdTagKey, "", "The tag used to identify log messages")
 }
 

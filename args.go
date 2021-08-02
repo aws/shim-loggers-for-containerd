@@ -88,8 +88,8 @@ func getWindowsArgs() *logger.WindowsArgs {
 	logDir := viper.GetString(LogFileDirKey)
 
 	return &logger.WindowsArgs{
-		ProxyEnvVar:   proxyVar,
-		LogFileDir:    logDir,
+		ProxyEnvVar: proxyVar,
+		LogFileDir:  logDir,
 	}
 }
 
@@ -174,11 +174,18 @@ func getFluentdArgs() *fluentd.Args {
 	precision := viper.GetBool(fluentd.SubsecondPrecisionKey)
 	subsecondPrecision := strconv.FormatBool(precision)
 
+	buffer := viper.GetInt(fluentd.BufferLimitKey)
+	bufferLimit := ""
+	if buffer > 0 {
+		bufferLimit = strconv.Itoa(buffer)
+	}
+
 	return &fluentd.Args{
 		Address:            address,
 		Tag:                tag,
 		AsyncConnect:       asyncConnect,
 		SubsecondPrecision: subsecondPrecision,
+		BufferLimit:        bufferLimit,
 	}
 }
 
