@@ -1,0 +1,24 @@
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.15', '1.14', '1.13' ]
+        os: [ ubuntu-20.04, windows-2019 ]
+    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.33
+      - uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: build
+        run: make build
+      - name: test
+        run: make test
