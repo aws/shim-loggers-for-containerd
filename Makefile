@@ -15,9 +15,10 @@ ROOT := $(shell pwd)
 
 SOURCEDIR=./
 
+exesuffix=$(go env GOEXE)
+
 AWS_CONTAINERD_LOGGERS_DIR=$(SOURCEDIR)
-AWS_CONTAINERD_LOGGERS_BINARY=$(ROOT)/bin/shim-loggers-for-containerd
-AWS_CONTAINERD_LOGGERS_BINARY_WINDOWS=$(ROOT)/bin/shim-loggers-for-containerd.exe
+AWS_CONTAINERD_LOGGERS_BINARY=$(ROOT)/bin/shim-loggers-for-containerd$(exesuffix)
 SOURCES=$(shell find $(SOURCEDIR) -name '*.go')
 
 BINPATH:=$(abspath ./bin)
@@ -31,9 +32,6 @@ build: $(AWS_CONTAINERD_LOGGERS_BINARY)
 
 $(AWS_CONTAINERD_LOGGERS_BINARY):
 	go build -o $(AWS_CONTAINERD_LOGGERS_BINARY) $(AWS_CONTAINERD_LOGGERS_DIR)
-
-build-windows:
-	GOOS=windows go build -o $(AWS_CONTAINERD_LOGGERS_BINARY_WINDOWS) $(AWS_CONTAINERD_LOGGERS_DIR)
 
 test: $(SOURCES)
 	go test -tags unit -race -timeout 30s -cover $(shell go list ./...) --count=1
