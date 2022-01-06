@@ -3,7 +3,7 @@ module github.com/aws/shim-loggers-for-containerd
 require (
 	github.com/aws/aws-sdk-go v1.26.8 // indirect
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
-	github.com/containerd/containerd v1.5.0
+	github.com/containerd/containerd v1.5.9
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
 	github.com/docker/docker v0.7.3-0.20190918143018-ad1b781e44fa
 	github.com/docker/go-connections v0.4.0 // indirect
