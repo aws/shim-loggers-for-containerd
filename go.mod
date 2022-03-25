@@ -5,10 +5,10 @@ require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/containerd/containerd v1.5.0
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
-	github.com/docker/docker v0.7.3-0.20190918143018-ad1b781e44fa
+	github.com/docker/docker v20.10.13+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0
-	github.com/fluent/fluent-logger-golang v1.4.0 // indirect
+	github.com/fluent/fluent-logger-golang v1.9.0 // indirect
 	github.com/golang/mock v1.4.1
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
@@ -21,8 +21,5 @@ require (
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	gotest.tools v2.2.0+incompatible
 )
-
-// Workaround for optionally calling create log stream API
-replace github.com/docker/docker v0.7.3-0.20190918143018-ad1b781e44fa => github.com/xia-wu/moby v17.12.0-ce-rc1.0.20210308205136-2cd0a2a46d81+incompatible
 
 go 1.13
