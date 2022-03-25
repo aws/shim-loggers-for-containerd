@@ -39,6 +39,9 @@ const (
 type bufferedLogger struct {
 	l           LogDriver
 	buffer      *ringBuffer
+	// bufReadSizeInBytes determines how many bytes to read at a time from the source input when
+	// sending data to the ringBuffer.
+	bufReadSizeInBytes int
 	containerID string
 }
 
@@ -67,10 +70,11 @@ type ringBuffer struct {
 // NewBufferedLogger creates a logger with the provided LoggerOpt,
 // a buffer with customized max size and a channel monitor if stdout
 // and stderr pipes are closed.
-func NewBufferedLogger(l LogDriver, maxBufferSize int, containerID string) LogDriver {
+func NewBufferedLogger(l LogDriver, bufferReadSize int, maxBufferSize int, containerID string) LogDriver {
 	return &bufferedLogger{
 		l:           l,
 		buffer:      newLoggerBuffer(maxBufferSize),
+		bufReadSizeInBytes:  bufferReadSize,
 		containerID: containerID,
 	}
 }
@@ -143,7 +147,7 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 	source string,
 	uid int, gid int,
 ) error {
-	if err := bl.Read(ctx, f, source, defaultBufSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
+	if err := bl.Read(ctx, f, source, bl.bufReadSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
 		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
 		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err

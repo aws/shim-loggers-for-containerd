@@ -43,11 +43,11 @@ const (
 	// https://github.com/moby/moby/blob/19.03/daemon/logger/copier.go#L17
 	defaultMaxReadBytes = 2 * 1024
 
-	// defaultBufSizeInBytes provides a reasonable default for loggers that do
+	// DefaultBufSizeInBytes provides a reasonable default for loggers that do
 	// not have an external limit to impose on log line size. Adopted this value
 	// from Docker, reference:
 	// https://github.com/moby/moby/blob/19.03/daemon/logger/copier.go#L21
-	defaultBufSizeInBytes = 16 * 1024
+	DefaultBufSizeInBytes = 16 * 1024
 )
 
 type GlobalArgs struct {
@@ -117,7 +117,7 @@ type LogDriver interface {
 func NewLogger(options ...LoggerOpt) (LogDriver, error) {
 	l := &Logger{
 		Info:              &dockerlogger.Info{},
-		bufferSizeInBytes: defaultBufSizeInBytes,
+		bufferSizeInBytes: DefaultBufSizeInBytes,
 		maxReadBytes:      defaultMaxReadBytes,
 	}
 	for _, opt := range options {

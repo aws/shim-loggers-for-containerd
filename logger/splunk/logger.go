@@ -122,7 +122,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
 		debug.SendEventsToLog(logger.DaemonName, "Starting non-blocking mode driver", debug.INFO, 0)
-		l = logger.NewBufferedLogger(l, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
+		l = logger.NewBufferedLogger(l, logger.DefaultBufSizeInBytes, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start splunk log driver
