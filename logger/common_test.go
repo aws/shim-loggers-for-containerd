@@ -17,11 +17,14 @@ package logger
 
 import (
 	"bytes"
+	"bufio"
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
 
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/pkg/errors"
@@ -48,13 +51,16 @@ var (
 // TestSendLogs test case as we do not need the functionality that the actual Log function
 // is doing inside the test. Mock Log function is not enough here as there does not exist a
 // better way to verify what happened in the TestSendLogs test, which has a goroutine.
-type dummyClient struct{}
+type dummyClient struct{
+	t *testing.T
+}
 
 // Log implements customized workflow used for testing purpose.
 // This is only trigger in TestSendLogs test case. It writes current log message to the end of
 // tmp test file, which makes sure the function itself accepts and "logging" the message
 // correctly.
 func (d *dummyClient) Log(msg *dockerlogger.Message) error {
+	var b []byte
 	_, err := os.Stat(logDestinationFileName)
 	if err != nil {
 		return err
@@ -65,9 +71,50 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 			"unable to open file %s to record log message", logDestinationFileName)
 	}
 	defer f.Close()
-	f.Write(msg.Line)
+	b, err = json.Marshal(msg)
+	require.NoError(d.t, err)
+	f.Write(b)
+	f.Write([]byte{'\n'})
 
 	return nil
+}
+
+func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
+	              expectedPartialOrdinalSequence[]int) {
+	var (
+		msg dockerlogger.Message
+		line string
+		lastPartialID string
+		lastPartialOrdinal int
+	)
+    file, err := os.Open(fileName)
+    require.NoError(t, err)
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    lines := 0
+    for scanner.Scan() {
+		line = scanner.Text()
+		err = json.Unmarshal([]byte(line), &msg)
+		require.NoError(t, err)
+		if len(expectedPartialOrdinalSequence) > 0 && lines < len(expectedPartialOrdinalSequence) {
+			// check partial fields
+			require.Equal(t, expectedPartialOrdinalSequence[lines], msg.PLogMetaData.Ordinal)
+			if msg.PLogMetaData.Ordinal < lastPartialOrdinal {
+				// new split message so new partial ID
+				require.NotEqual(t, lastPartialID, msg.PLogMetaData.ID)
+			} else if msg.PLogMetaData.Ordinal > 1 {
+				// this partial ID should be same as last ID
+				require.Equal(t, lastPartialID, msg.PLogMetaData.ID)
+			}
+			lastPartialID = msg.PLogMetaData.ID
+		} 
+        lines++
+    }
+	require.Equal(t, expectedNumLines, lines)
+
+    err = scanner.Err(); 
+    require.NoError(t, err)
 }
 
 // TestSendLogs tests sendLogs goroutine that gets log message from mock io pipe and sends
@@ -76,11 +123,12 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 func TestSendLogs(t *testing.T) {
 
 	for _, tc := range []struct {
-		testName           string
-		bufferSizeInBytes  int
-		maxReadBytes       int
-		logMessages        []string
-		expectedNumOfLines int
+		testName                       string
+		bufferSizeInBytes              int
+		maxReadBytes                   int
+		logMessages                    []string
+		expectedNumOfLines             int
+		expectedPartialOrdinalSequence []int
 	}{
 		{
 			testName:          "general case",
@@ -90,7 +138,8 @@ func TestSendLogs(t *testing.T) {
 				"First line to write",
 				"Second line to write",
 			},
-			expectedNumOfLines: 2,
+			expectedNumOfLines: 2, // 2 messages stay as 2 messages
+			expectedPartialOrdinalSequence: []int{}, // neither will be partial
 		},
 		{
 			testName:          "long log message",
@@ -99,23 +148,25 @@ func TestSendLogs(t *testing.T) {
 			logMessages: []string{
 				"First line to write", // Larger than buffer size.
 			},
-			expectedNumOfLines: 2, // Should be split to 2 lines in destination.
+			expectedNumOfLines: 3, // One line 19 chars with 8 char buffer becomes 3 split messages
+			expectedPartialOrdinalSequence: []int{1, 2, 3},
 		},
 		{
-			testName:          "partial log message",
-			bufferSizeInBytes: 100,
+			testName:          "two long log messages",
+			bufferSizeInBytes: 8,
 			maxReadBytes:      4,
 			logMessages: []string{
-				"First line to write", // Larger than maximum allowed read bytes from pipe.
-				"Second line to write",
+				"First line to write", // 19 chars => 3 messages
+				"Second line to write", // 20 chars => 3 messages
 			},
-			expectedNumOfLines: 2, // Should still be 2 lines in destination.
+			expectedNumOfLines: 6, // 3 + 3 = 6 total
+			expectedPartialOrdinalSequence: []int{1, 2, 3, 1, 2, 3},
 		},
 	} {
 		t.Run(tc.testName, func(t *testing.T) {
 			l := &Logger{
 				Info:              &dockerlogger.Info{},
-				Stream:            &dummyClient{},
+				Stream:            &dummyClient{t},
 				bufferSizeInBytes: tc.bufferSizeInBytes,
 				maxReadBytes:      tc.maxReadBytes,
 			}
@@ -125,12 +176,10 @@ func TestSendLogs(t *testing.T) {
 			require.NoError(t, err)
 			defer os.Remove(tmpIOSource.Name())
 			var (
-				expectedSize int64
 				testPipe     bytes.Buffer
 			)
 			for _, logMessage := range tc.logMessages {
-				expectedSize += int64(len([]rune(logMessage)))
-				_, err := testPipe.WriteString(logMessage)
+				_, err := testPipe.WriteString(logMessage + "\n")
 				require.NoError(t, err)
 			}
 
@@ -152,7 +201,9 @@ func TestSendLogs(t *testing.T) {
 			// goroutine.
 			logDestinationInfo, err := os.Stat(logDestinationFileName)
 			require.NoError(t, err)
-			require.Equal(t, expectedSize, logDestinationInfo.Size())
+			require.NotZero(t, logDestinationInfo.Size())
+
+			checkLogFile(t, logDestinationFileName, tc.expectedNumOfLines, tc.expectedPartialOrdinalSequence)
 		})
 	}
 }
