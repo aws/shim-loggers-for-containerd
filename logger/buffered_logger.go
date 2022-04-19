@@ -23,6 +23,8 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/debug"
 
 	dockerlogger "github.com/docker/docker/daemon/logger"
+	types "github.com/docker/docker/api/types/backend"
+
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
@@ -180,15 +182,11 @@ func (bl *bufferedLogger) Read(
 func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 	line []byte,
 	source string,
-	isFirstPartial, isPartialMsg bool,
-	partialTimestamp time.Time,
-) (error, time.Time, bool, bool) {
-	msgTimestamp, partialTimestamp, isFirstPartial, isPartialMsg := getLogTimestamp(
-		isFirstPartial,
-		isPartialMsg,
-		partialTimestamp,
-		bl.containerID,
-	)
+	isPartialMsg, isLastPartial bool,
+	partialID string,
+	partialOrdinal int,
+	msgTimestamp time.Time,
+) error {
 	if debug.Verbose {
 		debug.SendEventsToLog(bl.containerID,
 			fmt.Sprintf("[Pipe %s] Scanned message: %s", source, string(line)),
@@ -196,13 +194,16 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 	}
 
 	message := newMessage(line, source, msgTimestamp)
+	if isPartialMsg {
+		message.PLogMetaData = &types.PartialLogMetaData{ID: partialID, Ordinal: partialOrdinal, Last: isLastPartial}
+	}
 	err := bl.buffer.Enqueue(message)
 	if err != nil {
 		err := errors.Wrap(err, "failed to save logs to buffer")
-		return err, partialTimestamp, isFirstPartial, isPartialMsg
+		return err
 	}
 
-	return nil, partialTimestamp, isFirstPartial, isPartialMsg
+	return nil
 }
 
 // sendLogMessagesToDestination consumes logs from ring buffer and use the
@@ -243,7 +244,7 @@ func (bl *bufferedLogger) sendLogMessageToDestination() error {
 		return errors.Wrap(err, "failed to read logs from buffer")
 	}
 
-	err = bl.Log(msg.Line, msg.Source, msg.Timestamp)
+	err = bl.Log(msg)
 	if err != nil {
 		return errors.Wrap(err, "failed to send logs to destination")
 	}
@@ -256,7 +257,7 @@ func (bl *bufferedLogger) sendLogMessageToDestination() error {
 func (bl *bufferedLogger) flushMessages() error {
 	messages := bl.buffer.Flush()
 	for _, msg := range messages {
-		err := bl.Log(msg.Line, msg.Source, msg.Timestamp)
+		err := bl.Log(msg)
 		if err != nil {
 			return errors.Wrap(err, "unable to flush the remaining messages to destination")
 		}
@@ -266,13 +267,13 @@ func (bl *bufferedLogger) flushMessages() error {
 }
 
 // Log lets underlying log driver send logs to destination.
-func (bl *bufferedLogger) Log(line []byte, source string, logTimestamp time.Time) error {
+func (bl *bufferedLogger) Log(message *dockerlogger.Message) error {
 	if debug.Verbose {
 		debug.SendEventsToLog(DaemonName,
-			fmt.Sprintf("[BUFFER] Sending message: %s", string(line)),
+			fmt.Sprintf("[BUFFER] Sending message: %s", string(message.Line)),
 			debug.DEBUG, 0)
 	}
-	return bl.l.Log(line, source, logTimestamp)
+	return bl.l.Log(message)
 }
 
 // GetPipes gets pipes of container and its name that exposed by containerd.
