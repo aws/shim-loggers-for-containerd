@@ -438,6 +438,8 @@ func (l *Logger) Log(line []byte, source string, logTimestamp time.Time) error {
 	return nil
 }
 
+// just add a comment for testing PR CI auto-build check
+
 // newMessage creates a new logger message.
 func newMessage(line []byte, source string, logTimestamp time.Time) *dockerlogger.Message {
 	msg := dockerlogger.NewMessage()
