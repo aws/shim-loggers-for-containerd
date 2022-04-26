@@ -99,6 +99,8 @@ func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
 		require.NoError(t, err)
 		if len(expectedPartialOrdinalSequence) > 0 && lines < len(expectedPartialOrdinalSequence) {
 			// check partial fields
+			// if the message is partial it will have a PLogMetaData
+			require.NotNil(t, msg.PLogMetaData)
 			require.Equal(t, expectedPartialOrdinalSequence[lines], msg.PLogMetaData.Ordinal)
 			if msg.PLogMetaData.Ordinal < lastPartialOrdinal {
 				// new split message so new partial ID
