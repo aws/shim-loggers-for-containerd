@@ -22,4 +22,6 @@ require (
 	gotest.tools v2.2.0+incompatible
 )
 
+replace github.com/docker/docker v20.10.13+incompatible => github.com/dharmadheeraj/moby v20.10.14-0.20220615184823-6b50baca60ea+incompatible
+
 go 1.13
