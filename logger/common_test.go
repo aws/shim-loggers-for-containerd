@@ -11,20 +11,19 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build unit
 // +build unit
 
 package logger
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
-
 
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"github.com/pkg/errors"
@@ -51,7 +50,7 @@ var (
 // TestSendLogs test case as we do not need the functionality that the actual Log function
 // is doing inside the test. Mock Log function is not enough here as there does not exist a
 // better way to verify what happened in the TestSendLogs test, which has a goroutine.
-type dummyClient struct{
+type dummyClient struct {
 	t *testing.T
 }
 
@@ -80,20 +79,20 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 }
 
 func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
-	              expectedPartialOrdinalSequence[]int) {
+	expectedPartialOrdinalSequence []int) {
 	var (
-		msg dockerlogger.Message
-		line string
-		lastPartialID string
+		msg                dockerlogger.Message
+		line               string
+		lastPartialID      string
 		lastPartialOrdinal int
 	)
-    file, err := os.Open(fileName)
-    require.NoError(t, err)
-    defer file.Close()
+	file, err := os.Open(fileName)
+	require.NoError(t, err)
+	defer file.Close()
 
-    scanner := bufio.NewScanner(file)
-    lines := 0
-    for scanner.Scan() {
+	scanner := bufio.NewScanner(file)
+	lines := 0
+	for scanner.Scan() {
 		line = scanner.Text()
 		err = json.Unmarshal([]byte(line), &msg)
 		require.NoError(t, err)
@@ -108,13 +107,13 @@ func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
 				require.Equal(t, lastPartialID, msg.PLogMetaData.ID)
 			}
 			lastPartialID = msg.PLogMetaData.ID
-		} 
-        lines++
-    }
+		}
+		lines++
+	}
 	require.Equal(t, expectedNumLines, lines)
 
-    err = scanner.Err(); 
-    require.NoError(t, err)
+	err = scanner.Err()
+	require.NoError(t, err)
 }
 
 // TestSendLogs tests sendLogs goroutine that gets log message from mock io pipe and sends
@@ -138,7 +137,7 @@ func TestSendLogs(t *testing.T) {
 				"First line to write",
 				"Second line to write",
 			},
-			expectedNumOfLines: 2, // 2 messages stay as 2 messages
+			expectedNumOfLines:             2,       // 2 messages stay as 2 messages
 			expectedPartialOrdinalSequence: []int{}, // neither will be partial
 		},
 		{
@@ -148,7 +147,7 @@ func TestSendLogs(t *testing.T) {
 			logMessages: []string{
 				"First line to write", // Larger than buffer size.
 			},
-			expectedNumOfLines: 3, // One line 19 chars with 8 char buffer becomes 3 split messages
+			expectedNumOfLines:             3, // One line 19 chars with 8 char buffer becomes 3 split messages
 			expectedPartialOrdinalSequence: []int{1, 2, 3},
 		},
 		{
@@ -156,10 +155,10 @@ func TestSendLogs(t *testing.T) {
 			bufferSizeInBytes: 8,
 			maxReadBytes:      4,
 			logMessages: []string{
-				"First line to write", // 19 chars => 3 messages
+				"First line to write",  // 19 chars => 3 messages
 				"Second line to write", // 20 chars => 3 messages
 			},
-			expectedNumOfLines: 6, // 3 + 3 = 6 total
+			expectedNumOfLines:             6, // 3 + 3 = 6 total
 			expectedPartialOrdinalSequence: []int{1, 2, 3, 1, 2, 3},
 		},
 	} {
@@ -172,11 +171,11 @@ func TestSendLogs(t *testing.T) {
 			}
 			// Create a tmp file that used to mock the io pipe where the logger reads log
 			// messages from.
-			tmpIOSource, err := ioutil.TempFile("", "")
+			tmpIOSource, err := os.CreateTemp("", "")
 			require.NoError(t, err)
 			defer os.Remove(tmpIOSource.Name())
 			var (
-				testPipe     bytes.Buffer
+				testPipe bytes.Buffer
 			)
 			for _, logMessage := range tc.logMessages {
 				_, err := testPipe.WriteString(logMessage + "\n")
@@ -185,7 +184,7 @@ func TestSendLogs(t *testing.T) {
 
 			// Create a tmp file that used to inside customized dummy Log function where the
 			// logger sends log messages to.
-			tmpDest, err := ioutil.TempFile(os.TempDir(), "")
+			tmpDest, err := os.CreateTemp("", "")
 			require.NoError(t, err)
 			defer os.Remove(tmpDest.Name())
 			logDestinationFileName = tmpDest.Name()
