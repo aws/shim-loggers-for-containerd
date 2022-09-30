@@ -26,7 +26,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/docker/go-units"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -54,7 +53,7 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	}
 	mode, maxBufferSize, err := getModeAndMaxBufferSize()
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get value of flag %s and %s", modeKey, maxBufferSizeKey)
+		return nil, fmt.Errorf("unable to get value of flag %s and %s: %w", modeKey, maxBufferSizeKey, err)
 	}
 	cleanupTime, err := getCleanupTime()
 	if err != nil {
@@ -226,8 +225,7 @@ func getSplunkArgs() (*splunk.Args, error) {
 func getRequiredValue(flag string) (string, error) {
 	isSet := viper.IsSet(flag)
 	if !isSet {
-		err := errors.Errorf("%s is required", flag)
-		return "", err
+		return "", fmt.Errorf("%s is required", flag)
 	}
 	val := viper.GetString(flag)
 
@@ -250,10 +248,10 @@ func getModeAndMaxBufferSize() (string, int, error) {
 	case nonBlockingMode:
 		maxBufSize, err = getMaxBufferSize()
 		if err != nil {
-			return "", 0, errors.Wrap(err, "unable to get max buffer size")
+			return "", 0, fmt.Errorf("unable to get max buffer size: %w", err)
 		}
 	default:
-		return "", 0, errors.Errorf("unknown mode type: %s", mode)
+		return "", 0, fmt.Errorf("unknown mode type: %s", mode)
 	}
 
 	return mode, maxBufSize, nil
@@ -273,7 +271,7 @@ func getMaxBufferSize() (int, error) {
 	}
 
 	if err != nil {
-		return 0, errors.Wrap(err, "unable to parse buffer size to bytes")
+		return 0, fmt.Errorf("unable to parse buffer size to bytes: %w", err)
 	}
 
 	return int(size), nil
@@ -287,10 +285,10 @@ func getCleanupTime() (*time.Duration, error) {
 	}
 	duration, err := time.ParseDuration(cleanupTime)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse clean up time")
+		return nil, fmt.Errorf("failed to parse clean up time: %w", err)
 	}
 	if duration > time.Duration(12*time.Second) {
-		return nil, errors.Errorf("invalid time %s, maximum timeout is 12 seconds.", duration.String())
+		return nil, fmt.Errorf("invalid time %s, maximum timeout is 12 seconds", duration.String())
 	}
 
 	return &duration, nil

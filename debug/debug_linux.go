@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -16,6 +17,7 @@
 package debug
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -24,15 +26,14 @@ import (
 	"time"
 
 	"github.com/coreos/go-systemd/journal"
-	"github.com/pkg/errors"
 )
 
 var (
 	// journalPriority is a map that maps strings to journal priority values
 	journalPriority = map[string]journal.Priority{
-		ERROR	  :	journal.PriErr,
-		INFO	  :	journal.PriInfo,
-		DEBUG	  :	journal.PriDebug,
+		ERROR: journal.PriErr,
+		INFO:  journal.PriInfo,
+		DEBUG: journal.PriDebug,
 	}
 )
 
@@ -76,6 +77,6 @@ func sendEventsToJournal(syslogIdentifier string, msg string, msgType journal.Pr
 
 // SetLogFilePath only supported on Windows
 // For non-Windows logs will be written to journald
-func SetLogFilePath(logFlag, cId string) error{
+func SetLogFilePath(logFlag, cId string) error {
 	return errors.New("debugging to file not supported, debug logs will be written with journald")
 }

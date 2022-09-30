@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -28,7 +29,6 @@ import (
 	dockerlogger "github.com/docker/docker/daemon/logger"
 
 	types "github.com/docker/docker/api/types/backend"
-	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -93,8 +93,8 @@ type Logger struct {
 
 // WindowsArgs struct for Windows configuration
 type WindowsArgs struct {
-	ProxyEnvVar   string
-	LogFileDir    string
+	ProxyEnvVar string
+	LogFileDir  string
 }
 
 // Client is a wrapper for docker logger's Log method, which is mostly used for testing
@@ -182,7 +182,7 @@ func (l *Logger) Start(
 		errGroup.Go(func() error {
 			logErr := l.sendLogs(ctx, pipe, source, uid, gid, cleanupTime)
 			if logErr != nil {
-				err := errors.Wrapf(logErr, "failed to send logs from pipe %s", source)
+				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, err)
 				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 				return err
 			}
@@ -192,7 +192,7 @@ func (l *Logger) Start(
 
 	// Signal that the container is ready to be started
 	if err := ready(); err != nil {
-		return errors.Wrap(err, "failed to check container ready status")
+		return fmt.Errorf("failed to check container ready status: %w", err)
 	}
 
 	// Wait() will return the first error it receives.
@@ -208,7 +208,7 @@ func (l *Logger) sendLogs(
 	cleanupTime *time.Duration,
 ) error {
 	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
-		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
+		err := fmt.Errorf("failed to read logs from %s pipe: %w", source, err)
 		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
 	}
@@ -245,10 +245,10 @@ func (l *Logger) Read(
 	sendLogMsgToDest sendLogToDestFunc,
 ) error {
 	var (
-		msgTimestamp time.Time
-		bytesInBuffer    int
-		err              error
-		eof              bool
+		msgTimestamp  time.Time
+		bytesInBuffer int
+		err           error
+		eof           bool
 	)
 	// Initiate an in-memory buffer to hold bytes read from container pipe.
 	buf := make([]byte, bufferSizeInBytes)
@@ -290,7 +290,7 @@ func (l *Logger) Read(
 				// If this is the end of a partial message
 				// use the existing timestamp, so that all
 				// partials split from the same message have the same timestamp
-				// If not, new timestamp. 
+				// If not, new timestamp.
 				if isPartialMsg {
 					isLastPartial = true
 				} else {
@@ -315,7 +315,7 @@ func (l *Logger) Read(
 				isPartialMsg = false
 				isLastPartial = false
 				partialID = ""
-				partialOrdinal = 1;
+				partialOrdinal = 1
 
 				// Update the index of head of next line message.
 				head += lenOfLine + 1
@@ -383,12 +383,12 @@ func (l *Logger) Read(
 
 // generateRandomID is based on Docker
 // GenerateRandomID: https://github.com/moby/moby/blob/bca8d9f2ce0d63e1490692917cde6273bc288bad/pkg/stringid/stringid.go#L40
-// with the simplification that we don't need to worry about guaranteeing the string isn't all 0 - 9 
-// Consequently ^ we have our own function instead of importing from Docker. 
+// with the simplification that we don't need to worry about guaranteeing the string isn't all 0 - 9
+// Consequently ^ we have our own function instead of importing from Docker.
 func generateRandomID() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
-		return "", err 
+		return "", err
 	}
 	id := hex.EncodeToString(b)
 	return id, nil
@@ -407,7 +407,7 @@ func readFromContainerPipe(pipe io.Reader, buf []byte, bytesInBuffer, maxReadByt
 		readBytesFromPipe, err := pipe.Read(buf[bytesInBuffer:readBytesUpto])
 		if err != nil {
 			if err != io.EOF {
-				return false, bytesInBuffer, errors.Wrap(err, "failed to read log stream from container pipe")
+				return false, bytesInBuffer, fmt.Errorf("failed to read log stream from container pipe: %w", err)
 			}
 			// Pipe is closed, set flag to true.
 			eof = true
@@ -444,7 +444,7 @@ func (l *Logger) sendLogMsgToDest(
 	}
 	err := l.Log(message)
 	if err != nil {
-		return errors.Wrapf(err, "failed to log msg for container %s", l.Info.ContainerName)
+		return fmt.Errorf("failed to log msg for container %s: %w", l.Info.ContainerName, err)
 	}
 
 	return nil

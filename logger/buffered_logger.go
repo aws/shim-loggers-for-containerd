@@ -22,10 +22,9 @@ import (
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 
-	dockerlogger "github.com/docker/docker/daemon/logger"
 	types "github.com/docker/docker/api/types/backend"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 
-	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -39,12 +38,12 @@ const (
 // bufferedLogger is a wrapper of underlying log driver and an intermediate ring
 // buffer between container pipes and underlying log driver.
 type bufferedLogger struct {
-	l           LogDriver
-	buffer      *ringBuffer
+	l      LogDriver
+	buffer *ringBuffer
 	// bufReadSizeInBytes determines how many bytes to read at a time from the source input when
 	// sending data to the ringBuffer.
 	bufReadSizeInBytes int
-	containerID string
+	containerID        string
 }
 
 // Adopted from https://github.com/moby/moby/blob/master/daemon/logger/ring.go#L128
@@ -74,10 +73,10 @@ type ringBuffer struct {
 // and stderr pipes are closed.
 func NewBufferedLogger(l LogDriver, bufferReadSize int, maxBufferSize int, containerID string) LogDriver {
 	return &bufferedLogger{
-		l:           l,
-		buffer:      newLoggerBuffer(maxBufferSize),
-		bufReadSizeInBytes:  bufferReadSize,
-		containerID: containerID,
+		l:                  l,
+		buffer:             newLoggerBuffer(maxBufferSize),
+		bufReadSizeInBytes: bufferReadSize,
+		containerID:        containerID,
 	}
 }
 
@@ -125,7 +124,7 @@ func (bl *bufferedLogger) Start(
 		errGroup.Go(func() error {
 			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source, uid, gid)
 			if logErr != nil {
-				err := errors.Wrapf(logErr, "failed to send logs from pipe %s", source)
+				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, logErr)
 				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 				return err
 			}
@@ -135,7 +134,7 @@ func (bl *bufferedLogger) Start(
 
 	// Signal that the container is ready to be started
 	if err := ready(); err != nil {
-		return errors.Wrap(err, "failed to check container ready status")
+		return fmt.Errorf("failed to check container ready status: %w", err)
 	}
 
 	// Wait() will return the first error it receives.
@@ -150,7 +149,7 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 	uid int, gid int,
 ) error {
 	if err := bl.Read(ctx, f, source, bl.bufReadSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
-		err := errors.Wrapf(err, "failed to read logs from %s pipe", source)
+		err := fmt.Errorf("failed to read logs from %s pipe: %w", source, err)
 		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
 	}
@@ -199,8 +198,7 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 	}
 	err := bl.buffer.Enqueue(message)
 	if err != nil {
-		err := errors.Wrap(err, "failed to save logs to buffer")
-		return err
+		return fmt.Errorf("failed to save logs to buffer: %w", err)
 	}
 
 	return nil
@@ -241,12 +239,12 @@ func (bl *bufferedLogger) sendLogMessageToDestination() error {
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(err, "failed to read logs from buffer")
+		return fmt.Errorf("failed to read logs from buffer: %w", err)
 	}
 
 	err = bl.Log(msg)
 	if err != nil {
-		return errors.Wrap(err, "failed to send logs to destination")
+		return fmt.Errorf("failed to send logs to destination: %w", err)
 	}
 
 	return nil
@@ -259,7 +257,7 @@ func (bl *bufferedLogger) flushMessages() error {
 	for _, msg := range messages {
 		err := bl.Log(msg)
 		if err != nil {
-			return errors.Wrap(err, "unable to flush the remaining messages to destination")
+			return fmt.Errorf("unable to flush the remaining messages to destination: %w", err)
 		}
 	}
 

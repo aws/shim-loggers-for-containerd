@@ -21,12 +21,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	dockerlogger "github.com/docker/docker/daemon/logger"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
@@ -66,8 +66,7 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 	}
 	f, err := os.OpenFile(logDestinationFileName, os.O_APPEND|os.O_RDWR, 0644)
 	if err != nil {
-		return errors.Wrapf(err,
-			"unable to open file %s to record log message", logDestinationFileName)
+		return fmt.Errorf("unable to open file %s to record log message: %w", logDestinationFileName, err)
 	}
 	defer f.Close()
 	b, err = json.Marshal(msg)
