@@ -2,19 +2,19 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         go: [ '1.17', '1.18', '1.19' ]
-        os: [ ubuntu-20.04, windows-2019 ]
+        os: [ ubuntu-22.04, windows-2022 ]
     name: ${{ matrix.os }} / Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.1.0
+        uses: golangci/golangci-lint-action@v3.3.0
         with:
-          version: v1.33
+          version: v1.50.1
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
