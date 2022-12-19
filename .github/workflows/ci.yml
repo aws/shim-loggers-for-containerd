@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.15', '1.14', '1.13' ]
+        go: [ '1.17', '1.18', '1.19' ]
         os: [ ubuntu-20.04, windows-2019 ]
     name: ${{ matrix.os }} / Go ${{ matrix.go }}
     steps:
