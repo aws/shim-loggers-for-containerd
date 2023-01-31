@@ -14,10 +14,11 @@
 package main
 
 import (
+	"github.com/spf13/pflag"
+
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
-	"github.com/spf13/pflag"
 )
 
 const (
@@ -106,6 +107,7 @@ func initAWSLogsOpts() {
 	pflag.String(awslogs.CredentialsEndpointKey, "", "The endpoint for iam credentials")
 	pflag.String(awslogs.MultilinePatternKey, "", "Support multiline pattern for debug")
 	pflag.String(awslogs.DatetimeFormatKey, "", "Multiline pattern in strftime format")
+	pflag.String(awslogs.EndpointKey, "", "The CloudWatch endpoint to use")
 }
 
 // initFluentdOpts initialize fluentd driver specified options
