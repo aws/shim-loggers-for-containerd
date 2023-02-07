@@ -34,6 +34,7 @@ const (
 	MultilinePatternKey    = "awslogs-multiline-pattern"
 	DatetimeFormatKey      = "awslogs-datetime-format"
 	CredentialsEndpointKey = "awslogs-credentials-endpoint"
+	EndpointKey            = "awslogs-endpoint"
 
 	// There are 26 bytes additional bytes for each log event:
 	// See more details in: http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
@@ -44,7 +45,6 @@ const (
 
 	// The max size of CloudWatch events is 256kb.
 	defaultAwsBufSizeInBytes = 256 * 1024
-
 )
 
 // Args represents AWSlogs driver arguments
@@ -60,6 +60,7 @@ type Args struct {
 	CreateStream     string
 	MultilinePattern string
 	DatetimeFormat   string
+	Endpoint         string
 }
 
 // LoggerArgs stores global logger args and awslogs specific args
@@ -151,6 +152,10 @@ func getAWSLogsConfig(args *Args) map[string]string {
 	datetimeFormat := args.DatetimeFormat
 	if datetimeFormat != "" {
 		config[DatetimeFormatKey] = datetimeFormat
+	}
+	endpoint := args.Endpoint
+	if endpoint != "" {
+		config[EndpointKey] = endpoint
 	}
 
 	return config

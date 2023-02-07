@@ -11,6 +11,7 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build unit
 // +build unit
 
 package awslogs
@@ -30,6 +31,7 @@ const (
 	testCreateStream        = "true"
 	testMultilinePattern    = "test-multiline-pattern"
 	testDatetimeFormat      = "test-datetime-format"
+	testEndpoint            = "test-endpoint"
 )
 
 var (
@@ -42,6 +44,7 @@ var (
 		CreateStream:        testCreateStream,
 		MultilinePattern:    testMultilinePattern,
 		DatetimeFormat:      testDatetimeFormat,
+		Endpoint:            testEndpoint,
 	}
 )
 
@@ -57,6 +60,7 @@ func TestGetAWSLogsConfig(t *testing.T) {
 		CreateStreamKey:        testCreateStream,
 		MultilinePatternKey:    testMultilinePattern,
 		DatetimeFormatKey:      testDatetimeFormat,
+		EndpointKey:            testEndpoint,
 	}
 
 	config := getAWSLogsConfig(args)

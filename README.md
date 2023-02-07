@@ -81,6 +81,7 @@ The following additional arguments are supported for the `awslogs` shim logger b
 | awslogs-create-stream | No | Set to `true` by default. The log stream will always be created unless this value specified to `false` explicitly.|
 | awslogs-multiline-pattern | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-multiline-pattern).|
 | awslogs-datetime-format | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-datetime-format)|
+| awslogs-endpoint | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#awslogs-endpoint)|
 
 #### Splunk
 The following additional arguments are supported for the `splunk` shim logger binary, which can be used to send container logs to [splunk](https://www.splunk.com/en_us/central-log-management.html).
