@@ -1,20 +1,36 @@
+name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  lint:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.17', '1.18', '1.19', '1.20' ]
-        os: [ ubuntu-22.04, windows-2022 ]
-    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+        os: [ 'ubuntu-22.04' ]
+
+    name: ${{ matrix.os }} / Lint
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.0
         with:
           version: v1.52.2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+      
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.17', '1.18', '1.19', '1.20' ]
+        os: [ 'ubuntu-22.04', 'windows-2022' ]
+
+    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
