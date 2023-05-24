@@ -12,13 +12,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: false
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.0
         with:
           version: v1.52.2
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '1.20'
       
   build:
     strategy:
@@ -31,9 +32,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
+          cache: false
       - name: build
         run: make build
       - name: test
