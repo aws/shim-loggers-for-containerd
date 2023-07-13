@@ -11,6 +11,7 @@
 // express or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
+//go:build unit
 // +build unit
 
 package main
@@ -274,9 +275,20 @@ func testGetDockerConfigsNoError(t *testing.T) {
 	assert.Equal(t, testContainerImageName, args.ContainerImageName)
 	assert.Equal(t, testContainerImageID, args.ContainerImageID)
 	assert.Equal(t, true, reflect.DeepEqual(args.ContainerLabels, testContainerLabelsMap))
-	for i := range args.ContainerEnv {
-		assert.Equal(t, testContainerEnvSlice[i], args.ContainerEnv[i])
+	// Docker logging use a slice to store the environment variables
+	// Each item is in the format of "key=value" the unit test should
+	// convert it back to a map to guarantee content exists but disregard
+	// the order.
+	// ref: https://github.com/moby/moby/blob/c833222d54c00d64a0fc44c561a5973ecd414053/daemon/logger/loginfo.go#L60
+	testContainerEnvMap := make(map[string]struct{})
+	for _, v := range testContainerEnvSlice {
+		testContainerEnvMap[v] = struct{}{}
 	}
+	argsContainerEnvMap := make(map[string]struct{})
+	for _, v := range args.ContainerEnv {
+		argsContainerEnvMap[v] = struct{}{}
+	}
+	assert.Equal(t, true, reflect.DeepEqual(testContainerEnvMap, argsContainerEnvMap))
 }
 
 // testGetDockerConfigsEmpty tests that empty docker config input parameter generates no error
