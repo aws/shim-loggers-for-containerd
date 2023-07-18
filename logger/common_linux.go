@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -20,8 +21,6 @@ import (
 	"syscall"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
-
-	"github.com/pkg/errors"
 )
 
 // setUID sets UID of current goroutine/process.
@@ -31,13 +30,13 @@ import (
 func setUID(id int) error {
 	err := syscall.Setuid(id)
 	if err != nil {
-		return errors.Wrap(err, "unable to set uid")
+		return fmt.Errorf("unable to set uid: %w", err)
 	}
 
 	// Check if uid set correctly
 	u := syscall.Getuid()
 	if u != id {
-		return errors.New(fmt.Sprintf("want uid %d, but get uid %d", id, u))
+		return fmt.Errorf("want uid %d, but get uid %d", id, u)
 	}
 	debug.SendEventsToLog(DaemonName,
 		fmt.Sprintf("Set uid: %d", u),
@@ -53,13 +52,13 @@ func setUID(id int) error {
 func setGID(id int) error {
 	err := syscall.Setgid(id)
 	if err != nil {
-		return errors.Wrap(err, "unable to set gid")
+		return fmt.Errorf("unable to set gid: %w", err)
 	}
 
 	// Check if gid set correctly
 	g := syscall.Getgid()
 	if g != id {
-		return errors.New(fmt.Sprintf("want gid %d, but get gid %d", id, g))
+		return fmt.Errorf("want gid %d, but get gid %d", id, g)
 	}
 	debug.SendEventsToLog(DaemonName,
 		fmt.Sprintf("Set gid %d", g),

@@ -15,13 +15,13 @@ package awslogs
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
 	dockerawslogs "github.com/docker/docker/daemon/logger/awslogs"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -89,7 +89,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	)
 	stream, err := dockerawslogs.New(*info)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "unable to create stream")
+		debug.LoggerErr = fmt.Errorf("unable to create stream: %w", err)
 		return debug.LoggerErr
 	}
 
@@ -101,7 +101,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithBufferSizeInBytes(maximumBytesPerEvent),
 	)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "unable to create awslogs driver")
+		debug.LoggerErr = fmt.Errorf("unable to create awslogs driver: %w", err)
 		return debug.LoggerErr
 	}
 
@@ -115,7 +115,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	debug.SendEventsToLog(logger.DaemonName, "Starting log streaming for awslogs driver", debug.INFO, 0)
 	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "failed to run awslogs driver")
+		debug.LoggerErr = fmt.Errorf("failed to run awslogs driver: %w", err)
 		// Do not return error if log driver has issue sending logs to destination, because if error
 		// returned here, containerd will identify this error and kill shim process, which will kill
 		// the container process accordingly.

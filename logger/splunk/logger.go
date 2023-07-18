@@ -15,10 +15,10 @@ package splunk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
 	dockersplunk "github.com/docker/docker/daemon/logger/splunk"
-	"github.com/pkg/errors"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 	"github.com/aws/shim-loggers-for-containerd/logger"
@@ -105,7 +105,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	stream, err := dockersplunk.New(*info)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "unable to create stream")
+		debug.LoggerErr = fmt.Errorf("unable to create stream: %w", err)
 		return debug.LoggerErr
 	}
 
@@ -116,7 +116,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithStream(stream),
 	)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "unable to create splunk log driver")
+		debug.LoggerErr = fmt.Errorf("unable to create splunk log driver: %w", err)
 		return debug.LoggerErr
 	}
 
@@ -129,7 +129,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	debug.SendEventsToLog(logger.DaemonName, "Starting splunk driver", debug.INFO, 0)
 	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		debug.LoggerErr = errors.Wrap(err, "failed to run splunk driver")
+		debug.LoggerErr = fmt.Errorf("failed to run splunk driver: %w", err)
 		// Do not return error if log driver has issue sending logs to destination, because if error
 		// returned here, containerd will identify this error and kill shim process, which will kill
 		// the container process accordingly.

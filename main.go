@@ -14,6 +14,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -48,12 +48,12 @@ func main() {
 
 func run() error {
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return errors.Wrap(err, "unable to bind command line flags")
+		return fmt.Errorf("unable to bind command line flags: %w", err)
 	}
 
 	globalArgs, err := getGlobalArgs()
 	if err != nil {
-		return errors.Wrap(err, "unable to get global arguments")
+		return fmt.Errorf("unable to get global arguments: %w", err)
 	}
 
 	// Read the Windows specific options and set the environment up accordingly
@@ -61,7 +61,7 @@ func run() error {
 		windowsArgs := getWindowsArgs()
 		err = setWindowsEnv(windowsArgs.LogFileDir, globalArgs.ContainerName, windowsArgs.ProxyEnvVar)
 		if err != nil {
-			return errors.Wrap(err, "failed to set up Windows env with options")
+			return fmt.Errorf("failed to set up Windows env with options: %w", err)
 		}
 		defer cleanWindowsEnv(windowsArgs.ProxyEnvVar)
 	}
@@ -87,16 +87,16 @@ func run() error {
 	switch logDriver {
 	case awslogsDriverName:
 		if err := runAWSLogsDriver(globalArgs); err != nil {
-			return errors.Wrap(err, "unable to run awslogs driver")
+			return fmt.Errorf("unable to run awslogs driver: %w", err)
 		}
 	case fluentdDriverName:
 		runFluentdDriver(globalArgs)
 	case splunkDriverName:
 		if err := runSplunkDriver(globalArgs); err != nil {
-			return errors.Wrap(err, "unable to run splunk driver")
+			return fmt.Errorf("unable to run splunk driver: %w", err)
 		}
 	default:
-		return errors.Errorf("unknown log driver: %s", logDriver)
+		return fmt.Errorf("unknown log driver: %s", logDriver)
 	}
 
 	return nil
@@ -105,7 +105,7 @@ func run() error {
 func runAWSLogsDriver(globalArgs *logger.GlobalArgs) error {
 	args, err := getAWSLogsArgs()
 	if err != nil {
-		return errors.Wrap(err, "unable to get awslogs specified arguments")
+		return fmt.Errorf("unable to get awslogs specified arguments: %w", err)
 	}
 	loggerArgs := awslogs.InitLogger(globalArgs, args)
 	logging.Run(loggerArgs.RunLogDriver)
@@ -122,12 +122,12 @@ func runFluentdDriver(globalArgs *logger.GlobalArgs) {
 func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
 	dockerConfigs, err := getDockerConfigs()
 	if err != nil {
-		return errors.Wrap(err, "unable to get docker config arguments")
+		return fmt.Errorf("unable to get docker config arguments: %w", err)
 	}
 
 	args, err := getSplunkArgs()
 	if err != nil {
-		return errors.Wrap(err, "unable to get splunk specified arguments")
+		return fmt.Errorf("unable to get splunk specified arguments: %w", err)
 	}
 
 	loggerArgs := splunk.InitLogger(globalArgs, dockerConfigs, args)
