@@ -1,5 +1,5 @@
-# Amazon ECS shim loggers for containerd
-Amazon ECS shim loggers for containerd is a collection of [containerd](https://github.com/containerd/containerd) compatible logger
+# Shim loggers for containerd
+Shim loggers for containerd is a collection of [containerd](https://github.com/containerd/containerd) compatible logger
 implementations that send container logs to various destinations. The following destinations are currently supported:
 * [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html)
 * [Splunk](https://www.splunk.com/en_us/central-log-management.html)
