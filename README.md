@@ -1,19 +1,24 @@
 # Shim loggers for containerd
+
 Shim loggers for containerd is a collection of [containerd](https://github.com/containerd/containerd) compatible logger
 implementations that send container logs to various destinations. The following destinations are currently supported:
+
 * [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html)
 * [Splunk](https://www.splunk.com/en_us/central-log-management.html)
 * [Fluentd](http://www.fluentd.org/)
 
 ## Build
+
 Make sure you have [golang](https://golang.org) installed. Then simply run `make build` to build the respective binaries. You might need to execute `make get-deps` to install some of the dependencies.
 
 ## Usage
+
 Containerd supports shim plugins that redirect container output to a custom binary on Linux using STDIO URIs with
 [runc v2 runtime](https://github.com/containerd/containerd/tree/release/1.3/runtime/v2). These loggers can be used
 either programmatically or with the [ctr](https://github.com/projectatomic/containerd/blob/master/docs/cli.md) tool.
 
 ### When using the `NewTask` API
+
 When using the [`NewTask`](https://github.com/containerd/containerd/blob/release/1.3/container.go#L208) API
 to start a container, simply provide the path to the built binary file `shim-loggers-for-containerd` and required
 arguments. Note it's a good practice to clean up container resources with
@@ -21,17 +26,20 @@ arguments. Note it's a good practice to clean up container resources with
 as the container IO pipes are not closed if the shim process is still running.
 
 Example:
-```
+
+```go
 NewTask(context, cio.BinaryIO("/usr/bin/shim-loggers-for-containerd", args))
 ```
 
 ### When using the `ctr` tool
+
 When using [ctr](https://github.com/projectatomic/containerd/blob/master/docs/cli.md) tool to run
 a container, provide the URI path to the binary file `shim-loggers-for-containerd` and required arguments as part of
 the path.
 
 Example:
-```
+
+```bash
 ctr run \
     --runtime io.containerd.runc.v2 \
     --log-uri "binary:///usr/bin/shim-loggers-for-containerd?--log-driver=awslogs&--arg1=value1&-args2=value2" \
@@ -42,6 +50,7 @@ ctr run \
 ## Arguments
 
 ### Common arguments
+
 The following list of arguments apply to all of the shim logger binaries in this repo:
 
 |Name|Required|Description|
@@ -60,6 +69,7 @@ The following list of arguments apply to all of the shim logger binaries in this
 | container-labels | No | The container labels map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
 
 ### Windows specific arguments
+
 The following list of arguments apply to Windows shim logger binaries in this repo:
 
 |Name|Required|Description|
@@ -68,7 +78,9 @@ The following list of arguments apply to Windows shim logger binaries in this re
 | proxy-variable | No | Only supported in Windows. The proxy variable will set the `HTTP_PROXY` and `HTTPS_PROXY` environment variables.
 
 ### Additional log driver options
+
 #### Amazon CloudWatch Logs
+
 The following additional arguments are supported for the `awslogs` shim logger binary, which can be used to send container logs to [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
 
 |Name|Required|Description|
@@ -84,6 +96,7 @@ The following additional arguments are supported for the `awslogs` shim logger b
 | awslogs-endpoint | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#awslogs-endpoint)|
 
 #### Splunk
+
 The following additional arguments are supported for the `splunk` shim logger binary, which can be used to send container logs to [splunk](https://www.splunk.com/en_us/central-log-management.html).
 You can find a description of what these parameters are used for [here](https://docs.docker.com/config/containers/logging/splunk/).
 
@@ -107,10 +120,12 @@ You can find a description of what these parameters are used for [here](https://
 | env-regex | No |
 
 #### Fluentd
+
 The following additional arguments are supported for the `fluentd` shim logger binary, which can be used to send container logs to  [Fluentd](https://www.fluentd.org). Note that all of these are optional arguments.
+
 * fluentd-address: The address of the Fluentd server to connect to. By default, the `localhost:24224` address is used.
 * fluentd-async-connect: Specifies if the logger connects to Fluentd in background. Defaults to `false`.
-* fluentd-sub-second-precision: Generates logs in nanoseconds. Defaults to `true`. Note that this is in contrast to the default behaviour of fluentd log driver where it defaults to `false`. 
+* fluentd-sub-second-precision: Generates logs in nanoseconds. Defaults to `true`. Note that this is in contrast to the default behaviour of fluentd log driver where it defaults to `false`.
 * fluentd-buffer-limit: Sets the number of events buffered on the memory. Defaults to `1MB`.
 * fluentd-tag: Specifies the tag used for log messages. Defaults to the first 12 characters of container ID.
 

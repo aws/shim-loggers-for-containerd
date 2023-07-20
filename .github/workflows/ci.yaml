@@ -55,4 +55,11 @@ jobs:
       # TODO: Use `go mod tidy --check` after https://github.com/golang/go/issues/27005 is fixed.
       - run: go mod tidy
       - run: git diff --exit-code
+  mdlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: avto-dev/markdown-lint@v1
+        with:
+          args: '**/*.md'
 
