@@ -44,3 +44,15 @@ jobs:
         run: make build
       - name: test
         run: make test
+  go-mod-tidy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache: true
+      # TODO: Use `go mod tidy --check` after https://github.com/golang/go/issues/27005 is fixed.
+      - run: go mod tidy
+      - run: git diff --exit-code
+
