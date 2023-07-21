@@ -30,6 +30,17 @@ test: $(SOURCES)
 lint: $(SOURCES)
 	$(DEPSPATH)/golangci-lint run
 
+.PHONY: mdlint
+# Install it locally: https://github.com/igorshubovych/markdownlint-cli#installation
+# Or see `mdlint-ctr` below or https://github.com/DavidAnson/markdownlint#related.
+mdlint:
+	markdownlint '**/*.md'
+
+.PHONY: mdlint-ctr
+# If markdownlint is not installed, you can run markdownlint within a container.
+mdlint-ctr:
+	docker run --rm -v "$(shell pwd):/repo:ro" -w /repo avtodev/markdown-lint:v1 '**/*.md'
+
 .get-deps-stamp:
 	GO111MODULE=off GOBIN=$(DEPSPATH) go get golang.org/x/tools/cmd/goimports
 	GOBIN=$(DEPSPATH) go get github.com/golang/mock/mockgen@v1.4.1
