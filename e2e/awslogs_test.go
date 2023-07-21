@@ -15,17 +15,19 @@ import (
 )
 
 const (
-	awslogsCredentialsEndpointKey = "--awslogs-credentials-endpoint"
+	awslogsCredentialsEndpointKey = "--awslogs-credentials-endpoint" //nolint:gosec // not credentials
 	awslogsRegionKey              = "--awslogs-region"
 	awslogsStreamKey              = "--awslogs-stream"
 	awslogsGroupKey               = "--awslogs-group"
-	awslogEndpointKey             = "--awslogs-endpoint"
+	awslogsEndpointKey            = "--awslogs-endpoint"
 	testEcsLocalEndpointPort      = "51679"
 	testAwslogsCredentialEndpoint = ":" + testEcsLocalEndpointPort + "/creds"
 	testAwslogsRegion             = "us-east-1"
 	testAwslogsStream             = "test-stream"
 	testAwslogsGroup              = "test-shim-logger"
-	testAwslogsEndpoint           = "localhost.localstack.cloud" // Recommended endpoint: https://docs.localstack.cloud/getting-started/faq/#is-using-localhostlocalstackcloud4566-to-set-as-the-endpoint-for-aws-services-recommended
+	testAwslogsEndpoint           = "localhost.localstack.cloud" // Recommended endpoint:
+	//nolint:lll // url
+	// https://docs.localstack.cloud/getting-started/faq/#is-using-localhostlocalstackcloud4566-to-set-as-the-endpoint-for-aws-services-recommended
 )
 
 var testAwslogs = func() {
@@ -41,7 +43,8 @@ var testAwslogs = func() {
 					SigningRegion: testAwslogsRegion,
 				}, nil
 			})
-			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion), config.WithEndpointResolverWithOptions(customResolver))
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion),
+				config.WithEndpointResolverWithOptions(customResolver))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			cwClient = cloudwatchlogs.NewFromConfig(cfg)
 			cleanupAwslogs(cwClient, testAwslogsGroup, testAwslogsStream)
@@ -52,13 +55,13 @@ var testAwslogs = func() {
 		ginkgo.It("should send logs to awslogs log driver", func() {
 			args := map[string]string{
 				logDriverTypeKey:              awslogsDriverName,
-				containerIdKey:                testContainerId,
+				containerIDKey:                testContainerID,
 				containerNameKey:              testContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
 				awslogsStreamKey:              testAwslogsStream,
-				awslogEndpointKey:             testAwslogsEndpoint,
+				awslogsEndpointKey:            testAwslogsEndpoint,
 			}
 			creator := cio.BinaryIO(*Binary, args)
 			sendTestLogByContainerd(creator, testLog)

@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	splunkTokenKey              = "--splunk-token"
-	splunkUrlkey                = "--splunk-url"
+	splunkTokenKey              = "--splunk-token" //nolint:gosec // no real credential
+	splunkURLkey                = "--splunk-url"
 	splunkInsecureskipverifyKey = "--splunk-insecureskipverify"
-	testSplunkUrl               = "https://localhost:8089"
+	testSplunkURL               = "https://localhost:8089"
 )
 
 var testSplunk = func(token string) {
@@ -23,10 +23,10 @@ var testSplunk = func(token string) {
 		ginkgo.It("should send logs to splunk log driver", func() {
 			args := map[string]string{
 				logDriverTypeKey:            splunkDriverName,
-				containerIdKey:              testContainerId,
+				containerIDKey:              testContainerID,
 				containerNameKey:            testContainerName,
 				splunkTokenKey:              token,
-				splunkUrlkey:                testSplunkUrl,
+				splunkURLkey:                testSplunkURL,
 				splunkInsecureskipverifyKey: "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)

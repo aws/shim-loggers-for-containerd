@@ -5,19 +5,24 @@ package debug
 
 const (
 	daemonName = "shim-loggers-for-containerd"
-	INFO       = "info"
-	ERROR      = "err"
-	DEBUG      = "debug"
+	// INFO represents a log level for informational messages.
+	INFO = "info"
+	// ERROR represents a log level for error messages.
+	ERROR = "err"
+	// DEBUG represents a log level for debugging messages.
+	DEBUG = "debug"
 )
 
 var (
-	// When this set to true, logger will print more events for debugging
-	Verbose   = false
-	LoggerErr error
+	// Verbose indicates if additional debug events should be logged.
+	Verbose = false
+	// ErrLogger holds any errors related to the logger setup or execution.
+	ErrLogger error
 )
 
+// DeferFuncForRunLogDriver checks and sends logger errors to the system log.
 func DeferFuncForRunLogDriver() {
-	if LoggerErr != nil {
-		SendEventsToLog(daemonName, LoggerErr.Error(), ERROR, 1)
+	if ErrLogger != nil {
+		SendEventsToLog(daemonName, ErrLogger.Error(), ERROR, 1)
 	}
 }

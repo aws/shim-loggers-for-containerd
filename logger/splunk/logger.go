@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package splunk provides functionalities for integrating the splunk logging driver
+// with shim-loggers-for-containerd.
 package splunk
 
 import (
@@ -14,13 +16,15 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 )
 
-// splunk driver argument keys
+// splunk driver argument keys.
 const (
-	// Required
+	// Required.
+
 	TokenKey = "splunk-token"
 	URLKey   = "splunk-url"
 
-	// Optional
+	// Optional.
+
 	SourceKey             = "splunk-source"
 	SourcetypeKey         = "splunk-sourcetype"
 	IndexKey              = "splunk-index"
@@ -36,12 +40,12 @@ const (
 	EnvKey                = "env"
 	EnvRegexKey           = "env-regex"
 
-	// Convert input parameter "splunk-tag" to the splunk parameter "tag"
-	// This is to distinguish between the "tag" parameter from the fluentd input
+	// Convert input parameter "splunk-tag" to the splunk parameter "tag".
+	// This is to distinguish between the "tag" parameter from the fluentd input.
 	tagKey = "tag"
 )
 
-// Args represents splunk log driver arguments
+// Args represents splunk log driver arguments.
 type Args struct {
 	Token              string
 	URL                string
@@ -65,14 +69,14 @@ type Args struct {
 	EnvRegex     string
 }
 
-// LoggerArgs stores global logger args and splunk specific args
+// LoggerArgs stores global logger args and splunk specific args.
 type LoggerArgs struct {
 	globalArgs    *logger.GlobalArgs
 	dockerConfigs *logger.DockerConfigs
 	args          *Args
 }
 
-// InitLogger initialize the input arguments
+// InitLogger initialize the input arguments.
 func InitLogger(globalArgs *logger.GlobalArgs, dockerConfigs *logger.DockerConfigs, splunkArgs *Args) *LoggerArgs {
 	return &LoggerArgs{
 		globalArgs:    globalArgs,
@@ -81,7 +85,7 @@ func InitLogger(globalArgs *logger.GlobalArgs, dockerConfigs *logger.DockerConfi
 	}
 }
 
-// RunLogDriver initiates the splunk driver
+// RunLogDriver initiates the splunk driver.
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
@@ -95,8 +99,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	stream, err := dockersplunk.New(*info)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create stream: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create stream: %w", err)
+		return debug.ErrLogger
 	}
 
 	l, err := logger.NewLogger(
@@ -106,8 +110,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithStream(stream),
 	)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create splunk log driver: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create splunk log driver: %w", err)
+		return debug.ErrLogger
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
@@ -115,11 +119,11 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		l = logger.NewBufferedLogger(l, logger.DefaultBufSizeInBytes, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
-	// Start splunk log driver
+	// Start splunk log driver.
 	debug.SendEventsToLog(logger.DaemonName, "Starting splunk driver", debug.INFO, 0)
-	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
+	err = l.Start(ctx, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("failed to run splunk driver: %w", err)
+		debug.ErrLogger = fmt.Errorf("failed to run splunk driver: %w", err)
 		// Do not return error if log driver has issue sending logs to destination, because if error
 		// returned here, containerd will identify this error and kill shim process, which will kill
 		// the container process accordingly.
@@ -132,7 +136,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	return nil
 }
 
-// getSplunkConfig sets values for splunk config
+// getSplunkConfig sets values for splunk config.
 func getSplunkConfig(arg *Args) map[string]string {
 	config := make(map[string]string)
 	// Required arguments

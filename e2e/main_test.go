@@ -18,14 +18,14 @@ import (
 )
 
 const (
-	// LogDriver options
+	// LogDriver options.
 	logDriverTypeKey  = "--log-driver"
 	awslogsDriverName = "awslogs"
 	fluentdDriverName = "fluentd"
 	splunkDriverName  = "splunk"
-	containerIdKey    = "--container-id"
+	containerIDKey    = "--container-id"
 	containerNameKey  = "--container-name"
-	testContainerId   = "test-container-id"
+	testContainerID   = "test-container-id"
 	testContainerName = "test-container-name"
 	containerdAddress = "/run/containerd/containerd.sock"
 	testImage         = "public.ecr.aws/docker/library/ubuntu:latest"
@@ -33,13 +33,15 @@ const (
 )
 
 var (
-	// Binary is the path the binary of the shim loggers for containerd
+	// Binary is the path the binary of the shim loggers for containerd.
 	Binary      = flag.String("binary", "", "the binary of shim loggers for containerd")
 	LogDriver   = flag.String("log-driver", "", "the log driver to test")
 	SplunkToken = flag.String("splunk-token", "", "the token to access Splunk")
 )
 
 func TestShimLoggers(t *testing.T) {
+	t.Parallel()
+
 	const description = "Shim loggers for containerd E2E Tests"
 
 	ginkgo.Describe("", func() {
@@ -62,14 +64,14 @@ func sendTestLogByContainerd(creator cio.Creator, testLog string) {
 	// Create a new client connected to the containerd daemon
 	client, err := containerd.New(containerdAddress)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-	defer client.Close()
+	defer client.Close() //nolint:errcheck // closing client
 	// Create a new context with a customized namespace
 	ctx := namespaces.WithNamespace(context.Background(), "testShimLoggers")
 	// Pull an image
 	image, err := client.Pull(ctx, testImage, containerd.WithPullUnpack)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	// Create a new container with the pulled image
-	container, err := client.NewContainer(ctx, testContainerId, containerd.WithImage(image),
+	container, err := client.NewContainer(ctx, testContainerID, containerd.WithImage(image),
 		containerd.WithNewSnapshot("test-snapshot", image), containerd.WithNewSpec(oci.WithImageConfig(image),
 			oci.WithProcessArgs("/bin/sh", "-c", fmt.Sprintf("echo '%s'", testLog))))
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())

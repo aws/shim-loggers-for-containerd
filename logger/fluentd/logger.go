@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package fluentd provides functionalities for integrating the fluentd logging driver
+// with shim-loggers-for-containerd.
 package fluentd
 
 import (
@@ -15,18 +17,23 @@ import (
 )
 
 const (
-	AddressKey            = "fluentd-address"
-	AsyncConnectKey       = "fluentd-async-connect"
-	FluentdTagKey         = "fluentd-tag"
+	// AddressKey specifies the address configuration for fluentd.
+	AddressKey = "fluentd-address"
+	// AsyncConnectKey specifies the async connect configuration key for fluentd.
+	AsyncConnectKey = "fluentd-async-connect"
+	// FluentdTagKey specifies the tag configuration key for fluentd.
+	FluentdTagKey = "fluentd-tag"
+	// SubsecondPrecisionKey specifies the sub-second precision configuration key for fluentd.
 	SubsecondPrecisionKey = "fluentd-sub-second-precision"
-	BufferLimitKey        = "fluentd-buffer-limit"
+	// BufferLimitKey specifies the buffer limit configuration key for fluentd.
+	BufferLimitKey = "fluentd-buffer-limit"
 
-	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag"
-	// This is to distinguish between the "tag" parameter from the splunk input
+	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag".
+	// This is to distinguish between the "tag" parameter from the splunk input.
 	tagKey = "tag"
 )
 
-// Args represents fluentd log driver arguments
+// Args represents fluentd log driver arguments.
 type Args struct {
 	// Optional arguments
 	Address            string
@@ -36,13 +43,13 @@ type Args struct {
 	BufferLimit        string
 }
 
-// LoggerArgs stores global logger args and fluentd specific args
+// LoggerArgs stores global logger args and fluentd specific args.
 type LoggerArgs struct {
 	globalArgs *logger.GlobalArgs
 	args       *Args
 }
 
-// InitLogger initialize the input arguments
+// InitLogger initialize the input arguments.
 func InitLogger(globalArgs *logger.GlobalArgs, fluentdArgs *Args) *LoggerArgs {
 	return &LoggerArgs{
 		globalArgs: globalArgs,
@@ -50,6 +57,8 @@ func InitLogger(globalArgs *logger.GlobalArgs, fluentdArgs *Args) *LoggerArgs {
 	}
 }
 
+// RunLogDriver initializes and starts the fluentd logger.
+// Errors with the log driver are logged but not returned to prevent container termination.
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
@@ -61,8 +70,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	)
 	stream, err := dockerfluentd.New(*info)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create stream: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create stream: %w", err)
+		return debug.ErrLogger
 	}
 
 	l, err := logger.NewLogger(
@@ -72,8 +81,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithStream(stream),
 	)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create fluentd driver: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create fluentd driver: %w", err)
+		return debug.ErrLogger
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
@@ -83,9 +92,9 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	// Start fluentd driver
 	debug.SendEventsToLog(logger.DaemonName, "Starting fluentd driver", debug.INFO, 0)
-	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
+	err = l.Start(ctx, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("failed to run fluentd driver: %w", err)
+		debug.ErrLogger = fmt.Errorf("failed to run fluentd driver: %w", err)
 		// Do not return error if log driver has issue sending logs to destination, because if error
 		// returned here, containerd will identify this error and kill shim process, which will kill
 		// the container process accordingly.
@@ -98,7 +107,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	return nil
 }
 
-// getFluentdConfig sets values for fluentd config
+// getFluentdConfig sets values for fluentd config.
 func getFluentdConfig(args *Args) map[string]string {
 	config := make(map[string]string)
 	config[tagKey] = args.Tag

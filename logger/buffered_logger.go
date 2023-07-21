@@ -87,8 +87,6 @@ func newLoggerBuffer(maxBufferSize int) *ringBuffer {
 // Start starts the non-blocking mode logger.
 func (bl *bufferedLogger) Start(
 	ctx context.Context,
-	uid int,
-	gid int,
 	cleanupTime *time.Duration,
 	ready func() error,
 ) error {
@@ -102,7 +100,7 @@ func (bl *bufferedLogger) Start(
 	// send logs to destination when there's any.
 	errGroup.Go(func() error {
 		debug.SendEventsToLog(DaemonName, "Starting consuming logs from ring buffer", debug.INFO, 0)
-		return bl.sendLogMessagesToDestination(uid, gid, cleanupTime)
+		return bl.sendLogMessagesToDestination(cleanupTime)
 	})
 
 	// Start reading logs from container pipes.
@@ -112,7 +110,7 @@ func (bl *bufferedLogger) Start(
 		pipe := p
 
 		errGroup.Go(func() error {
-			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source, uid, gid)
+			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source)
 			if logErr != nil {
 				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, logErr)
 				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
@@ -136,7 +134,6 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 	ctx context.Context,
 	f io.Reader,
 	source string,
-	uid int, gid int,
 ) error {
 	if err := bl.Read(ctx, f, source, bl.bufReadSizeInBytes, bl.saveSingleLogMessageToRingBuffer); err != nil {
 		err := fmt.Errorf("failed to read logs from %s pipe: %w", source, err)
@@ -196,7 +193,7 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 
 // sendLogMessagesToDestination consumes logs from ring buffer and use the
 // underlying log driver to send logs to destination.
-func (bl *bufferedLogger) sendLogMessagesToDestination(uid int, gid int, cleanupTime *time.Duration) error {
+func (bl *bufferedLogger) sendLogMessagesToDestination(cleanupTime *time.Duration) error {
 	// Keep sending log message to destination defined by the underlying log driver until
 	// the ring buffer is closed.
 	for !bl.buffer.isClosed {
@@ -329,7 +326,7 @@ func (b *ringBuffer) Dequeue() (*dockerlogger.Message, error) {
 
 	// Directly return if ring buffer is closed.
 	if b.isClosed {
-		return nil, nil
+		return nil, nil //nolint: nilnil // swallow the error
 	}
 
 	// Get and remove the oldest message saved in buffer/queue from head and update

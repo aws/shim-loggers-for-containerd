@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package awslogs provides functionalities for integrating the awslogs logging driver
+// with shim-loggers-for-containerd.
 package awslogs
 
 import (
@@ -15,16 +17,26 @@ import (
 )
 
 const (
-	// awslogs driver options
-	RegionKey              = "awslogs-region"
-	GroupKey               = "awslogs-group"
-	CreateGroupKey         = "awslogs-create-group"
-	StreamKey              = "awslogs-stream"
-	CreateStreamKey        = "awslogs-create-stream"
-	MultilinePatternKey    = "awslogs-multiline-pattern"
-	DatetimeFormatKey      = "awslogs-datetime-format"
-	CredentialsEndpointKey = "awslogs-credentials-endpoint"
-	EndpointKey            = "awslogs-endpoint"
+	// awslogs driver options.
+
+	// RegionKey specifies the AWS logging region.
+	RegionKey = "awslogs-region"
+	// GroupKey denotes the AWS logging group name.
+	GroupKey = "awslogs-group"
+	// CreateGroupKey is a flag to create a new AWS logging group.
+	CreateGroupKey = "awslogs-create-group"
+	// StreamKey specifies the AWS logging stream name.
+	StreamKey = "awslogs-stream"
+	// CreateStreamKey is a flag to create a new log stream.
+	CreateStreamKey = "awslogs-create-stream"
+	// MultilinePatternKey defines the pattern for multiline logs.
+	MultilinePatternKey = "awslogs-multiline-pattern"
+	// DatetimeFormatKey specifies the datetime format of the logs.
+	DatetimeFormatKey = "awslogs-datetime-format"
+	// CredentialsEndpointKey denotes the AWS credentials endpoint (not actual credentials).
+	CredentialsEndpointKey = "awslogs-credentials-endpoint" //nolint:gosec // not credentials
+	// EndpointKey is the AWS logging endpoint.
+	EndpointKey = "awslogs-endpoint"
 
 	// There are 26 bytes additional bytes for each log event:
 	// See more details in: http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
@@ -37,15 +49,15 @@ const (
 	defaultAwsBufSizeInBytes = 256 * 1024
 )
 
-// Args represents AWSlogs driver arguments
+// Args represents AWSlogs driver arguments.
 type Args struct {
-	// Required arguments
+	// Required arguments.
 	Group               string
 	Region              string
 	Stream              string
 	CredentialsEndpoint string
 
-	// Optional arguments
+	// Optional arguments.
 	CreateGroup      string
 	CreateStream     string
 	MultilinePattern string
@@ -53,13 +65,13 @@ type Args struct {
 	Endpoint         string
 }
 
-// LoggerArgs stores global logger args and awslogs specific args
+// LoggerArgs stores global logger args and awslogs specific args.
 type LoggerArgs struct {
 	globalArgs *logger.GlobalArgs
 	args       *Args
 }
 
-// InitLogger initialize the input arguments
+// InitLogger initialize the input arguments.
 func InitLogger(globalArgs *logger.GlobalArgs, awslogsArgs *Args) *LoggerArgs {
 	return &LoggerArgs{
 		globalArgs: globalArgs,
@@ -67,7 +79,7 @@ func InitLogger(globalArgs *logger.GlobalArgs, awslogsArgs *Args) *LoggerArgs {
 	}
 }
 
-// RunLogDriver initiates an awslogs driver and starts driving container logs to cloudwatch
+// RunLogDriver initiates an awslogs driver and starts driving container logs to cloudwatch.
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
@@ -79,8 +91,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	)
 	stream, err := dockerawslogs.New(*info)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create stream: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create stream: %w", err)
+		return debug.ErrLogger
 	}
 
 	l, err := logger.NewLogger(
@@ -91,8 +103,8 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 		logger.WithBufferSizeInBytes(maximumBytesPerEvent),
 	)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("unable to create awslogs driver: %w", err)
-		return debug.LoggerErr
+		debug.ErrLogger = fmt.Errorf("unable to create awslogs driver: %w", err)
+		return debug.ErrLogger
 	}
 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
@@ -103,9 +115,9 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 
 	// Start awslogs driver
 	debug.SendEventsToLog(logger.DaemonName, "Starting log streaming for awslogs driver", debug.INFO, 0)
-	err = l.Start(ctx, la.globalArgs.UID, la.globalArgs.GID, la.globalArgs.CleanupTime, ready)
+	err = l.Start(ctx, la.globalArgs.CleanupTime, ready)
 	if err != nil {
-		debug.LoggerErr = fmt.Errorf("failed to run awslogs driver: %w", err)
+		debug.ErrLogger = fmt.Errorf("failed to run awslogs driver: %w", err)
 		// Do not return error if log driver has issue sending logs to destination, because if error
 		// returned here, containerd will identify this error and kill shim process, which will kill
 		// the container process accordingly.
@@ -118,7 +130,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	return nil
 }
 
-// getAWSLogsConfig sets values for awslogs config
+// getAWSLogsConfig sets values for awslogs config.
 func getAWSLogsConfig(args *Args) map[string]string {
 	config := make(map[string]string)
 	// Required arguments

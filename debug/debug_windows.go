@@ -45,7 +45,7 @@ func FlushLog() {
 	fileLogger.Flush()
 }
 
-func SendEventsToLog(logfileNameId string, msg string, msgType string, delaySeconds time.Duration) {
+func SendEventsToLog(logfileNameId string, msg string, msgType string, delay time.Duration) {
 	filename := fmt.Sprintf("%s-%s.log", containerName, logfileNameId)
 	file := filepath.Join(logFileDir, filename)
 	configStr := fmt.Sprintf(SEE_LOG_CONFIG_TEMPLATE, file, int(MAX_FILE_SIZE*1000000), MAX_ROLLS)
@@ -58,7 +58,7 @@ func SendEventsToLog(logfileNameId string, msg string, msgType string, delaySeco
 	case "debug":
 		fileLogger.Debug(msg)
 	}
-	time.Sleep(delaySeconds * time.Second)
+	time.Sleep(delay * time.Second)
 }
 
 func SetLogFilePath(logFlag, contName string) error {
