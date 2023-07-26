@@ -26,6 +26,11 @@ $(AWS_CONTAINERD_LOGGERS_BINARY):
 test: $(SOURCES)
 	go test -tags unit -race -timeout 30s -cover $(shell go list ./...) --count=1
 
+.PHONY: coverage
+coverage:
+	go test -tags unit $(shell go list ./...) -coverprofile=test-coverage.out
+	go tool cover -html=test-coverage.out
+
 .PHONY: lint
 lint: $(SOURCES)
 	$(DEPSPATH)/golangci-lint run
