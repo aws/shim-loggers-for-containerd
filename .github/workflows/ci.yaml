@@ -24,13 +24,13 @@ jobs:
           # Pin the version in case all the builds start to fail at the same time.
           # There may not be an automatic way (e.g., dependabot) to update a specific parameter of a GitHub Action,
           # so we will just update it manually whenever it makes sense (e.g., a feature that we want is added).
-          version: v1.53.3
+          version: v1.54.0
           args: --fix=false --timeout=5m
   build:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.17', '1.18', '1.19', '1.20' ]
+        go: [ '1.17', '1.18', '1.19', '1.20', '1.21' ]
         os: [ 'ubuntu-22.04', 'windows-2022' ]
 
     name: ${{ matrix.os }} / Go ${{ matrix.go }}
