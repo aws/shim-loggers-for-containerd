@@ -49,7 +49,7 @@ mdlint-ctr:
 .get-deps-stamp:
 	GO111MODULE=off GOBIN=$(DEPSPATH) go get golang.org/x/tools/cmd/goimports
 	GOBIN=$(DEPSPATH) go get github.com/golang/mock/mockgen@v1.4.1
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(DEPSPATH) v1.53.3
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(DEPSPATH) v1.54.0
 	$(DEPSPATH)/golangci-lint --version
 	touch .get-deps-stamp
 
