@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version-file: go.mod
+          go-version: 'stable'
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -25,15 +25,15 @@ jobs:
           # There may not be an automatic way (e.g., dependabot) to update a specific parameter of a GitHub Action,
           # so we will just update it manually whenever it makes sense (e.g., a feature that we want is added).
           version: v1.54.0
-          args: --fix=false --timeout=5m
-  build:
+          args: --fix=false --timeout=5m --out-format=colored-line-number
+  unit-tests:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.17', '1.18', '1.19', '1.20', '1.21' ]
-        os: [ 'ubuntu-22.04', 'windows-2022' ]
+        go: [ '1.20', '1.21' ]
+        os: [ ubuntu-latest, windows-latest ]
 
-    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: Unit Tests / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -43,8 +43,43 @@ jobs:
           cache: false
       - name: build
         run: make build
-      - name: test
-        run: make test
+      - name: test-unit
+        run: make test-unit
+  e2e-tests-for-awslogs:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.20', '1.21' ]
+        os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
+    name: E2E tests / awslogs / ${{ matrix.os }} / Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE }}
+          aws-region: ${{ secrets.REGION }}
+      - name: install and start containerd
+        shell: bash
+        run: sudo scripts/install-containerd
+      - name: start ecs local endpoint
+        shell: bash
+        run: scripts/start-ecs-local-endpoint
+      - name: ip forwarding # awslogs driver hardcodes "169.254.170.2" as the aws credential endpoint ip so need to forward to local endpoint
+        shell: bash
+        run: sudo scripts/ip-forwarding
+      - name: build
+        run: sudo make build
+      - name: test-e2e
+        run: sudo -E make test-e2e-for-awslogs # containerd interaction requires sudo and aws cloudwatch interaction requires passing env vars
   go-mod-tidy-check:
     runs-on: ubuntu-latest
     steps:

@@ -23,12 +23,21 @@ build: $(AWS_CONTAINERD_LOGGERS_BINARY)
 $(AWS_CONTAINERD_LOGGERS_BINARY):
 	go build -o $(AWS_CONTAINERD_LOGGERS_BINARY) $(AWS_CONTAINERD_LOGGERS_DIR)
 
-test: $(SOURCES)
-	go test -tags unit -race -timeout 30s -cover $(shell go list ./...) --count=1
+.PHONY: test-unit
+test-unit: $(SOURCES)
+	go test -tags unit -race -timeout 30s -cover $(shell go list ./... | grep -v e2e) --count=1
+
+.PHONY: test-e2e
+test-e2e:
+	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
+
+.PHONY: test-e2e-for-awslogs
+test-e2e:
+	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "awslogs"
 
 .PHONY: coverage
 coverage:
-	go test -tags unit $(shell go list ./...) -coverprofile=test-coverage.out
+	go test -tags unit $(shell go list ./... | grep -v e2e) -coverprofile=test-coverage.out
 	go tool cover -html=test-coverage.out
 
 .PHONY: lint
