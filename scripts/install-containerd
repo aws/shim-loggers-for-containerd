@@ -1,0 +1,35 @@
+#!/bin/bash
+# install and start containerd daemon
+
+set -eu -o pipefail
+
+ARCH="$(go env GOARCH)"
+OS="$(go env GOOS)"
+CONTAINERD_VERSION="$(go list -f {{.Module.Version}} -find github.com/containerd/containerd)"
+
+# check if already installed and start
+ctrd=$(which containerd 2> /dev/null)
+if [ "$ctrd" != "" ]; then
+    echo "containerd installed to $ctrd"
+    $ctrd &
+    exit 0
+fi
+
+CURL="curl"
+CONTAINERD="containerd"
+
+if [ "$OS" == "windows" ]; then
+    CURL+=".exe"
+    CONTAINERD+=".exe"
+fi
+
+echo "downloading release tar"
+$CURL \
+    -L \
+    https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-${OS}-${ARCH}.tar.gz \
+    -o containerd.tar.gz
+
+echo "extracting release tar"
+tar xvf containerd.tar.gz
+echo "starting containerd"
+bin/$CONTAINERD &

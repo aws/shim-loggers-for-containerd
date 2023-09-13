@@ -43,8 +43,42 @@ jobs:
           cache: false
       - name: build
         run: make build
-      - name: test
-        run: make test
+      - name: test-unit
+        run: make test-unit
+
+  e2e-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.20' ]
+        os: [ 'ubuntu-22.04' ]
+
+    name: ${{ matrix.os }} / Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE }}
+          aws-region: us-west-2
+      - name: install and start containerd
+        shell: bash
+        run: sudo scripts/install-containerd
+      - name: set up ip forwarding
+        shell: bash
+        run: sudo scripts/ip-forwarding
+      - name: build
+        run: make build
+      - name: test-e2e
+        run: make test-e2e
   go-mod-tidy-check:
     runs-on: ubuntu-latest
     steps:
