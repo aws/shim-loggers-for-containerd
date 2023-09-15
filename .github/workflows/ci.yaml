@@ -6,6 +6,13 @@ on:
   pull_request:
     branches:
       - main
+  pull_request_target:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   # It's recommended to run golangci-lint in a job separate from other jobs (go test, etc) because different jobs run in parallel.
@@ -53,9 +60,6 @@ jobs:
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
     name: E2E tests / awslogs / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
