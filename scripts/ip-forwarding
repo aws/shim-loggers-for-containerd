@@ -1,0 +1,6 @@
+#!/bin/bash
+# Creating loopback for 169.254.170.2/32 to 127.0.0.1:51679 to reroute logs to local collector.
+
+sysctl -w net.ipv4.ip_forward=1
+ifconfig lo:0 169.254.170.2 netmask 255.255.255.255 up
+iptables -t nat -A OUTPUT -d 169.254.170.2 -p tcp --dport 80 -j DNAT --to-destination 127.0.0.1:51679

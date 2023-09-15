@@ -1,0 +1,22 @@
+#!/bin/bash
+# install and start containerd daemon
+
+set -eu -o pipefail
+
+ARCH="$(go env GOARCH)"
+OS="$(go env GOOS)"
+
+# Need to cut the first character from the version string for the correct format.
+# e.g. 1.6.20 instead of v1.6.20
+CONTAINERD_VERSION="$(go list -f {{.Module.Version}} -find github.com/containerd/containerd | cut -c2-)"
+
+echo "downloading release tar"
+curl \
+    -L \
+    https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-${OS}-${ARCH}.tar.gz \
+    -o containerd.tar.gz
+
+echo "extracting release tar"
+tar xvf containerd.tar.gz
+echo "starting containerd"
+bin/containerd &
