@@ -35,6 +35,10 @@ test-e2e:
 test-e2e:
 	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "awslogs"
 
+.PHONY: test-e2e-for-fluentd
+test-e2e-for-fluentd:
+	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "fluentd"
+
 .PHONY: coverage
 coverage:
 	go test -tags unit $(shell go list ./... | grep -v e2e) -coverprofile=test-coverage.out

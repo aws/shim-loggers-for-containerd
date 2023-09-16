@@ -80,6 +80,40 @@ jobs:
         run: sudo make build
       - name: test-e2e
         run: sudo -E make test-e2e-for-awslogs # containerd interaction requires sudo and aws cloudwatch interaction requires passing env vars
+  e2e-tests-for-fluentd:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.20', '1.21' ]
+        os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
+    name: E2E tests / fluentd / ${{ matrix.os }} / Go ${{ matrix.go }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: install and start containerd
+        shell: bash
+        run: sudo scripts/install-containerd
+      - name: start fluentd local endpoint
+        shell: bash
+        run: |
+          : # not using github action env because env map cannot be defined in terms of other vars in the map. public.ecr.aws/docker/library/fluentd:v1.16-debian-1
+          FLUENTD_LOG_DIR=${GITHUB_WORKSPACE}/fluentd-logs
+          FLUENTD_PORT=24224
+          FLUENTD_IMAGE=public.ecr.aws/docker/library/fluentd:v1.16-debian-1
+          : # Fluentd container is not using root user so need 777 to make it writable. https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
+          sudo mkdir -m 777 $FLUENTD_LOG_DIR
+          docker run -d -p $FLUENTD_PORT:24224 -p $FLUENTD_PORT:24224/udp -v $FLUENTD_LOG_DIR:/fluentd/log $FLUENTD_IMAGE
+      - name: build
+        run: sudo make build
+      - name: test-e2e
+        run: sudo make test-e2e-for-fluentd # containerd interaction requires sudo
   go-mod-tidy-check:
     runs-on: ubuntu-latest
     steps:
