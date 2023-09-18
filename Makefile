@@ -32,7 +32,7 @@ test-e2e:
 	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
 
 .PHONY: test-e2e-for-awslogs
-test-e2e:
+test-e2e-for-aws-logs:
 	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "awslogs"
 
 .PHONY: coverage
