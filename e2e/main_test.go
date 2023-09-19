@@ -22,6 +22,7 @@ const (
 	logDriverTypeKey  = "--log-driver"
 	awslogsDriverName = "awslogs"
 	fluentdDriverName = "fluentd"
+	splunkDriverName  = "splunk"
 	containerIdKey    = "--container-id"
 	containerNameKey  = "--container-name"
 	testContainerId   = "test-container-id"
@@ -33,8 +34,9 @@ const (
 
 var (
 	// Binary is the path the binary of the shim loggers for containerd
-	Binary    = flag.String("binary", "", "the binary of shim loggers for containerd")
-	LogDriver = flag.String("log-driver", "", "the log driver to test")
+	Binary      = flag.String("binary", "", "the binary of shim loggers for containerd")
+	LogDriver   = flag.String("log-driver", "", "the log driver to test")
+	SplunkToken = flag.String("splunk-token", "", "the token to access Splunk")
 )
 
 func TestShimLoggers(t *testing.T) {
@@ -46,6 +48,9 @@ func TestShimLoggers(t *testing.T) {
 		}
 		if *LogDriver == fluentdDriverName || *LogDriver == "" {
 			testFluentd()
+		}
+		if *LogDriver == splunkDriverName || *LogDriver == "" {
+			testSplunk(*SplunkToken)
 		}
 	})
 
