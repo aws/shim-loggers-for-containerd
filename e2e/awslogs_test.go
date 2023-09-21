@@ -19,11 +19,13 @@ const (
 	awslogsRegionKey              = "--awslogs-region"
 	awslogsStreamKey              = "--awslogs-stream"
 	awslogsGroupKey               = "--awslogs-group"
+	awslogEndpointKey             = "--awslogs-endpoint"
 	testEcsLocalEndpointPort      = "51679"
 	testAwslogsCredentialEndpoint = ":" + testEcsLocalEndpointPort + "/creds"
-	testAwslogsRegion             = "us-west-2"
-	testAwsLogsStream             = "test-stream"
-	testAwsLogsGroup              = "test-shim-logger"
+	testAwslogsRegion             = "us-east-1"
+	testAwslogsStream             = "test-stream"
+	testAwslogsGroup              = "test-shim-logger"
+	testAwslogsEndpoint           = "localhost.localstack.cloud" // Recommended endpoint: https://docs.localstack.cloud/getting-started/faq/#is-using-localhostlocalstackcloud4566-to-set-as-the-endpoint-for-aws-services-recommended
 )
 
 var testAwslogs = func() {
@@ -31,13 +33,21 @@ var testAwslogs = func() {
 	ginkgo.Describe("awslogs shim logger", ginkgo.Serial, func() {
 		var cwClient *cloudwatchlogs.Client
 		ginkgo.BeforeEach(func() {
-			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion))
+			// Reference to set up Go client for aws local stack: https://docs.localstack.cloud/user-guide/integrations/sdks/go/.
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					PartitionID:   "aws",
+					URL:           testAwslogsEndpoint,
+					SigningRegion: testAwslogsRegion,
+				}, nil
+			})
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion), config.WithEndpointResolverWithOptions(customResolver))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			cwClient = cloudwatchlogs.NewFromConfig(cfg)
-			cleanupAwslogs(cwClient, testAwsLogsGroup, testAwsLogsStream)
+			cleanupAwslogs(cwClient, testAwslogsGroup, testAwslogsStream)
 		})
 		ginkgo.AfterEach(func() {
-			cleanupAwslogs(cwClient, testAwsLogsGroup, testAwsLogsStream)
+			cleanupAwslogs(cwClient, testAwslogsGroup, testAwslogsStream)
 		})
 		ginkgo.It("should send logs to awslogs log driver", func() {
 			args := map[string]string{
@@ -46,12 +56,13 @@ var testAwslogs = func() {
 				containerNameKey:              testContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
-				awslogsGroupKey:               testAwsLogsGroup,
-				awslogsStreamKey:              testAwsLogsStream,
+				awslogsGroupKey:               testAwslogsGroup,
+				awslogsStreamKey:              testAwslogsStream,
+				awslogEndpointKey:             testAwslogsEndpoint,
 			}
 			creator := cio.BinaryIO(*Binary, args)
 			sendTestLogByContainerd(creator, testLog)
-			validateTestLogsInAwslogs(cwClient, testAwsLogsGroup, testAwsLogsStream, testLog)
+			validateTestLogsInAwslogs(cwClient, testAwslogsGroup, testAwslogsStream, testLog)
 		})
 	})
 }
