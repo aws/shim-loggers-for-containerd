@@ -27,7 +27,6 @@ var testFluentd = func() {
 				logDriverTypeKey: fluentdDriverName,
 				containerIdKey:   testContainerId,
 				containerNameKey: testContainerName,
-				"--verbose":      "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
 			sendTestLogByContainerd(creator, testLog)
