@@ -27,7 +27,7 @@ const (
 	nonBlockingMode      = "non-blocking"
 )
 
-// getGlobalArgs get arguments that used for any log drivers
+// getGlobalArgs get arguments that used for any log drivers.
 func getGlobalArgs() (*logger.GlobalArgs, error) {
 	containerID, err := getRequiredValue(containerIDKey)
 	if err != nil {
@@ -71,7 +71,7 @@ func getGlobalArgs() (*logger.GlobalArgs, error) {
 	return args, nil
 }
 
-// getWindowsArgs gets the optional Windows arguments
+// getWindowsArgs gets the optional Windows arguments.
 func getWindowsArgs() *logger.WindowsArgs {
 	proxyVar := viper.GetString(ProxyEnvVarKey)
 	logDir := viper.GetString(LogFileDirKey)
@@ -82,7 +82,7 @@ func getWindowsArgs() *logger.WindowsArgs {
 	}
 }
 
-// getDockerConfigs gets the optional docker config variables
+// getDockerConfigs gets the optional docker config variables.
 func getDockerConfigs() (*logger.DockerConfigs, error) {
 	containerLabelsString := viper.GetString(ContainerLabelsKey)
 	containerLabels := make(map[string]string)
@@ -121,7 +121,7 @@ func getDockerConfigs() (*logger.DockerConfigs, error) {
 	return args, nil
 }
 
-// getAWSLogsArgs gets awslogs specified arguments for awslogs driver
+// getAWSLogsArgs gets awslogs specified arguments for awslogs driver.
 func getAWSLogsArgs() (*awslogs.Args, error) {
 	group, err := getRequiredValue(awslogs.GroupKey)
 	if err != nil {
@@ -153,7 +153,7 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 	}, nil
 }
 
-// getFluentdArgs gets fluentd specified arguments for fluentd log driver
+// getFluentdArgs gets fluentd specified arguments for fluentd log driver.
 func getFluentdArgs() *fluentd.Args {
 	address := viper.GetString(fluentd.AddressKey)
 	tag := viper.GetString(fluentd.FluentdTagKey)
@@ -179,7 +179,7 @@ func getFluentdArgs() *fluentd.Args {
 	}
 }
 
-// getSplunkArgs gets Splunk specified arguments for Splunk log driver
+// getSplunkArgs gets Splunk specified arguments for Splunk log driver.
 func getSplunkArgs() (*splunk.Args, error) {
 	token, err := getRequiredValue(splunk.TokenKey)
 	if err != nil {
@@ -211,7 +211,7 @@ func getSplunkArgs() (*splunk.Args, error) {
 	}, nil
 }
 
-// getRequiredValue parses required arguments or exits if any is missing
+// getRequiredValue parses required arguments or exits if any is missing.
 func getRequiredValue(flag string) (string, error) {
 	isSet := viper.IsSet(flag)
 	if !isSet {
@@ -222,7 +222,7 @@ func getRequiredValue(flag string) (string, error) {
 	return val, nil
 }
 
-// getModeAndMaxBufferSize gets mode option and max buffer size if in blocking mode
+// getModeAndMaxBufferSize gets mode option and max buffer size if in blocking mode.
 func getModeAndMaxBufferSize() (string, int, error) {
 	var (
 		mode       string
@@ -247,7 +247,7 @@ func getModeAndMaxBufferSize() (string, int, error) {
 	return mode, maxBufSize, nil
 }
 
-// getMaxBufferSize gets either customer asked buffer size or default size 1m
+// getMaxBufferSize gets either customer asked buffer size or default size 1m.
 func getMaxBufferSize() (int, error) {
 	var (
 		size int64
@@ -267,7 +267,7 @@ func getMaxBufferSize() (int, error) {
 	return int(size), nil
 }
 
-// getCleanupTime gets either customized cleanup time or default duration of 5s
+// getCleanupTime gets either customized cleanup time or default duration of 5s.
 func getCleanupTime() (*time.Duration, error) {
 	cleanupTime := viper.GetString(cleanupTimeKey)
 	if cleanupTime == "" {
@@ -277,7 +277,7 @@ func getCleanupTime() (*time.Duration, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse clean up time: %w", err)
 	}
-	if duration > time.Duration(12*time.Second) {
+	if duration > 12*time.Second {
 		return nil, fmt.Errorf("invalid time %s, maximum timeout is 12 seconds", duration.String())
 	}
 

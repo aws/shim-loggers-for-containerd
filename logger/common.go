@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package logger provides shim loggers for Containerd.
 package logger
 
 import (
@@ -23,10 +24,12 @@ import (
 )
 
 const (
-	DaemonName      = "shim-loggers-for-containerd"
+	// DaemonName represents the name of the shim logger daemon for containerd.
+	DaemonName = "shim-loggers-for-containerd"
+	// NonBlockingMode indicates the mode of logger which doesn't block on logging.
 	NonBlockingMode = "non-blocking"
 
-	// source pipe of log message
+	// source pipe of log message.
 	sourceSTDOUT = "stdout"
 	sourceSTDERR = "stderr"
 
@@ -44,6 +47,7 @@ const (
 	DefaultBufSizeInBytes = 16 * 1024
 )
 
+// GlobalArgs contains the essential arguments required for initializing the logger.
 type GlobalArgs struct {
 	// Required arguments
 	ContainerID   string
@@ -58,15 +62,19 @@ type GlobalArgs struct {
 	CleanupTime   *time.Duration
 }
 
-// Optional docker config arguments
+// DockerConfigs holds optional Docker configuration details.
 type DockerConfigs struct {
-	ContainerImageID   string
+	// ContainerImageID is the ID of the container image.
+	ContainerImageID string
+	// ContainerImageName is the name of the container image.
 	ContainerImageName string
-	ContainerEnv       []string
-	ContainerLabels    map[string]string
+	// ContainerEnv contains environment variables of the container.
+	ContainerEnv []string
+	// ContainerLabels holds labels associated with the container.
+	ContainerLabels map[string]string
 }
 
-// Basic Logger struct for all log drivers
+// Logger is the basic struct for all log drivers.
 type Logger struct {
 	Info   *dockerlogger.Info
 	Stream Client
@@ -81,7 +89,7 @@ type Logger struct {
 	maxReadBytes int
 }
 
-// WindowsArgs struct for Windows configuration
+// WindowsArgs struct for Windows configuration.
 type WindowsArgs struct {
 	ProxyEnvVar string
 	LogFileDir  string
@@ -93,10 +101,10 @@ type Client interface {
 	Log(*dockerlogger.Message) error
 }
 
-// Interface for all log drivers
+// LogDriver is the interface for all log drivers.
 type LogDriver interface {
 	// Start functions starts sending container logs to destination.
-	Start(context.Context, int, int, *time.Duration, func() error) error
+	Start(context.Context, *time.Duration, func() error) error
 	// GetPipes gets pipes of container that exposed by containerd.
 	GetPipes() (map[string]io.Reader, error)
 	// Log sends logs to destination.
@@ -107,8 +115,8 @@ type LogDriver interface {
 	Read(context.Context, io.Reader, string, int, sendLogToDestFunc) error
 }
 
-// NewLogger creates a LogDriver with the provided LoggerOpt
-func NewLogger(options ...LoggerOpt) (LogDriver, error) {
+// NewLogger creates a LogDriver with the provided LoggerOpt.
+func NewLogger(options ...Opt) (LogDriver, error) {
 	l := &Logger{
 		Info:              &dockerlogger.Info{},
 		bufferSizeInBytes: DefaultBufSizeInBytes,
@@ -120,7 +128,7 @@ func NewLogger(options ...LoggerOpt) (LogDriver, error) {
 	return l, nil
 }
 
-// Placeholder info. Expected that relevant parts will be modified
+// NewInfo creates the placeholder info. Expected that relevant parts will be modified
 // via the common_opts.
 func NewInfo(containerID string, containerName string, options ...InfoOpt) *dockerlogger.Info {
 	info := &dockerlogger.Info{
@@ -153,8 +161,6 @@ func UpdateDockerConfigs(info *dockerlogger.Info, dockerConfigs *DockerConfigs) 
 // Start starts the actual logger.
 func (l *Logger) Start(
 	ctx context.Context,
-	uid int,
-	gid int,
 	cleanupTime *time.Duration,
 	ready func() error,
 ) error {
@@ -170,7 +176,7 @@ func (l *Logger) Start(
 		pipe := p
 
 		errGroup.Go(func() error {
-			logErr := l.sendLogs(ctx, pipe, source, uid, gid, cleanupTime)
+			logErr := l.sendLogs(ctx, pipe, source, cleanupTime)
 			if logErr != nil {
 				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, err)
 				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
@@ -194,7 +200,6 @@ func (l *Logger) sendLogs(
 	ctx context.Context,
 	f io.Reader,
 	source string,
-	uid int, gid int,
 	cleanupTime *time.Duration,
 ) error {
 	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
@@ -348,7 +353,7 @@ func (l *Logger) Read(
 					head = 0
 					bytesInBuffer = 0
 					// increment partial flags
-					partialOrdinal += 1
+					partialOrdinal++
 					if isFirstPartial {
 						// if this was the first partial message
 						// the next one is not the first if it is also partial

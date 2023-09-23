@@ -180,7 +180,7 @@ func TestSendLogs(t *testing.T) {
 
 			var errGroup errgroup.Group
 			errGroup.Go(func() error {
-				return l.sendLogs(context.TODO(), &testPipe, dummySource, -1, -1, &dummyCleanupTime)
+				return l.sendLogs(context.TODO(), &testPipe, dummySource, &dummyCleanupTime)
 			})
 			err = errGroup.Wait()
 			require.NoError(t, err)

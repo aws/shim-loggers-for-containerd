@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package main denotes the entry of shim loggers for Containerd.
 package main
 
 import (
@@ -126,18 +127,18 @@ func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
 	return nil
 }
 
-// setWindowsEnv reads the Windows options and sets them up
+// setWindowsEnv reads the Windows options and sets them up.
 func setWindowsEnv(logDir, containerName, proxyEnvVar string) error {
 	if logDir != "" {
 		err := debug.SetLogFilePath(logDir, containerName)
 		if err != nil {
-			// Will include an error line if log-file-dir option is set for non-Windows in logs
-			// Will ignore and continue to log with journald
+			// Will include an error line if log-file-dir option is set for non-Windows in logs.
+			// Will ignore and continue to log with journald.
 			debug.SendEventsToLog(logger.DaemonName, err.Error(), debug.ERROR, 1)
 			return err
 		}
 	}
-	// proxyEnvVar will set the HTTP_PROXY and HTTPS_PROXY environment variables
+	// proxyEnvVar will set the HTTP_PROXY and HTTPS_PROXY environment variables.
 	if proxyEnvVar != "" {
 		err := os.Setenv("HTTP_PROXY", proxyEnvVar)
 		if err != nil {
@@ -151,11 +152,11 @@ func setWindowsEnv(logDir, containerName, proxyEnvVar string) error {
 	return nil
 }
 
-// cleanWindowsEnv flushes the file logs for Windows and unsets the proxy env variables
+// cleanWindowsEnv flushes the file logs for Windows and unsets the proxy env variables.
 func cleanWindowsEnv(proxyEnvVar string) {
 	debug.FlushLog()
 	if proxyEnvVar != "" {
-		os.Unsetenv("HTTP_PROXY")
-		os.Unsetenv("HTTPS_PROXY")
+		os.Unsetenv("HTTP_PROXY")  //nolint:errcheck // unset env
+		os.Unsetenv("HTTPS_PROXY") //nolint:errcheck // unset env
 	}
 }

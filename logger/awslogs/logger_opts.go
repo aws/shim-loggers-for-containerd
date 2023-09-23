@@ -9,7 +9,7 @@ import (
 	dockerlogger "github.com/docker/docker/daemon/logger"
 )
 
-// WithRegion sets awslogs region of logger info
+// WithRegion sets awslogs region of logger info.
 func WithRegion(region string) logger.InfoOpt {
 	return func(info *dockerlogger.Info) {
 		info.Config[RegionKey] = region

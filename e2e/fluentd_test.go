@@ -25,7 +25,7 @@ var testFluentd = func() {
 		ginkgo.It("should send logs to fluentd log driver", func() {
 			args := map[string]string{
 				logDriverTypeKey: fluentdDriverName,
-				containerIdKey:   testContainerId,
+				containerIDKey:   testContainerID,
 				containerNameKey: testContainerName,
 			}
 			creator := cio.BinaryIO(*Binary, args)
@@ -39,9 +39,13 @@ func validateTestLogsInFluentd(dirName string, testLog string) {
 	// For single test, there are 3 files in Fluentd log dir: "data.<hash>.log", "data.<hash>.log.meta" and "data.log".
 	// For example: "data.b60581c99383f387cfaba1fc90272852e.log", "data.b60581c99383f387cfaba1fc90272852e.log.meta" and "data.log"
 	// "data.<hash>.log" has the logs that the tests sent.
-	// "data.<hash>.log" can have multiple lines of records following time sequence. Here is a sample content with 3 lines.
+	// "data.<hash>.log" can have multiple lines of records following time sequence.
+	// Here is a sample content with 3 lines.
+	//nolint:lll // format string
 	// 2023-09-16T22:54:11+00:00       123456789012    {"source":"stdout","log":"test-e2e-log","container_id":"123456789012","container_name":"test-container"}
+	//nolint:lll // format string
 	// 2023-09-16T22:54:30+00:00       123456789012    {"container_id":"123456789012","container_name":"test-container","source":"stdout","log":"test-e2e-log"}
+	//nolint:lll // format string
 	// 2023-09-16T22:56:17+00:00       123456789012    {"container_id":"123456789012","container_name":"test-container","source":"stdout","log":"test-e2e-log"}
 	// The following steps retrieves the "log" field of the third string parsed by tab of the last line to validate the tests sent.
 	var fileName string
@@ -56,9 +60,9 @@ func validateTestLogsInFluentd(dirName string, testLog string) {
 	})
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	gomega.Expect(fileName).ShouldNot(gomega.Equal(""))
-	file, err := os.Open(fileName)
+	file, err := os.Open(fileName) //nolint:gosec // testing only
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // closing the file
 	var lastLine string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
