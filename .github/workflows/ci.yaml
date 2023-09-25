@@ -71,8 +71,6 @@ jobs:
           echo "Waiting for LocalStack startup..."  # Wait 30 seconds for the LocalStack container
           localstack wait -t 30                     # to become ready before timing out 
           echo "Startup complete"
-          
-          awslocal logs create-log-group --log-group-name test-shim-logger
       - name: install and start containerd
         shell: bash
         run: sudo scripts/install-containerd

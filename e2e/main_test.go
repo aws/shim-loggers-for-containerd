@@ -5,6 +5,7 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"testing"
@@ -19,17 +20,18 @@ import (
 
 const (
 	// LogDriver options.
-	logDriverTypeKey  = "--log-driver"
-	awslogsDriverName = "awslogs"
-	fluentdDriverName = "fluentd"
-	splunkDriverName  = "splunk"
-	containerIDKey    = "--container-id"
-	containerNameKey  = "--container-name"
-	testContainerID   = "test-container-id"
-	testContainerName = "test-container-name"
-	containerdAddress = "/run/containerd/containerd.sock"
-	testImage         = "public.ecr.aws/docker/library/ubuntu:latest"
-	testLog           = "test-e2e-log"
+	logDriverTypeKey                 = "--log-driver"
+	awslogsDriverName                = "awslogs"
+	fluentdDriverName                = "fluentd"
+	splunkDriverName                 = "splunk"
+	containerIDKey                   = "--container-id"
+	containerNameKey                 = "--container-name"
+	testContainerID                  = "test-container-id"
+	testContainerName                = "test-container-name"
+	containerdAddress                = "/run/containerd/containerd.sock"
+	testImage                        = "public.ecr.aws/docker/library/ubuntu:latest"
+	testLogPrefix                    = "test-e2e-log-"
+	containerdTaskExitNonZeroMessage = "\"containerd task exits with non-zero\""
 )
 
 var (
@@ -60,35 +62,51 @@ func TestShimLoggers(t *testing.T) {
 	ginkgo.RunSpecs(t, description)
 }
 
-func sendTestLogByContainerd(creator cio.Creator, testLog string) {
+func sendTestLogByContainerd(creator cio.Creator, testLog string) error {
 	// Create a new client connected to the containerd daemon
 	client, err := containerd.New(containerdAddress)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	if err != nil {
+		return err
+	}
 	defer client.Close() //nolint:errcheck // closing client
 	// Create a new context with a customized namespace
 	ctx := namespaces.WithNamespace(context.Background(), "testShimLoggers")
 	// Pull an image
 	image, err := client.Pull(ctx, testImage, containerd.WithPullUnpack)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-	// Create a new container with the pulled image
+	if err != nil {
+		return err
+	} // Create a new container with the pulled image
 	container, err := client.NewContainer(ctx, testContainerID, containerd.WithImage(image),
 		containerd.WithNewSnapshot("test-snapshot", image), containerd.WithNewSpec(oci.WithImageConfig(image),
-			oci.WithProcessArgs("/bin/sh", "-c", fmt.Sprintf("echo '%s'", testLog))))
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			oci.WithProcessArgs("/bin/sh", "-c", fmt.Sprintf("printf \"%s\"", testLog))))
+	if err != nil {
+		return err
+	}
 	defer container.Delete(ctx, containerd.WithSnapshotCleanup) //nolint:errcheck // testing only
 	// Create a new task from the container and start it
 	task, err := container.NewTask(ctx, creator)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	if err != nil {
+		return err
+	}
 	defer task.Delete(ctx) //nolint:errcheck // testing only
 
 	err = task.Start(ctx)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	if err != nil {
+		return err
+	}
 
 	statusC, err := task.Wait(ctx)
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+	if err != nil {
+		return err
+	}
 	// Waiting for the task to finish
 	status := <-statusC
 	code, _, err := status.Result()
-	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-	gomega.Expect(code).Should(gomega.Equal(uint32(0)))
+	if err != nil {
+		return err
+	}
+	if code != uint32(0) {
+		return errors.New(containerdTaskExitNonZeroMessage)
+	}
+	return nil
 }

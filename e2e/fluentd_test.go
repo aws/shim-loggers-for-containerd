@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/containerd/containerd/cio"
+	"github.com/google/uuid"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -23,13 +24,15 @@ var testFluentd = func() {
 	// These tests are run in serial because we only define one log driver instance.
 	ginkgo.Describe("fluentd shim logger", ginkgo.Serial, func() {
 		ginkgo.It("should send logs to fluentd log driver", func() {
+			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
 				logDriverTypeKey: fluentdDriverName,
 				containerIDKey:   testContainerID,
 				containerNameKey: testContainerName,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			sendTestLogByContainerd(creator, testLog)
+			err := sendTestLogByContainerd(creator, testLog)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			validateTestLogsInFluentd(fluentdLogDirName, testLog)
 		})
 	})
