@@ -113,6 +113,16 @@ jobs:
           FLUENTD_LOG_DIR=${GITHUB_WORKSPACE}/fluentd-logs
           FLUENTD_PORT=24224
           FLUENTD_IMAGE=public.ecr.aws/docker/library/fluentd:v1.16-debian-1
+          : # ECR Public anonymous pull rate quota is 1 per sec. https://docs.aws.amazon.com/AmazonECR/latest/public/public-service-quotas.html.
+          : # Running multiple jobs at the same time may exceed rate limit. Retry 3 times to prevent flaky behavior.
+          count=0
+          until [ $count -ge 3 ]
+          do
+            docker pull $FLUENTD_IMAGE && break
+            count=$((count+1))
+            [ $count -eq 3 ] && echo "Pull command failed after 3 attempts" && exit 1
+            sleep 3
+          done
           : # Fluentd container is not using root user so need 777 to make it writable. https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
           sudo mkdir -m 777 $FLUENTD_LOG_DIR
           docker run -d -p $FLUENTD_PORT:24224 -p $FLUENTD_PORT:24224/udp -v $FLUENTD_LOG_DIR:/fluentd/log $FLUENTD_IMAGE
