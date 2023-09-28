@@ -85,17 +85,17 @@ The following list of arguments apply to Windows shim logger binaries in this re
 
 The following additional arguments are supported for the `awslogs` shim logger binary, which can be used to send container logs to [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
 
-|Name|Required|Description|
-|-|-|-|
-| awslogs-group | Yes | The [log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogsConcepts.html) in which the log stream for the container will be created.|
-| awslogs-stream | Yes | The [log stream name](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogsConcepts.html) to stream container logs to. |
-| awslogs-region | Yes | The region name in which the log group and log stream needs to be created in.|
-| awslogs-credentials-endpoint | Yes | The endpoint from which credentials are retrieved from to connect to Amazon CloudWatch Logs.|
-| awslogs-create-group | No | Set to `false` by default. If the provided log group name does not exist and this value is set to `false`, the binary will directly exit with an error|
-| awslogs-create-stream | No | Set to `true` by default. The log stream will always be created unless this value specified to `false` explicitly.|
-| awslogs-multiline-pattern | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-multiline-pattern).|
-| awslogs-datetime-format | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-datetime-format)|
-| awslogs-endpoint | No | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#awslogs-endpoint)|
+| Name                         | Required | Description                                                                                                                                                                                                                                     |
+|------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| awslogs-group                | Yes      | The [log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogsConcepts.html) in which the log stream for the container will be created.                                                                                |
+| awslogs-stream               | Yes      | The [log stream name](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogsConcepts.html) to stream container logs to.                                                                                                        |
+| awslogs-region               | Yes      | The region name in which the log group and log stream needs to be created in.                                                                                                                                                                   |
+| awslogs-credentials-endpoint | Yes      | The endpoint from which credentials are retrieved from to connect to Amazon CloudWatch Logs.                                                                                                                                                    |
+| awslogs-create-group         | No       | Set to `false` by default. If the provided log group name does not exist and this value is set to `false`, the binary will directly exit with an error                                                                                          |
+| awslogs-create-stream        | No       | Set to `true` by default. The log stream will always be created unless this value specified to `false` explicitly. If the value is `false` and the log stream does not exist, logging will fail silently instead of failing the container task. |
+| awslogs-multiline-pattern    | No       | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-multiline-pattern).                                                                 |
+| awslogs-datetime-format      | No       | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#amazon-cloudwatch-logs-options#awslogs-datetime-format)                                                                    |
+| awslogs-endpoint             | No       | Matches the behavior of the [`awslogs` Docker log driver](https://docs.docker.com/config/containers/logging/awslogs/#awslogs-endpoint)                                                                                                          |
 
 #### Splunk
 

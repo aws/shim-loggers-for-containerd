@@ -1,8 +1,9 @@
 #!/bin/bash
 # ecs local endpoint can only use credentials in aws credential file instead of env vars
 
-aws configure set aws_access_key_id dummy-aws-access-key-id --profile default
-aws configure set aws_secret_access_key dummy-aws-secret-access-key --profile default
+aws configure set aws_access_key_id test --profile default
+aws configure set aws_secret_access_key test --profile default
+aws configure set aws_session_token test --profile default
 docker run -d --name ecs-local-endpoint -p 51679:51679 \
 -v $HOME/.aws/:/home/.aws/ -e AWS_REGION=us-east-1 \
 -e HOME="/home" -e AWS_PROFILE=default -e ECS_LOCAL_METADATA_PORT=51679 \

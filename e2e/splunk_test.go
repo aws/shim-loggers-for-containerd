@@ -5,6 +5,7 @@ package e2e
 
 import (
 	"github.com/containerd/containerd/cio"
+	"github.com/google/uuid"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -21,6 +22,7 @@ var testSplunk = func(token string) {
 	ginkgo.Describe("splunk shim logger", ginkgo.Serial, func() {
 		gomega.Expect(token).ShouldNot(gomega.BeEmpty())
 		ginkgo.It("should send logs to splunk log driver", func() {
+			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
 				logDriverTypeKey:            splunkDriverName,
 				containerIDKey:              testContainerID,
@@ -30,7 +32,8 @@ var testSplunk = func(token string) {
 				splunkInsecureskipverifyKey: "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			sendTestLogByContainerd(creator, testLog)
+			err := sendTestLogByContainerd(creator, testLog)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			// TODO: Validate logs in Splunk local. https://github.com/aws/shim-loggers-for-containerd/issues/74
 		})
 	})
