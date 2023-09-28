@@ -26,7 +26,7 @@ const (
 	splunkDriverName                 = "splunk"
 	containerIDKey                   = "--container-id"
 	containerNameKey                 = "--container-name"
-	testContainerID                  = "test-container-id"
+	testContainerID                  = "210987654321"
 	testContainerName                = "test-container-name"
 	containerdAddress                = "/run/containerd/containerd.sock"
 	testImage                        = "public.ecr.aws/docker/library/ubuntu:latest"
