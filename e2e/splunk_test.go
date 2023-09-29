@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build e2e
+
 package e2e
 
 import (
@@ -24,15 +26,15 @@ var testSplunk = func(token string) {
 		ginkgo.It("should send logs to splunk log driver", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:            splunkDriverName,
-				containerIDKey:              testContainerID,
-				containerNameKey:            testContainerName,
+				LogDriverTypeKey:            SplunkDriverName,
+				ContainerIDKey:              TestContainerID,
+				ContainerNameKey:            TestContainerName,
 				splunkTokenKey:              token,
 				splunkURLkey:                testSplunkURL,
 				splunkInsecureskipverifyKey: "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			// TODO: Validate logs in Splunk local. https://github.com/aws/shim-loggers-for-containerd/issues/74
 		})

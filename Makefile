@@ -29,19 +29,31 @@ test-unit: $(SOURCES)
 
 .PHONY: test-e2e
 test-e2e:
-	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
+	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
 
 .PHONY: test-e2e-for-awslogs
 test-e2e-for-awslogs:
-	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "awslogs"
+	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "awslogs"
 
 .PHONY: test-e2e-for-fluentd
 test-e2e-for-fluentd:
-	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "fluentd"
+	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "fluentd"
 
 .PHONY: test-e2e-for-splunk
 test-e2e-for-splunk:
-	go test -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "splunk" --splunk-token ${SPLUNK_TOKEN}
+	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "splunk" --splunk-token ${SPLUNK_TOKEN}
+
+.PHONY: test-benchmark-for-awslogs
+test-benchmark-for-awslogs:
+	cd benchmark/awslogs && go test -tags benchmark,e2e -bench=Awslogs -benchmem --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
+
+.PHONY: test-benchmark-for-fluentd
+test-benchmark-for-fluentd:
+	cd benchmark/fluentd && go test -tags benchmark,e2e -bench=Fluentd -benchmem --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)"
+
+.PHONY: test-benchmark-for-splunk
+test-benchmark-for-splunk:
+	cd benchmark/splunk && go test -tags benchmark,e2e -bench=Splunk -benchmem --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --splunk-token ${SPLUNK_TOKEN}
 
 .PHONY: coverage
 coverage:

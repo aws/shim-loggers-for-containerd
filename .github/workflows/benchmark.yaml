@@ -1,66 +1,28 @@
-name: CI
+name: Benchmark
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
+permissions:
+  # deployments permission to deploy GitHub pages website
+  deployments: write
+  # contents permission to update benchmark contents in gh-pages branch
+  contents: write
 
 jobs:
-  # It's recommended to run golangci-lint in a job separate from other jobs (go test, etc) because different jobs run in parallel.
-  go-linter:
-    strategy:
-      fail-fast: false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: 'stable'
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          # Pin the version in case all the builds start to fail at the same time.
-          # There may not be an automatic way (e.g., dependabot) to update a specific parameter of a GitHub Action,
-          # so we will just update it manually whenever it makes sense (e.g., a feature that we want is added).
-          version: v1.54.0
-          args: --fix=false --timeout=5m --out-format=colored-line-number
-  unit-tests:
+  benchmark-for-awslogs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.20', '1.21' ]
-        os: [ ubuntu-latest, windows-latest ]
-
-    name: Unit Tests / ${{ matrix.os }} / Go ${{ matrix.go }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go }}
-          cache: false
-      - name: build
-        run: make build
-      - name: test-unit
-        run: make test-unit
-  e2e-tests-for-awslogs:
-    strategy:
-      fail-fast: false
-      matrix:
-        go: [ '1.20', '1.21' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
-    name: E2E tests / awslogs / ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: Benchmark / awslogs / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go }}
+          go-version: '1.21'
           cache: false
       - name: Start LocalStack
         shell: bash
@@ -76,24 +38,30 @@ jobs:
         run: sudo scripts/ip-forwarding
       - name: build
         run: sudo make build
-      - name: test-e2e
-        run: sudo -E make test-e2e-for-awslogs # containerd interaction requires sudo and aws cloudwatch interaction requires passing env vars
-  e2e-tests-for-fluentd:
+      - name: Run benchmark
+        run: sudo -E make test-benchmark-for-awslogs | tee benchmark-for-awslogs.txt
+        shell: bash
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Benchmark for awslogs
+          tool: 'go'
+          benchmark-data-dir-path: "dev/bench/awslogs/ubuntu"
+          output-file-path: benchmark-for-awslogs.txt
+      - name: Push benchmark result
+        run: git push 'https://github.com/aws/shim-loggers-for-containerd.git' gh-pages:gh-pages
+  benchmark-for-fluentd:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.20', '1.21' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
-    name: E2E tests / fluentd / ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: Benchmark / fluentd / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    permissions:
-      id-token: write
-      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go }}
+          go-version: '1.21'
           cache: false
       - name: install and start containerd
         shell: bash
@@ -103,15 +71,24 @@ jobs:
         run: scripts/start-fluentd-local-endpoint
       - name: build
         run: sudo make build
-      - name: test-e2e
-        run: sudo make test-e2e-for-fluentd # containerd interaction requires sudo
-  e2e-tests-for-splunk:
+      - name: Run benchmark
+        run: sudo make test-benchmark-for-fluentd | tee benchmark-for-fluentd.txt
+        shell: bash
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Benchmark for awslogs
+          tool: 'go'
+          benchmark-data-dir-path: "dev/bench/fluentd/ubuntu"
+          output-file-path: benchmark-for-fluentd.txt
+      - name: Push benchmark result
+        run: git push 'https://github.com/aws/shim-loggers-for-containerd.git' gh-pages:gh-pages
+  benchmark-for-splunk:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.20', '1.21' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
-    name: E2E tests / splunk / ${{ matrix.os }} / Go ${{ matrix.go }}
+    name: Benchmark / splunk / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -120,7 +97,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go }}
+          go-version: '1.21'
           cache: false
       - name: install and start containerd
         shell: bash
@@ -153,24 +130,15 @@ jobs:
           echo "SPLUNK_TOKEN=$SPLUNK_TOKEN" >> $GITHUB_OUTPUT
       - name: build
         run: sudo make build
-      - name: test-e2e
-        run: |
-          sudo SPLUNK_TOKEN=${{ steps.splunk-local-endpoint.outputs.SPLUNK_TOKEN }} make test-e2e-for-splunk # containerd interaction requires sudo
-  go-mod-tidy-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - name: Run benchmark
+        run: sudo SPLUNK_TOKEN=${{ steps.splunk-local-endpoint.outputs.SPLUNK_TOKEN }} make test-benchmark-for-splunk | tee benchmark-for-splunk.txt
+        shell: bash
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
         with:
-          go-version-file: go.mod
-      # TODO: Use `go mod tidy --check` after https://github.com/golang/go/issues/27005 is fixed.
-      - run: go mod tidy
-      - run: git diff --exit-code
-  mdlint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: avto-dev/markdown-lint@v1
-        with:
-          args: '**/*.md'
-
+          name: Benchmark for splunk
+          tool: 'go'
+          benchmark-data-dir-path: "dev/bench/splunk/ubuntu"
+          output-file-path: benchmark-for-splunk.txt
+      - name: Push benchmark result
+        run: git push 'https://github.com/aws/shim-loggers-for-containerd.git' gh-pages:gh-pages
