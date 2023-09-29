@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build e2e
+
 package e2e
 
 import (
@@ -79,9 +81,9 @@ var testAwslogs = func() {
 			"when the configs are default", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -89,7 +91,7 @@ var testAwslogs = func() {
 				awslogsEndpointKey:            testAwslogsEndpoint,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
@@ -101,9 +103,9 @@ var testAwslogs = func() {
 			thirdLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
 			fourthLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -115,7 +117,7 @@ var testAwslogs = func() {
 			creator := cio.BinaryIO(*Binary, args)
 			// The last matched line cannot be logged with multiline pattern. Append a pattern for now.
 			// TODO: Investigate and fix. https://github.com/aws/shim-loggers-for-containerd/issues/78
-			err := sendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s\n%s\n%s", firstLineLog,
+			err := SendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s\n%s\n%s", firstLineLog,
 				secondLineLog, thirdLineLog, fourthLineLog, "[May 01, 2017 19:00:05]"))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{fmt.Sprintf("%s\n", firstLineLog),
@@ -127,9 +129,9 @@ var testAwslogs = func() {
 			firstLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
 			secondLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -138,7 +140,7 @@ var testAwslogs = func() {
 				awslogsMultilinePatternKey:    "^" + testAwslogsMultilinePattern,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s", firstLineLog, secondLineLog, testAwslogsMultilinePattern))
+			err := SendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s", firstLineLog, secondLineLog, testAwslogsMultilinePattern))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream,
 				[]string{fmt.Sprintf("%s\n", firstLineLog), fmt.Sprintf("%s\n", secondLineLog)})
@@ -150,9 +152,9 @@ var testAwslogs = func() {
 			firstLineLog := "[May 01, 2017 19:00:01] " + testLog
 			secondLineLog := "[May 01, 2017 19:00:04] " + testLog
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -161,7 +163,7 @@ var testAwslogs = func() {
 				awslogsDatetimeFormatKey:      testAwslogsDatetimeFormat,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s", firstLineLog, secondLineLog, "[May 01, 2017 19:00:05]"))
+			err := SendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s", firstLineLog, secondLineLog, "[May 01, 2017 19:00:05]"))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream,
 				[]string{fmt.Sprintf("%s\n", firstLineLog), fmt.Sprintf("%s\n", secondLineLog)})
@@ -171,9 +173,9 @@ var testAwslogs = func() {
 			"when createGroup is false and createStream is true", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -183,7 +185,7 @@ var testAwslogs = func() {
 				awslogsCreateStreamKey:        "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
@@ -192,9 +194,9 @@ var testAwslogs = func() {
 			"when createGroup is false", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               nonExistentAwslogsGroup,
@@ -203,7 +205,7 @@ var testAwslogs = func() {
 				awslogsCreateGroupKey:         "false",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).Should(gomega.HaveOccurred())
 			gomega.Expect(err.Error()).Should(gomega.Equal(containerdTaskExitNonZeroMessage))
 		})
@@ -211,9 +213,9 @@ var testAwslogs = func() {
 			"when createGroup is false and createStream is false", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -223,7 +225,7 @@ var testAwslogs = func() {
 				awslogsCreateStreamKey:        "false",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
 			gomega.Expect(err).Should(gomega.HaveOccurred())
@@ -232,9 +234,9 @@ var testAwslogs = func() {
 			"when createGroup is true and createStream is true", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               nonExistentAwslogsGroup,
@@ -244,7 +246,7 @@ var testAwslogs = func() {
 				awslogsCreateStreamKey:        "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, nonExistentAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
@@ -253,9 +255,9 @@ var testAwslogs = func() {
 			"is false and createStream is false", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:              awslogsDriverName,
-				containerIDKey:                testContainerID,
-				containerNameKey:              testContainerName,
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
 				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
 				awslogsRegionKey:              testAwslogsRegion,
 				awslogsGroupKey:               testAwslogsGroup,
@@ -265,7 +267,7 @@ var testAwslogs = func() {
 				awslogsCreateStreamKey:        "false",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, testAwslogsStream, []string{testLog})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())

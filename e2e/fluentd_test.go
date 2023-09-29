@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//go:build e2e
+
 package e2e
 
 import (
@@ -33,67 +35,67 @@ var testFluentd = func() {
 		ginkgo.It("should send logs to fluentd log driver with default configs", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey: fluentdDriverName,
-				containerIDKey:   testContainerID,
-				containerNameKey: testContainerName,
+				LogDriverTypeKey: FluentdDriverName,
+				ContainerIDKey:   TestContainerID,
+				ContainerNameKey: TestContainerName,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			validateTestLogsInFluentd(fluentdLogDirName, testLog, testContainerID)
+			validateTestLogsInFluentd(fluentdLogDirName, testLog, TestContainerID)
 		})
 		ginkgo.It("should send logs to fluentd log driver with configs except tag being filled as default", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:             fluentdDriverName,
-				containerIDKey:               testContainerID,
-				containerNameKey:             testContainerName,
+				LogDriverTypeKey:             FluentdDriverName,
+				ContainerIDKey:               TestContainerID,
+				ContainerNameKey:             TestContainerName,
 				fluentdAddressKey:            "localhost:24224",
 				fluentdAsyncConnectKey:       "false",
 				fluentdSubSecondPrecisionKey: "true",
 				fluentdBufferLimitKey:        "1048576",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			validateTestLogsInFluentd(fluentdLogDirName, testLog, testContainerID)
+			validateTestLogsInFluentd(fluentdLogDirName, testLog, TestContainerID)
 		})
 		ginkgo.It("should send logs to fluentd log driver with async-connect is true", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:       fluentdDriverName,
-				containerIDKey:         testContainerID,
-				containerNameKey:       testContainerName,
+				LogDriverTypeKey:       FluentdDriverName,
+				ContainerIDKey:         TestContainerID,
+				ContainerNameKey:       TestContainerName,
 				fluentdAsyncConnectKey: "true",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			validateTestLogsInFluentd(fluentdLogDirName, testLog, testContainerID)
+			validateTestLogsInFluentd(fluentdLogDirName, testLog, TestContainerID)
 		})
 		ginkgo.It("should send logs to fluentd log driver with sub-second-precision is false", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey:             fluentdDriverName,
-				containerIDKey:               testContainerID,
-				containerNameKey:             testContainerName,
+				LogDriverTypeKey:             FluentdDriverName,
+				ContainerIDKey:               TestContainerID,
+				ContainerNameKey:             TestContainerName,
 				fluentdSubSecondPrecisionKey: "false",
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			validateTestLogsInFluentd(fluentdLogDirName, testLog, testContainerID)
+			validateTestLogsInFluentd(fluentdLogDirName, testLog, TestContainerID)
 		})
 		ginkgo.It("should send logs to fluentd log driver with customized tag", func() {
 			testLog := testLogPrefix + uuid.New().String()
 			args := map[string]string{
-				logDriverTypeKey: fluentdDriverName,
-				containerIDKey:   testContainerID,
-				containerNameKey: testContainerName,
+				LogDriverTypeKey: FluentdDriverName,
+				ContainerIDKey:   TestContainerID,
+				ContainerNameKey: TestContainerName,
 				fluentdTagKey:    testFluentdTag,
 			}
 			creator := cio.BinaryIO(*Binary, args)
-			err := sendTestLogByContainerd(creator, testLog)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			validateTestLogsInFluentd(fluentdLogDirName, testLog, testFluentdTag)
 		})

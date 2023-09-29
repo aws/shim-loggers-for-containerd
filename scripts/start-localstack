@@ -1,0 +1,11 @@
+#!/bin/bash
+# Copy from https://docs.localstack.cloud/user-guide/ci/github-actions/
+
+LOCALSTACK_VERSION=2.2.0
+pip install localstack==${LOCALSTACK_VERSION} awscli-local[ver1] # install LocalStack cli and awslocal
+docker pull localstack/localstack:${LOCALSTACK_VERSION}         # Make sure to pull the latest version of the image
+localstack start -d                       # Start LocalStack in the background
+
+echo "Waiting for LocalStack startup..."  # Wait 30 seconds for the LocalStack container
+localstack wait -t 30                     # to become ready before timing out
+echo "Startup complete"
