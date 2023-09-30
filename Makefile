@@ -62,7 +62,7 @@ coverage:
 
 .PHONY: lint
 lint: $(SOURCES)
-	$(DEPSPATH)/golangci-lint run
+	$(DEPSPATH)/golangci-lint run --build-tags e2e,unit
 
 .PHONY: mdlint
 # Install it locally: https://github.com/igorshubovych/markdownlint-cli#installation

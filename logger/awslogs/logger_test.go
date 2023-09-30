@@ -16,7 +16,7 @@ const (
 	testGroup               = "test-group"
 	testRegion              = "test-region"
 	testStream              = "test-stream"
-	testCredentialsEndpoint = "test-credential-endpoints"
+	testCredentialsEndpoint = "test-credential-endpoints" //nolint:gosec // not credentials
 	testCreateGroup         = "true"
 	testCreateStream        = "true"
 	testMultilinePattern    = "test-multiline-pattern"

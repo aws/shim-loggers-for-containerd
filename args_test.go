@@ -51,7 +51,7 @@ func TestGetGlobalArgs(t *testing.T) {
 }
 
 // testGetGlobalArgsNoError is a sub-test of TestGetGlobalArgs. It tests
-// getGlobalArgs function with no returned errors
+// getGlobalArgs function with no returned errors.
 func testGetGlobalArgsNoError(t *testing.T) {
 	// Unset all keys used for this test
 	defer viper.Reset()
@@ -67,7 +67,7 @@ func testGetGlobalArgsNoError(t *testing.T) {
 	assert.Equal(t, args.LogDriver, testLogDriver)
 	assert.Equal(t, args.Mode, blockingMode)
 	assert.Equal(t, args.MaxBufferSize, 0)
-	assert.Equal(t, *args.CleanupTime, time.Duration(5*time.Second))
+	assert.Equal(t, *args.CleanupTime, 5*time.Second)
 }
 
 // testGetGlobalArgsWithError is a sub-test of TestGetGlobalArgs. It tests
@@ -197,7 +197,7 @@ func testGetMaxBufferSizeWithError(t *testing.T) {
 	}
 }
 
-// TestGetCleanupTime tests getCleanupTime with/without valid setting cleanup time options
+// TestGetCleanupTime tests getCleanupTime with/without valid setting cleanup time options.
 func TestGetCleanupTime(t *testing.T) {
 	t.Run("NoError", testGetCleanupTimeNoError)
 	t.Run("WithError", testGetCleanupTimeWithError)
@@ -213,9 +213,9 @@ func testGetCleanupTimeNoError(t *testing.T) {
 		cleanupTime         string
 		expectedCleanupTime time.Duration
 	}{
-		{"3s", time.Duration(3 * time.Second)},
-		{"10s", time.Duration(10 * time.Second)},
-		{"12s", time.Duration(12 * time.Second)},
+		{"3s", 3 * time.Second},
+		{"10s", 10 * time.Second},
+		{"12s", 12 * time.Second},
 	}
 
 	for _, tc := range testCasesNoError {
@@ -246,14 +246,14 @@ func testGetCleanupTimeWithError(t *testing.T) {
 	}
 }
 
-// TestGetDockerConfigs tests that we can correctly get the docker config input parameters
+// TestGetDockerConfigs tests that we can correctly get the docker config input parameters.
 func TestGetDockerConfigs(t *testing.T) {
 	t.Run("NoError", testGetDockerConfigsNoError)
 	t.Run("Empty", testGetDockerConfigsEmpty)
 	t.Run("WithError", testGetDockerConfigsWithError)
 }
 
-// testGetDockerConfigsNoError tests that the correctly formatted input can be parsed without error
+// testGetDockerConfigsNoError tests that the correctly formatted input can be parsed without error.
 func testGetDockerConfigsNoError(t *testing.T) {
 	defer viper.Reset()
 
@@ -283,7 +283,7 @@ func testGetDockerConfigsNoError(t *testing.T) {
 	assert.Equal(t, true, reflect.DeepEqual(testContainerEnvMap, argsContainerEnvMap))
 }
 
-// testGetDockerConfigsEmpty tests that empty docker config input parameter generates no error
+// testGetDockerConfigsEmpty tests that empty docker config input parameter generates no error.
 func testGetDockerConfigsEmpty(t *testing.T) {
 	defer viper.Reset()
 
@@ -291,7 +291,7 @@ func testGetDockerConfigsEmpty(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// testGetDockerConfigsWithError tests that malformat docker config results in an error
+// testGetDockerConfigsWithError tests that malformat docker config results in an error.
 func testGetDockerConfigsWithError(t *testing.T) {
 	defer viper.Reset()
 	testCaseWithError := "{invalidJsonMap"
