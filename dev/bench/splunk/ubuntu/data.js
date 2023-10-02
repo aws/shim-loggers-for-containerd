@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1696025993291,
+  "lastUpdate": 1696269784734,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -40,6 +40,48 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 73478,
+            "unit": "allocs/op",
+            "extra": "1 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ningziwe@amazon.com",
+            "name": "Ziwen Ning",
+            "username": "ningziwen"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0fe081af7810db59dd851915ee82e9604e725b34",
+          "message": "ci: add lint for e2e and unit (#84)\n\n*Issue #, if available:*\r\n\r\n*Description of changes:*\r\n\r\n\r\nBy submitting this pull request, I confirm that you can use, modify,\r\ncopy, and redistribute this contribution, under the terms of your\r\nchoice.\r\n\r\nSigned-off-by: Ziwen Ning <ningziwe@amazon.com>",
+          "timestamp": "2023-10-02T10:59:37-07:00",
+          "tree_id": "0ea6ef376743fc77631ee2a4d138b5ef57a2d3f2",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/0fe081af7810db59dd851915ee82e9604e725b34"
+        },
+        "date": 1696269784173,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8058176551,
+            "unit": "ns/op",
+            "extra": "1 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 42075216,
+            "unit": "B/op",
+            "extra": "1 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 73364,
             "unit": "allocs/op",
             "extra": "1 times\n2 procs"
           }
