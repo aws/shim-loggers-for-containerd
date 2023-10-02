@@ -29,10 +29,9 @@ const (
 )
 
 var (
-	dummyLogMsg            = []byte("test log message")
 	dummySource            = "stdout"
 	dummyTime              = time.Date(2020, time.January, 14, 01, 59, 0, 0, time.UTC)
-	dummyCleanupTime       = time.Duration(2 * time.Second)
+	dummyCleanupTime       = 2 * time.Second
 	logDestinationFileName string
 )
 
@@ -54,15 +53,15 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(logDestinationFileName, os.O_APPEND|os.O_RDWR, 0644)
+	f, err := os.OpenFile(logDestinationFileName, os.O_APPEND|os.O_RDWR, 0644) //nolint:gosec // testing only
 	if err != nil {
 		return fmt.Errorf("unable to open file %s to record log message: %w", logDestinationFileName, err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // testing only
 	b, err = json.Marshal(msg)
 	require.NoError(d.t, err)
-	f.Write(b)
-	f.Write([]byte{'\n'})
+	f.Write(b)            //nolint:errcheck,gosec // testing only
+	f.Write([]byte{'\n'}) //nolint:errcheck,gosec // testing only
 
 	return nil
 }
@@ -75,9 +74,9 @@ func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
 		lastPartialID      string
 		lastPartialOrdinal int
 	)
-	file, err := os.Open(fileName)
+	file, err := os.Open(fileName) //nolint:gosec // testing only
 	require.NoError(t, err)
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // testing only
 
 	scanner := bufio.NewScanner(file)
 	lines := 0
@@ -111,7 +110,6 @@ func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
 // to mock destination. In this test case, the source and destination are both tmp files that
 // read from and write to inside the customized Log function.
 func TestSendLogs(t *testing.T) {
-
 	for _, tc := range []struct {
 		testName                       string
 		bufferSizeInBytes              int
@@ -153,6 +151,7 @@ func TestSendLogs(t *testing.T) {
 			expectedPartialOrdinalSequence: []int{1, 2, 3, 1, 2, 3},
 		},
 	} {
+		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			l := &Logger{
 				Info:              &dockerlogger.Info{},
@@ -164,7 +163,7 @@ func TestSendLogs(t *testing.T) {
 			// messages from.
 			tmpIOSource, err := os.CreateTemp("", "")
 			require.NoError(t, err)
-			defer os.Remove(tmpIOSource.Name())
+			defer os.Remove(tmpIOSource.Name()) //nolint:errcheck // testing only
 			var (
 				testPipe bytes.Buffer
 			)
@@ -177,7 +176,7 @@ func TestSendLogs(t *testing.T) {
 			// logger sends log messages to.
 			tmpDest, err := os.CreateTemp("", "")
 			require.NoError(t, err)
-			defer os.Remove(tmpDest.Name())
+			defer os.Remove(tmpDest.Name()) //nolint:errcheck // testing only
 			logDestinationFileName = tmpDest.Name()
 
 			var errGroup errgroup.Group

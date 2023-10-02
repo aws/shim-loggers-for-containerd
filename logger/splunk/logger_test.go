@@ -54,8 +54,7 @@ var (
 	}
 )
 
-// TestGetSplunkConfig tests if all arguments are converted in correctly
-// for splunk driver configuration
+// TestGetSplunkConfig tests if all arguments are converted in correctly for splunk driver configuration.
 func TestGetSplunkConfig(t *testing.T) {
 	expectedConfig := map[string]string{
 		TokenKey:              testToken,

@@ -49,8 +49,7 @@ func testEnqueue(t *testing.T) *ringBuffer {
 	return lb
 }
 
-// TestLogBufferEnqueueDequeue tests dequeue operations from
-// buffer
+// TestLogBufferEnqueueDequeue tests dequeue operations from buffer.
 func TestLogBufferEnqueueDequeue(t *testing.T) {
 	lb := testEnqueue(t)
 	queueLen := len(lb.queue)
@@ -63,7 +62,7 @@ func TestLogBufferEnqueueDequeue(t *testing.T) {
 	require.Len(t, lb.queue, 0)
 }
 
-// TestLogBufferEnqueueFlush tests flush messages from buffer
+// TestLogBufferEnqueueFlush tests flush messages from buffer.
 func TestLogBufferEnqueueFlush(t *testing.T) {
 	lb := testEnqueue(t)
 	flushedMsg := lb.Flush()

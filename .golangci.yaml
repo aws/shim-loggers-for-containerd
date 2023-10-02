@@ -22,6 +22,10 @@ linters-settings:
   stylecheck:
     # ST1003 is left out because it is a bit opinionated.
     checks: ["all", "-ST1003"]
+  paralleltest:
+    # Ignore missing calls to `t.Parallel()` and only report incorrect uses of it.
+    # Default: false
+    ignore-missing: true
 linters:
   enable:
     - errname
