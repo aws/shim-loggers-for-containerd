@@ -5,7 +5,7 @@ linters-settings:
   goheader:
     template-path: copyright_header
   goimports:
-    local-prefixes: github.com/runfinch/finch
+    local-prefixes: github.com/aws/shim-loggers-for-containerd
   gosec:
     config:
       G306: "0o644"
