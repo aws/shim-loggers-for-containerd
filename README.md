@@ -1,6 +1,9 @@
 # Shim loggers for containerd
 
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/aws/shim-loggers-for-containerd)](https://pkg.go.dev/github.com/aws/shim-loggers-for-containerd)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aws/shim-loggers-for-containerd)](https://goreportcard.com/report/github.com/aws/shim-loggers-for-containerd)
+[![Build](https://github.com/aws/shim-loggers-for-containerd/actions/workflows/ci.yaml/badge.svg)](https://github.com/aws/shim-loggers-for-containerd/actions/workflows/ci.yaml)
+[![Static Badge](https://img.shields.io/badge/Website-Benchmarks-blue)](https://aws.github.io/shim-loggers-for-containerd/dev/bench/)
 
 Shim loggers for containerd is a collection of [containerd](https://github.com/containerd/containerd) compatible logger
 implementations that send container logs to various destinations. The following destinations are currently supported:
