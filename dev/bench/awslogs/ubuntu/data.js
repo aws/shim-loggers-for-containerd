@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711035506667,
+  "lastUpdate": 1711171966716,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -310,6 +310,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 67159,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b50076ae1eacfd4d57f7111cb180460cddd010cc",
+          "message": "chore: add dependabot config (#67)\n\n*Issue #, if available:*\r\nN/A\r\n\r\n*Description of changes:*\r\nThis PR adds explicit configuration for dependabot for Go dependency and\r\nGitHub Actions dependency updates\r\n\r\nBy submitting this pull request, I confirm that you can use, modify,\r\ncopy, and redistribute this contribution, under the terms of your\r\nchoice.\r\n\r\nSigned-off-by: Austin Vazquez <macedonv@amazon.com>",
+          "timestamp": "2024-03-22T22:30:12-07:00",
+          "tree_id": "17b1dbaaef5575fbcb0d4de860e44ba7e547cc74",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/b50076ae1eacfd4d57f7111cb180460cddd010cc"
+        },
+        "date": 1711171966317,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9509858322,
+            "unit": "ns/op\t41968752 B/op\t   66887 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9509858322,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 41968752,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 66887,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
