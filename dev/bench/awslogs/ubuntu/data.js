@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711172629494,
+  "lastUpdate": 1711172697437,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -502,6 +502,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 66862,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "b5d843d6d275e77c25e7ffcd34e03df89ee6e067",
+          "message": "chore(deps): bump github.com/aws/smithy-go from 1.14.2 to 1.20.1\n\nBumps [github.com/aws/smithy-go](https://github.com/aws/smithy-go) from 1.14.2 to 1.20.1.\n- [Release notes](https://github.com/aws/smithy-go/releases)\n- [Changelog](https://github.com/aws/smithy-go/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/aws/smithy-go/compare/v1.14.2...v1.20.1)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/aws/smithy-go\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-03-22T22:42:15-07:00",
+          "tree_id": "fc4a5bf3ad11b37c44cb1d7b8fab673742f80135",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/b5d843d6d275e77c25e7ffcd34e03df89ee6e067"
+        },
+        "date": 1711172696859,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9209618188,
+            "unit": "ns/op\t40924160 B/op\t   66934 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9209618188,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 40924160,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 66934,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
