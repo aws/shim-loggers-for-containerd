@@ -50,8 +50,7 @@ linters:
     - unconvert
     - unparam
     - usestdlibvars
-    # TODO: Enable wastedassign after https://github.com/sanposhiho/wastedassign/issues/41 is fixed.
-    # - wastedassign
+    - wastedassign
     - whitespace
     - stylecheck
 issues:
