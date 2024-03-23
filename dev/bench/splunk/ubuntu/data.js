@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711035517904,
+  "lastUpdate": 1711171986550,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -310,6 +310,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 66010,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b50076ae1eacfd4d57f7111cb180460cddd010cc",
+          "message": "chore: add dependabot config (#67)\n\n*Issue #, if available:*\r\nN/A\r\n\r\n*Description of changes:*\r\nThis PR adds explicit configuration for dependabot for Go dependency and\r\nGitHub Actions dependency updates\r\n\r\nBy submitting this pull request, I confirm that you can use, modify,\r\ncopy, and redistribute this contribution, under the terms of your\r\nchoice.\r\n\r\nSigned-off-by: Austin Vazquez <macedonv@amazon.com>",
+          "timestamp": "2024-03-22T22:30:12-07:00",
+          "tree_id": "17b1dbaaef5575fbcb0d4de860e44ba7e547cc74",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/b50076ae1eacfd4d57f7111cb180460cddd010cc"
+        },
+        "date": 1711171986193,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 7839188673,
+            "unit": "ns/op\t42806664 B/op\t   66044 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 7839188673,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 42806664,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 66044,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
