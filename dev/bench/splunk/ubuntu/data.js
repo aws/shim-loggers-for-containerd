@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711381196121,
+  "lastUpdate": 1711381282639,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -838,6 +838,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 65932,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "33da11705e72e30ecd7f47cf601cd1f65864e2ae",
+          "message": "chore(deps): bump golang.org/x/sync from 0.5.0 to 0.6.0\n\nBumps [golang.org/x/sync](https://github.com/golang/sync) from 0.5.0 to 0.6.0.\n- [Commits](https://github.com/golang/sync/compare/v0.5.0...v0.6.0)\n\n---\nupdated-dependencies:\n- dependency-name: golang.org/x/sync\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-03-25T08:38:20-07:00",
+          "tree_id": "acb27b3f9365ddf4199d78c56e8850f7d97a02ff",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/33da11705e72e30ecd7f47cf601cd1f65864e2ae"
+        },
+        "date": 1711381282057,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 7759401056,
+            "unit": "ns/op\t39583384 B/op\t   65800 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 7759401056,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 39583384,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 65800,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
