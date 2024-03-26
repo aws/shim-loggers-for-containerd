@@ -95,6 +95,21 @@ func (bl *bufferedLogger) Start(
 		return err
 	}
 
+	var logWG sync.WaitGroup
+	logWG.Add(1)
+	stopTracingLogRoutingChan := make(chan bool, 1)
+	bytesReadFromSrc = 0
+	bytesSentToDst = 0
+	go func(){
+		startTracingLogRouting(bl.containerID, stopTracingLogRoutingChan)
+		logWG.Done()
+	}()
+	defer func() {
+		debug.SendEventsToLog(DaemonName, "Sending signal to stop the ticker.", debug.DEBUG, 0)
+		stopTracingLogRoutingChan <- true
+		logWG.Wait()
+	}()
+
 	errGroup, ctx := errgroup.WithContext(ctx)
 	// Start the goroutine of underlying log driver to consume logs from ring buffer and
 	// send logs to destination when there's any.

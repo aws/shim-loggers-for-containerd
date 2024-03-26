@@ -13,13 +13,14 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
 
-	dockerlogger "github.com/docker/docker/daemon/logger"
-
 	types "github.com/docker/docker/api/types/backend"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -45,6 +46,16 @@ const (
 	// from Docker, reference:
 	// https://github.com/moby/moby/blob/19.03/daemon/logger/copier.go#L21
 	DefaultBufSizeInBytes = 16 * 1024
+
+	traceLogRoutingInterval = 1 * time.Minute
+)
+
+var(
+	// bytesReadFromSrc defines the number of bytes we read from the source(all pipes) within given time interval.
+	bytesReadFromSrc uint64
+	// bytesSentToDst defines the number of bytes we send to the destination(the corresponding log driver) within given
+	// time interval.
+	bytesSentToDst uint64
 )
 
 // GlobalArgs contains the essential arguments required for initializing the logger.
@@ -169,6 +180,21 @@ func (l *Logger) Start(
 		return err
 	}
 
+	var logWG sync.WaitGroup
+	logWG.Add(1)
+	stopTracingLogRoutingChan := make(chan bool, 1)
+	atomic.StoreUint64(&bytesReadFromSrc, 0)
+	atomic.StoreUint64(&bytesSentToDst, 0)
+	go func(){
+		startTracingLogRouting(l.Info.ContainerID, stopTracingLogRoutingChan)
+		logWG.Done()
+	}()
+	defer func() {
+		debug.SendEventsToLog(l.Info.ContainerID, "Sending signal to stop the ticker.", debug.DEBUG, 0)
+		stopTracingLogRoutingChan <- true
+		logWG.Wait()
+	}()
+
 	errGroup, ctx := errgroup.WithContext(ctx)
 	for pn, p := range pipeNameToPipe {
 		// Copy pn and p to new variables source and pipe, accordingly.
@@ -271,6 +297,7 @@ func (l *Logger) Read(
 			if err != nil {
 				return err
 			}
+
 			// If container pipe is closed and no bytes left in our buffer, directly return.
 			if eof && bytesInBuffer == 0 {
 				return nil
@@ -304,6 +331,7 @@ func (l *Logger) Read(
 				if err != nil {
 					return err
 				}
+				atomic.AddUint64(&bytesSentToDst, uint64(len(curLine)))
 				// Since we have found a newline symbol, it means this line has ended.
 				// Reset flags.
 				isFirstPartial = true
@@ -349,6 +377,7 @@ func (l *Logger) Read(
 						return err
 					}
 
+					atomic.AddUint64(&bytesSentToDst, uint64(len(curLine)))
 					// reset head and bytesInBuffer
 					head = 0
 					bytesInBuffer = 0
@@ -372,6 +401,39 @@ func (l *Logger) Read(
 				copy(buf[0:], buf[head:bytesInBuffer])
 				bytesInBuffer -= head
 			}
+		}
+	}
+}
+
+
+// startTracingLogRouting will emit logs every 1 minute where it counts how many bytes are read from the source
+// (container pipes) within given interval and how many bytes are sent to the destination (the log driver).
+func startTracingLogRouting(containerID string, stop chan bool) {
+	ticker := time.NewTicker(traceLogRoutingInterval)
+	debug.SendEventsToLog(containerID, "Starting the ticker...", debug.DEBUG, 0)
+	for {
+		select {
+		case <-ticker.C:
+			// The ticker is running as a separate goroutine which has read and write operations to
+			// `bytesReadFromSrc/bytesSentToDst`. And the shim logger process has another write operation to the same
+			// var. To avoid race conditions between these two, we should use atomic variables.
+			previousBytesReadFromSrc := atomic.SwapUint64(&bytesReadFromSrc, 0)
+			previousBytesSentToDst := atomic.SwapUint64(&bytesSentToDst, 0)
+			debug.SendEventsToLog(
+				containerID,
+				fmt.Sprintf("Within last minute, reading %d bytes from the source " +
+					"and sending %d bytes to the destination",
+					previousBytesReadFromSrc, previousBytesSentToDst),
+				debug.DEBUG,
+				0)
+		case <-stop:
+			debug.SendEventsToLog(containerID,
+				fmt.Sprintf("Reading %d bytes from the source and sending %d bytes to the destination",
+					atomic.LoadUint64(&bytesReadFromSrc), atomic.LoadUint64(&bytesSentToDst)),
+				debug.DEBUG, 0)
+			ticker.Stop()
+			debug.SendEventsToLog(containerID, "Stopped the ticker...", debug.DEBUG, 0)
+			return
 		}
 	}
 }
@@ -407,6 +469,7 @@ func readFromContainerPipe(pipe io.Reader, buf []byte, bytesInBuffer, maxReadByt
 			// Pipe is closed, set flag to true.
 			eof = true
 		}
+		atomic.AddUint64(&bytesReadFromSrc, uint64(readBytesFromPipe))
 		bytesInBuffer += readBytesFromPipe
 	}
 
