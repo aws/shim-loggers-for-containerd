@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711391539275,
+  "lastUpdate": 1711581963069,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -982,6 +982,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 68322,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "macedonv@amazon.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "c2abf736e1c938fb6c22ccd9f08dbe270752b4b3",
+          "message": "docs: add badges to readme\n\nThis change adds badges to readme for Go packaging, CI status, and\nstatic link to benchmarks website.\n\nSigned-off-by: Austin Vazquez <macedonv@amazon.com>",
+          "timestamp": "2024-03-27T16:23:22-07:00",
+          "tree_id": "e6fa9b4a8bcd79d9a3d9820afd86360729c2658a",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/c2abf736e1c938fb6c22ccd9f08dbe270752b4b3"
+        },
+        "date": 1711581962482,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 8995293377,
+            "unit": "ns/op\t39632184 B/op\t   67946 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 8995293377,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 39632184,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 67946,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
