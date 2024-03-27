@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711391453955,
+  "lastUpdate": 1711581872374,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -982,6 +982,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 66898,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "macedonv@amazon.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "c2abf736e1c938fb6c22ccd9f08dbe270752b4b3",
+          "message": "docs: add badges to readme\n\nThis change adds badges to readme for Go packaging, CI status, and\nstatic link to benchmarks website.\n\nSigned-off-by: Austin Vazquez <macedonv@amazon.com>",
+          "timestamp": "2024-03-27T16:23:22-07:00",
+          "tree_id": "e6fa9b4a8bcd79d9a3d9820afd86360729c2658a",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/c2abf736e1c938fb6c22ccd9f08dbe270752b4b3"
+        },
+        "date": 1711581871954,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 7771681218,
+            "unit": "ns/op\t40723464 B/op\t   66917 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 7771681218,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 40723464,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 66917,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
