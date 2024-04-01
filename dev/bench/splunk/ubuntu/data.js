@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711946573503,
+  "lastUpdate": 1711980610423,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -1174,6 +1174,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 66966,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "0bf1c0a61de41f42ee2190a66ef64d09c2b5c833",
+          "message": "chore(deps): bump github.com/aws/aws-sdk-go-v2 from 1.26.0 to 1.26.1\n\nBumps [github.com/aws/aws-sdk-go-v2](https://github.com/aws/aws-sdk-go-v2) from 1.26.0 to 1.26.1.\n- [Release notes](https://github.com/aws/aws-sdk-go-v2/releases)\n- [Commits](https://github.com/aws/aws-sdk-go-v2/compare/v1.26.0...v1.26.1)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/aws/aws-sdk-go-v2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-04-01T07:06:45-07:00",
+          "tree_id": "9b0fa2c829da552577e64f02bc63b9e5e945d54a",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/0bf1c0a61de41f42ee2190a66ef64d09c2b5c833"
+        },
+        "date": 1711980609776,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8570438279,
+            "unit": "ns/op\t39259840 B/op\t   66959 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8570438279,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 39259840,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 66959,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
