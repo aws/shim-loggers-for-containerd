@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
@@ -98,8 +99,8 @@ func (bl *bufferedLogger) Start(
 	var logWG sync.WaitGroup
 	logWG.Add(1)
 	stopTracingLogRoutingChan := make(chan bool, 1)
-	bytesReadFromSrc = 0
-	bytesSentToDst = 0
+	atomic.StoreUint64(&bytesReadFromSrc, 0)
+	atomic.StoreUint64(&bytesSentToDst, 0)
 	go func(){
 		startTracingLogRouting(bl.containerID, stopTracingLogRoutingChan)
 		logWG.Done()
@@ -125,6 +126,7 @@ func (bl *bufferedLogger) Start(
 		pipe := p
 
 		errGroup.Go(func() error {
+			debug.SendEventsToLog(DaemonName, fmt.Sprintf("Reading logs from pipe %s", source), debug.DEBUG, 0)
 			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source)
 			if logErr != nil {
 				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, logErr)
