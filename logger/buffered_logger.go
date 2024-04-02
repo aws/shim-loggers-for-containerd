@@ -125,6 +125,7 @@ func (bl *bufferedLogger) Start(
 		pipe := p
 
 		errGroup.Go(func() error {
+			debug.SendEventsToLog(DaemonName, fmt.Sprintf("Reading logs from pipe %s", source), debug.DEBUG, 0)
 			logErr := bl.saveLogMessagesToRingBuffer(ctx, pipe, source)
 			if logErr != nil {
 				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, logErr)

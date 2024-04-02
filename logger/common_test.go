@@ -212,7 +212,6 @@ func TestNewInfo(t *testing.T) {
 // TestTracingLogRouting verifies the expected number of bytes are read from the source/containers' pipe files and the
 // expected number of bytes are sent to the destination/the log driver.
 func TestTracingLogRouting(t *testing.T) {
-
 	// Create a tmp file that used to mock the io pipe where the logger reads log
 	// messages from.
 	tmpIOSource, err := os.CreateTemp("", "")
