@@ -15,7 +15,6 @@ import (
 
 	types "github.com/docker/docker/api/types/backend"
 	dockerlogger "github.com/docker/docker/daemon/logger"
-
 	"golang.org/x/sync/errgroup"
 )
 
@@ -102,7 +101,7 @@ func (bl *bufferedLogger) Start(
 	atomic.StoreUint64(&bytesReadFromSrc, 0)
 	atomic.StoreUint64(&bytesSentToDst, 0)
 	atomic.StoreUint64(&numberOfNewLineChars, 0)
-	go func(){
+	go func() {
 		startTracingLogRouting(bl.containerID, stopTracingLogRoutingChan)
 		logWG.Done()
 	}()
