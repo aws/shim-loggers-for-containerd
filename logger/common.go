@@ -434,8 +434,12 @@ func startTracingLogRouting(containerID string, stop chan bool) {
 				0)
 		case <-stop:
 			debug.SendEventsToLog(containerID,
-				fmt.Sprintf("Reading %d bytes from the source and sending %d bytes to the destination",
-					atomic.LoadUint64(&bytesReadFromSrc), atomic.LoadUint64(&bytesSentToDst)),
+				fmt.Sprintf("Reading %d bytes from the source. "+
+					"And %d bytes are sent to the destination and %d new line characters are ignored.",
+					atomic.LoadUint64(&bytesReadFromSrc),
+					atomic.LoadUint64(&bytesSentToDst),
+					atomic.LoadUint64(&numberOfNewLineChars),
+				),
 				debug.DEBUG, 0)
 			ticker.Stop()
 			debug.SendEventsToLog(containerID, "Stopped the ticker...", debug.DEBUG, 0)
