@@ -50,7 +50,7 @@ const (
 	traceLogRoutingInterval = 1 * time.Minute
 )
 
-var(
+var (
 	// bytesReadFromSrc defines the number of bytes we read from the source(all pipes) within given time interval.
 	bytesReadFromSrc uint64
 	// bytesSentToDst defines the number of bytes we send to the destination(the corresponding log driver) within given
@@ -189,7 +189,7 @@ func (l *Logger) Start(
 	atomic.StoreUint64(&bytesReadFromSrc, 0)
 	atomic.StoreUint64(&bytesSentToDst, 0)
 	atomic.StoreUint64(&numberOfNewLineChars, 0)
-	go func(){
+	go func() {
 		startTracingLogRouting(l.Info.ContainerID, stopTracingLogRoutingChan)
 		logWG.Done()
 	}()
@@ -411,7 +411,6 @@ func (l *Logger) Read(
 	}
 }
 
-
 // startTracingLogRouting will emit logs every 1 minute where it counts how many bytes are read from the source
 // (container pipes) within given interval and how many bytes are sent to the destination (the log driver).
 func startTracingLogRouting(containerID string, stop chan bool) {
@@ -425,12 +424,12 @@ func startTracingLogRouting(containerID string, stop chan bool) {
 			// var. To avoid race conditions between these two, we should use atomic variables.
 			previousBytesReadFromSrc := atomic.SwapUint64(&bytesReadFromSrc, 0)
 			previousBytesSentToDst := atomic.SwapUint64(&bytesSentToDst, 0)
-			previousNumberOfLogLines := atomic.SwapUint64(&numberOfNewLineChars, 0)
+			previousNumberOfNewLineChars := atomic.SwapUint64(&numberOfNewLineChars, 0)
 			debug.SendEventsToLog(
 				containerID,
-				fmt.Sprintf("Within last minute, reading %d bytes from the source " +
-					"and %d bytes are sent to the destination and %d new line characters are ignored.",
-					previousBytesReadFromSrc, previousBytesSentToDst, previousNumberOfLogLines),
+				fmt.Sprintf("Within last minute, reading %d bytes from the source. "+
+					"And %d bytes are sent to the destination and %d new line characters are ignored.",
+					previousBytesReadFromSrc, previousBytesSentToDst, previousNumberOfNewLineChars),
 				debug.DEBUG,
 				0)
 		case <-stop:
