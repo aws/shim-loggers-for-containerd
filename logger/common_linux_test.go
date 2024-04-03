@@ -65,4 +65,6 @@ func TestTracingLogRouting(t *testing.T) {
 	require.Equal(t,
 		uint64(len(inputForStdout)+len(inputForStderr)-countOfNewLinesForStdout-countOfNewLinesForStderr),
 		atomic.LoadUint64(&bytesSentToDst))
+	require.Equal(t,
+		uint64(countOfNewLinesForStdout+countOfNewLinesForStderr), atomic.LoadUint64(&numberOfNewLineChars))
 }
