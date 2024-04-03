@@ -56,6 +56,9 @@ var(
 	// bytesSentToDst defines the number of bytes we send to the destination(the corresponding log driver) within given
 	// time interval.
 	bytesSentToDst uint64
+	// numberOfNewLineChars defines the number of new line characters which are part of bytes from the source but
+	// won't be sent to the destination.
+	numberOfNewLineChars uint64
 )
 
 // GlobalArgs contains the essential arguments required for initializing the logger.
@@ -185,6 +188,7 @@ func (l *Logger) Start(
 	stopTracingLogRoutingChan := make(chan bool, 1)
 	atomic.StoreUint64(&bytesReadFromSrc, 0)
 	atomic.StoreUint64(&bytesSentToDst, 0)
+	atomic.StoreUint64(&numberOfNewLineChars, 0)
 	go func(){
 		startTracingLogRouting(l.Info.ContainerID, stopTracingLogRoutingChan)
 		logWG.Done()
@@ -331,7 +335,9 @@ func (l *Logger) Read(
 				if err != nil {
 					return err
 				}
+
 				atomic.AddUint64(&bytesSentToDst, uint64(len(curLine)))
+				atomic.AddUint64(&numberOfNewLineChars, 1)
 				// Since we have found a newline symbol, it means this line has ended.
 				// Reset flags.
 				isFirstPartial = true
@@ -419,11 +425,12 @@ func startTracingLogRouting(containerID string, stop chan bool) {
 			// var. To avoid race conditions between these two, we should use atomic variables.
 			previousBytesReadFromSrc := atomic.SwapUint64(&bytesReadFromSrc, 0)
 			previousBytesSentToDst := atomic.SwapUint64(&bytesSentToDst, 0)
+			previousNumberOfLogLines := atomic.SwapUint64(&numberOfNewLineChars, 0)
 			debug.SendEventsToLog(
 				containerID,
 				fmt.Sprintf("Within last minute, reading %d bytes from the source " +
-					"and sending %d bytes to the destination",
-					previousBytesReadFromSrc, previousBytesSentToDst),
+					"and %d bytes are sent to the destination and %d new line characters are ignored.",
+					previousBytesReadFromSrc, previousBytesSentToDst, previousNumberOfLogLines),
 				debug.DEBUG,
 				0)
 		case <-stop:

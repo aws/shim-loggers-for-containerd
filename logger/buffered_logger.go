@@ -101,6 +101,7 @@ func (bl *bufferedLogger) Start(
 	stopTracingLogRoutingChan := make(chan bool, 1)
 	atomic.StoreUint64(&bytesReadFromSrc, 0)
 	atomic.StoreUint64(&bytesSentToDst, 0)
+	atomic.StoreUint64(&numberOfNewLineChars, 0)
 	go func(){
 		startTracingLogRouting(bl.containerID, stopTracingLogRoutingChan)
 		logWG.Done()
