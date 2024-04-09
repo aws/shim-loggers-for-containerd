@@ -38,7 +38,7 @@ func TestTracingLogRouting(t *testing.T) {
 	countOfNewLinesForStderr := 3
 	_, err = testStderr.WriteString(inputForStderr)
 	require.NoError(t, err)
-	// Create a tmp file that used to inside customized dummy Log function where the
+	// Create a tmp file that used in customized dummy log function where the
 	// logger sends log messages to.
 	tmpDest, err := os.CreateTemp("", "")
 	require.NoError(t, err)
