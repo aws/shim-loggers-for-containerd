@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712677812836,
+  "lastUpdate": 1712678659719,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -1414,6 +1414,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 67172,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "0aa34935356e57ad1445569903789b09b5394e63",
+          "message": "chore(deps): bump github.com/containerd/containerd from 1.7.14 to 1.7.15\n\nBumps [github.com/containerd/containerd](https://github.com/containerd/containerd) from 1.7.14 to 1.7.15.\n- [Release notes](https://github.com/containerd/containerd/releases)\n- [Changelog](https://github.com/containerd/containerd/blob/main/RELEASES.md)\n- [Commits](https://github.com/containerd/containerd/compare/v1.7.14...v1.7.15)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/containerd/containerd\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-04-09T09:00:51-07:00",
+          "tree_id": "7751f69033ac5657b291f06eb9d9f2ba316d69fc",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/0aa34935356e57ad1445569903789b09b5394e63"
+        },
+        "date": 1712678659141,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 7933046680,
+            "unit": "ns/op\t39266728 B/op\t   66883 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 7933046680,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 39266728,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 66883,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
