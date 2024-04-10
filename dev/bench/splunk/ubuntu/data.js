@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712678659719,
+  "lastUpdate": 1712787452136,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -1462,6 +1462,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 66883,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "xingzhen@amazon.com",
+            "name": "Xing Zheng",
+            "username": "xxx0624"
+          },
+          "committer": {
+            "email": "xingzheng.cs@gmail.com",
+            "name": "xingzhen",
+            "username": "xxx0624"
+          },
+          "distinct": true,
+          "id": "fc09d8a0fee018b8776658b19aac24e7bc659ca0",
+          "message": "Update one comment",
+          "timestamp": "2024-04-10T15:13:57-07:00",
+          "tree_id": "6ed1fdc4fdf0fb272c2af9987aad8e742c54a990",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/fc09d8a0fee018b8776658b19aac24e7bc659ca0"
+        },
+        "date": 1712787451535,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8493912333,
+            "unit": "ns/op\t39183312 B/op\t   67393 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8493912333,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 39183312,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 67393,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
