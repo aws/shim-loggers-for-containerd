@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714147973137,
+  "lastUpdate": 1714148001237,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -1558,6 +1558,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 67588,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "3d0821c778b68d72f1fe699496ffe1b0015686e5",
+          "message": "chore(deps): bump golang.org/x/net from 0.20.0 to 0.23.0\n\nBumps [golang.org/x/net](https://github.com/golang/net) from 0.20.0 to 0.23.0.\n- [Commits](https://github.com/golang/net/compare/v0.20.0...v0.23.0)\n\n---\nupdated-dependencies:\n- dependency-name: golang.org/x/net\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-04-26T09:12:06-07:00",
+          "tree_id": "b39b75bda005c504a6d20f4c351221de22c5a4c3",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/3d0821c778b68d72f1fe699496ffe1b0015686e5"
+        },
+        "date": 1714148000841,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 9316805540,
+            "unit": "ns/op\t40649208 B/op\t   67439 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 9316805540,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 40649208,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 67439,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
