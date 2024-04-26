@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714148179174,
+  "lastUpdate": 1714148437584,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -1654,6 +1654,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 67012,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "a3f8ba00a6905a9871a1f418566099a7e8c1264c",
+          "message": "chore(deps): bump github.com/onsi/gomega from 1.32.0 to 1.33.0\n\nBumps [github.com/onsi/gomega](https://github.com/onsi/gomega) from 1.32.0 to 1.33.0.\n- [Release notes](https://github.com/onsi/gomega/releases)\n- [Changelog](https://github.com/onsi/gomega/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/onsi/gomega/compare/v1.32.0...v1.33.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/onsi/gomega\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-04-26T09:19:20-07:00",
+          "tree_id": "5ee659f22a99e6e8c02a7740dc3aba3fe15c21c1",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/a3f8ba00a6905a9871a1f418566099a7e8c1264c"
+        },
+        "date": 1714148436457,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8113193446,
+            "unit": "ns/op\t43881784 B/op\t   67519 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8113193446,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 43881784,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 67519,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
