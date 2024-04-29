@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714148572228,
+  "lastUpdate": 1714420051324,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -1702,6 +1702,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 67323,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "haddscot@amazon.com",
+            "name": "haddscot",
+            "username": "haddscot"
+          },
+          "committer": {
+            "email": "160976906+haddscot@users.noreply.github.com",
+            "name": "haddscot",
+            "username": "haddscot"
+          },
+          "distinct": true,
+          "id": "cd05d419b6e003e8ad826fc57e46dcaf325f5a95",
+          "message": "fix: log errors from sendLogs with correct variable in common#Start()\n\nSigned-off-by: Scott Haddlesey <haddscot@amazon.com>",
+          "timestamp": "2024-04-29T12:43:55-07:00",
+          "tree_id": "21ea9abccb9ebddd0cac1fd1a512ed507b854e95",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/cd05d419b6e003e8ad826fc57e46dcaf325f5a95"
+        },
+        "date": 1714420050724,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8598710897,
+            "unit": "ns/op\t38691152 B/op\t   67488 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8598710897,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 38691152,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 67488,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
