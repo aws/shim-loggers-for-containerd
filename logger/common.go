@@ -208,7 +208,7 @@ func (l *Logger) Start(
 		errGroup.Go(func() error {
 			logErr := l.sendLogs(ctx, pipe, source, cleanupTime)
 			if logErr != nil {
-				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, err)
+				err := fmt.Errorf("failed to send logs from pipe %s: %w", source, logErr)
 				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 				return err
 			}
