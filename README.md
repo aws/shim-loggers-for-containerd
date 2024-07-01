@@ -133,7 +133,7 @@ The following additional arguments are supported for the `fluentd` shim logger b
 | fluentd-address              | No       | The address of the Fluentd server to connect to. By default, the `localhost:24224` address is used.                                                           |
 | fluentd-async-connect        | No       | Specifies if the logger connects to Fluentd in background. Defaults to `false`.                                                                               |
 | fluentd-sub-second-precision | No       | Generates logs in nanoseconds. Defaults to `true`. Note that this is in contrast to the default behaviour of fluentd log driver where it defaults to `false`. |
-| fluentd-buffer-limit         | No       | Sets the number of events buffered on the memory in bytes. Defaults to `1048576` (1MB).                                                                       |
+| fluentd-buffer-limit         | No       | Sets the number of events buffered in memory. The amount of memory used is ~ this limit * average length of the log lines. Defaults to `1048576`.   |
 | fluentd-tag                  | No       | Specifies the tag used for log messages. Defaults to the first 12 characters of container ID.                                                                 |
 
 ## License
