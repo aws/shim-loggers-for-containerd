@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715614298023,
+  "lastUpdate": 1722121708469,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -1894,6 +1894,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 68537,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "walster@amazon.com",
+            "name": "Kern Walster",
+            "username": "Kern--"
+          },
+          "committer": {
+            "email": "kern.walster@gmail.com",
+            "name": "Kern Walster",
+            "username": "Kern--"
+          },
+          "distinct": true,
+          "id": "73669d70147024830b5f51c0aa5bef80fad0c31d",
+          "message": "fix: update fluentd-buffer-limit documentation\n\n`fluentd-buffer-limit` is the limit of the number of events buffered, not bytes.\n\nSigned-off-by: Kern Walster <walster@amazon.com>",
+          "timestamp": "2024-07-27T23:05:27Z",
+          "tree_id": "3f46a05919aa5d5cca8f2f194dc69764225c2c0c",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/73669d70147024830b5f51c0aa5bef80fad0c31d"
+        },
+        "date": 1722121707462,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 9109383113,
+            "unit": "ns/op\t39757952 B/op\t   67542 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 9109383113,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 39757952,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 67542,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
