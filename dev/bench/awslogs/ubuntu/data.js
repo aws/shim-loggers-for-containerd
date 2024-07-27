@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715614255574,
+  "lastUpdate": 1722121683106,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -1894,6 +1894,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 68440,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "walster@amazon.com",
+            "name": "Kern Walster",
+            "username": "Kern--"
+          },
+          "committer": {
+            "email": "kern.walster@gmail.com",
+            "name": "Kern Walster",
+            "username": "Kern--"
+          },
+          "distinct": true,
+          "id": "73669d70147024830b5f51c0aa5bef80fad0c31d",
+          "message": "fix: update fluentd-buffer-limit documentation\n\n`fluentd-buffer-limit` is the limit of the number of events buffered, not bytes.\n\nSigned-off-by: Kern Walster <walster@amazon.com>",
+          "timestamp": "2024-07-27T23:05:27Z",
+          "tree_id": "3f46a05919aa5d5cca8f2f194dc69764225c2c0c",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/73669d70147024830b5f51c0aa5bef80fad0c31d"
+        },
+        "date": 1722121682607,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9039119140,
+            "unit": "ns/op\t43690568 B/op\t   68593 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9039119140,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 43690568,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 68593,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
