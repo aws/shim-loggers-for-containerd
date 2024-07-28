@@ -8,6 +8,25 @@ on:
       - main
 
 jobs:
+  git-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest awslabs/git-secrets repo
+        uses: actions/checkout@v4
+        with:
+           repository: awslabs/git-secrets
+           ref: 1.3.0
+           fetch-tags: true
+           path: git-secrets
+      - name: Install git secrets from source
+        run: sudo make install
+        working-directory: git-secrets
+      - uses: actions/checkout@v4
+      - name: Scan repository for git secrets
+        run: |
+          git secrets --register-aws
+          git secrets --scan-history
+
   # It's recommended to run golangci-lint in a job separate from other jobs (go test, etc) because different jobs run in parallel.
   go-linter:
     strategy:
