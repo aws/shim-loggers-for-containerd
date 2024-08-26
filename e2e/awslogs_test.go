@@ -50,7 +50,7 @@ var testAwslogs = func() {
 		var cwClient *cloudwatchlogs.Client
 		ginkgo.BeforeEach(func() {
 			// Reference to set up Go client for aws local stack: https://docs.localstack.cloud/user-guide/integrations/sdks/go/.
-			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			customResolver := aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
 				return aws.Endpoint{
 					PartitionID:   "aws",
 					URL:           testAwslogsEndpoint,
