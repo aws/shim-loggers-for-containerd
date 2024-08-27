@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724771683003,
+  "lastUpdate": 1724772443688,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -2278,6 +2278,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 67618,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "pendo324@users.noreply.github.com",
+            "name": "Justin",
+            "username": "pendo324"
+          },
+          "distinct": true,
+          "id": "e2edbb248c64324e5d197f8e3de05a639237680e",
+          "message": "chore(deps): bump github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs\n\nBumps [github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs](https://github.com/aws/aws-sdk-go-v2) from 1.35.1 to 1.37.5.\n- [Release notes](https://github.com/aws/aws-sdk-go-v2/releases)\n- [Commits](https://github.com/aws/aws-sdk-go-v2/compare/service/ssm/v1.35.1...service/ssm/v1.37.5)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-08-27T11:24:17-04:00",
+          "tree_id": "9333b67be74d8a94d73e01174a45a625e80134ee",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/e2edbb248c64324e5d197f8e3de05a639237680e"
+        },
+        "date": 1724772443360,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 7684634349,
+            "unit": "ns/op\t42649912 B/op\t   67699 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 7684634349,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 42649912,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 67699,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
