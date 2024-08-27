@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724769761902,
+  "lastUpdate": 1724769789662,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -2134,6 +2134,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 68524,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "pendo324@users.noreply.github.com",
+            "name": "Justin",
+            "username": "pendo324"
+          },
+          "distinct": true,
+          "id": "8b38e145f92d8443920ad2486b34ce8ec6c58b86",
+          "message": "chore(deps): bump golang.org/x/sync from 0.7.0 to 0.8.0\n\nBumps [golang.org/x/sync](https://github.com/golang/sync) from 0.7.0 to 0.8.0.\n- [Commits](https://github.com/golang/sync/compare/v0.7.0...v0.8.0)\n\n---\nupdated-dependencies:\n- dependency-name: golang.org/x/sync\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-08-27T10:40:38-04:00",
+          "tree_id": "a769abd4339821c16592e42252113442a0d162a5",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/8b38e145f92d8443920ad2486b34ce8ec6c58b86"
+        },
+        "date": 1724769789319,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9151020074,
+            "unit": "ns/op\t42074672 B/op\t   68770 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9151020074,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 42074672,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 68770,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
