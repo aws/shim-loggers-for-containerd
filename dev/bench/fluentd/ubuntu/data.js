@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724769709467,
+  "lastUpdate": 1724770917198,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -2182,6 +2182,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 67618,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alvajus@amazon.com",
+            "name": "Justin Alvarez",
+            "username": "pendo324"
+          },
+          "committer": {
+            "email": "pendo324@users.noreply.github.com",
+            "name": "Justin",
+            "username": "pendo324"
+          },
+          "distinct": true,
+          "id": "7f0490366f6cdd1588f955329d12aad55796a9ac",
+          "message": "ci: migrate to EndpointResolverV2 since old methods are deprecated\n\nSigned-off-by: Justin Alvarez <alvajus@amazon.com>",
+          "timestamp": "2024-08-27T11:00:42-04:00",
+          "tree_id": "f34e77857dbd0bf4be982ecc8077c739c4b846db",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/7f0490366f6cdd1588f955329d12aad55796a9ac"
+        },
+        "date": 1724770916132,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8494332044,
+            "unit": "ns/op\t43236664 B/op\t   67647 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8494332044,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 43236664,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 67647,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
