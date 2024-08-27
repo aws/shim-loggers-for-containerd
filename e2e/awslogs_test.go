@@ -9,11 +9,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/smithy-go"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 	"github.com/containerd/containerd/cio"
 	"github.com/google/uuid"
 	"github.com/onsi/ginkgo/v2"
@@ -44,23 +46,28 @@ const (
 	testAwslogsDatetimeFormat   = "\\[%b %d, %Y %H:%M:%S\\]"
 )
 
+type cloudWatchEndpointResolver struct{}
+
+func (cloudWatchEndpointResolver) ResolveEndpoint(
+	_ context.Context,
+	_ cloudwatchlogs.EndpointParameters,
+) (smithyendpoints.Endpoint, error) {
+	uri, _ := url.Parse(testAwslogsEndpoint)
+	return smithyendpoints.Endpoint{
+		URI: *uri,
+	}, nil
+}
+
 var testAwslogs = func() {
 	// These tests are run in serial because we only define one log driver instance.
 	ginkgo.Describe("awslogs shim logger", ginkgo.Serial, func() {
 		var cwClient *cloudwatchlogs.Client
 		ginkgo.BeforeEach(func() {
-			// Reference to set up Go client for aws local stack: https://docs.localstack.cloud/user-guide/integrations/sdks/go/.
-			customResolver := aws.EndpointResolverWithOptionsFunc(func(_, _ string, _ ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					PartitionID:   "aws",
-					URL:           testAwslogsEndpoint,
-					SigningRegion: testAwslogsRegion,
-				}, nil
-			})
-			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion),
-				config.WithEndpointResolverWithOptions(customResolver))
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(testAwslogsRegion))
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			cwClient = cloudwatchlogs.NewFromConfig(cfg)
+			cwClient = cloudwatchlogs.NewFromConfig(cfg, func(opts *cloudwatchlogs.Options) {
+				opts.EndpointResolverV2 = cloudWatchEndpointResolver{}
+			})
 			deleteLogGroup(cwClient, testAwslogsGroup)
 			deleteLogGroup(cwClient, nonExistentAwslogsGroup)
 			_, err = cwClient.CreateLogGroup(context.TODO(), &cloudwatchlogs.CreateLogGroupInput{
