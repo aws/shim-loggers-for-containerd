@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724689478367,
+  "lastUpdate": 1724769761902,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -2086,6 +2086,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 68596,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "pendo324@users.noreply.github.com",
+            "name": "Justin",
+            "username": "pendo324"
+          },
+          "distinct": true,
+          "id": "fb7c911f5812e2a37f0ed77ed6a31ff722925c4a",
+          "message": "chore(deps): bump github.com/onsi/gomega from 1.33.1 to 1.34.1\n\nBumps [github.com/onsi/gomega](https://github.com/onsi/gomega) from 1.33.1 to 1.34.1.\n- [Release notes](https://github.com/onsi/gomega/releases)\n- [Changelog](https://github.com/onsi/gomega/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/onsi/gomega/compare/v1.33.1...v1.34.1)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/onsi/gomega\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-08-27T10:40:05-04:00",
+          "tree_id": "d803ae60b8a0eacab4e00aadd2f03076ce9d26f7",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/fb7c911f5812e2a37f0ed77ed6a31ff722925c4a"
+        },
+        "date": 1724769760539,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9064013535,
+            "unit": "ns/op\t41803224 B/op\t   68524 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9064013535,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 41803224,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 68524,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
