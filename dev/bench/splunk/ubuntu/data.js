@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724688377163,
+  "lastUpdate": 1724769793325,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -2086,6 +2086,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 67785,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "pendo324@users.noreply.github.com",
+            "name": "Justin",
+            "username": "pendo324"
+          },
+          "distinct": true,
+          "id": "fb7c911f5812e2a37f0ed77ed6a31ff722925c4a",
+          "message": "chore(deps): bump github.com/onsi/gomega from 1.33.1 to 1.34.1\n\nBumps [github.com/onsi/gomega](https://github.com/onsi/gomega) from 1.33.1 to 1.34.1.\n- [Release notes](https://github.com/onsi/gomega/releases)\n- [Changelog](https://github.com/onsi/gomega/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/onsi/gomega/compare/v1.33.1...v1.34.1)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/onsi/gomega\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-08-27T10:40:05-04:00",
+          "tree_id": "d803ae60b8a0eacab4e00aadd2f03076ce9d26f7",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/fb7c911f5812e2a37f0ed77ed6a31ff722925c4a"
+        },
+        "date": 1724769792396,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 9876953764,
+            "unit": "ns/op\t41480120 B/op\t   67894 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 9876953764,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 41480120,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 67894,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
