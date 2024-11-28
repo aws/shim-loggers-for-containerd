@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732771714978,
+  "lastUpdate": 1732771761913,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -2374,6 +2374,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 68440,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "62d86ee84eb0d33b215ef59953cc12cf799f86f9",
+          "message": "chore(deps): bump github.com/spf13/viper from 1.18.2 to 1.19.0\n\nBumps [github.com/spf13/viper](https://github.com/spf13/viper) from 1.18.2 to 1.19.0.\n- [Release notes](https://github.com/spf13/viper/releases)\n- [Commits](https://github.com/spf13/viper/compare/v1.18.2...v1.19.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/spf13/viper\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-11-27T21:28:12-08:00",
+          "tree_id": "8ea2c20f2368ca8feed5f86cd13cd1aa5866d3ae",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/62d86ee84eb0d33b215ef59953cc12cf799f86f9"
+        },
+        "date": 1732771761548,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8291158815,
+            "unit": "ns/op\t42989888 B/op\t   68708 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8291158815,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 42989888,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 68708,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
