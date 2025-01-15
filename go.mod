@@ -3,7 +3,7 @@ module github.com/aws/shim-loggers-for-containerd
 require (
 	github.com/aws/aws-sdk-go-v2 v1.32.8
 	github.com/aws/aws-sdk-go-v2/config v1.28.9
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.1
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.45.4
 	github.com/aws/smithy-go v1.22.1
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/containerd/containerd v1.7.24
