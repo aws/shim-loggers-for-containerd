@@ -22,6 +22,7 @@ import (
 	types "github.com/docker/docker/api/types/backend"
 	dockerlogger "github.com/docker/docker/daemon/logger"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -59,6 +60,12 @@ var (
 	// numberOfNewLineChars defines the number of new line characters which are part of bytes from the source but
 	// won't be sent to the destination.
 	numberOfNewLineChars uint64
+	// logFailureCount represents the number of failed operations to send log messages to the destination.
+	logFailureCount uint64
+
+	// logErrorLimiter is a rate limiter to prevent excessive error logging.
+	// The low rate limits (1, 1) should be sufficient since there is logFailureCount to track the total number of failures.
+	logErrorLimiter = rate.NewLimiter(1, 1)
 )
 
 // GlobalArgs contains the essential arguments required for initializing the logger.
@@ -425,20 +432,25 @@ func startTracingLogRouting(containerID string, stop chan bool) {
 			previousBytesReadFromSrc := atomic.SwapUint64(&bytesReadFromSrc, 0)
 			previousBytesSentToDst := atomic.SwapUint64(&bytesSentToDst, 0)
 			previousNumberOfNewLineChars := atomic.SwapUint64(&numberOfNewLineChars, 0)
+			previousLogFailureCount := atomic.SwapUint64(&logFailureCount, 0)
 			debug.SendEventsToLog(
 				containerID,
 				fmt.Sprintf("Within last minute, reading %d bytes from the source. "+
-					"And %d bytes are sent to the destination and %d new line characters are ignored.",
-					previousBytesReadFromSrc, previousBytesSentToDst, previousNumberOfNewLineChars),
+					"And %d bytes are sent to the destination and %d new line characters are ignored. "+
+					"%d log send operations failed.",
+					previousBytesReadFromSrc, previousBytesSentToDst,
+					previousNumberOfNewLineChars, previousLogFailureCount),
 				debug.DEBUG,
 				0)
 		case <-stop:
 			debug.SendEventsToLog(containerID,
 				fmt.Sprintf("Reading %d bytes from the source. "+
-					"And %d bytes are sent to the destination and %d new line characters are ignored.",
+					"And %d bytes are sent to the destination and %d new line characters are ignored. "+
+					"%d log send operations failed.",
 					atomic.LoadUint64(&bytesReadFromSrc),
 					atomic.LoadUint64(&bytesSentToDst),
 					atomic.LoadUint64(&numberOfNewLineChars),
+					atomic.LoadUint64(&logFailureCount),
 				),
 				debug.DEBUG, 0)
 			ticker.Stop()
@@ -520,7 +532,14 @@ func (l *Logger) sendLogMsgToDest(
 
 // Log sends logs to destination.
 func (l *Logger) Log(message *dockerlogger.Message) error {
-	return l.Stream.Log(message)
+	if err := l.Stream.Log(message); err != nil {
+		atomic.AddUint64(&logFailureCount, 1)
+		if logErrorLimiter.Allow() {
+			debug.SendEventsToLog(l.Info.ContainerID,
+				fmt.Sprintf("Failed to send log: %s", err), debug.ERROR, 0)
+		}
+	}
+	return nil
 }
 
 // newMessage creates a new logger message.
