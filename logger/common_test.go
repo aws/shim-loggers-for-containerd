@@ -40,7 +40,8 @@ var (
 // is doing inside the test. Mock Log function is not enough here as there does not exist a
 // better way to verify what happened in the TestSendLogs test, which has a goroutine.
 type dummyClient struct {
-	t *testing.T
+	t       *testing.T
+	mockErr error
 }
 
 // Log implements customized workflow used for testing purpose.
@@ -48,6 +49,9 @@ type dummyClient struct {
 // tmp test file, which makes sure the function itself accepts and "logging" the message
 // correctly.
 func (d *dummyClient) Log(msg *dockerlogger.Message) error {
+	if d.mockErr != nil {
+		return d.mockErr
+	}
 	var b []byte
 	_, err := os.Stat(logDestinationFileName)
 	if err != nil {
@@ -155,7 +159,7 @@ func TestSendLogs(t *testing.T) {
 		t.Run(tc.testName, func(t *testing.T) {
 			l := &Logger{
 				Info:              &dockerlogger.Info{},
-				Stream:            &dummyClient{t},
+				Stream:            &dummyClient{t: t},
 				bufferSizeInBytes: tc.bufferSizeInBytes,
 				maxReadBytes:      tc.maxReadBytes,
 			}

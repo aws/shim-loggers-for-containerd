@@ -9,6 +9,7 @@ package logger
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"sync/atomic"
 	"testing"
@@ -47,7 +48,7 @@ func TestTracingLogRouting(t *testing.T) {
 
 	l := &Logger{
 		Info:              &dockerlogger.Info{},
-		Stream:            &dummyClient{t},
+		Stream:            &dummyClient{t: t},
 		bufferSizeInBytes: DefaultBufSizeInBytes,
 		maxReadBytes:      defaultMaxReadBytes,
 		Stdout:            &testStdout,
@@ -67,4 +68,29 @@ func TestTracingLogRouting(t *testing.T) {
 		atomic.LoadUint64(&bytesSentToDst))
 	require.Equal(t,
 		uint64(countOfNewLinesForStdout+countOfNewLinesForStderr), atomic.LoadUint64(&numberOfNewLineChars))
+	require.Equal(t, uint64(0), atomic.LoadUint64(&logFailureCount))
+}
+
+func TestTracingLogRoutingLogFailureCount(t *testing.T) {
+	var (
+		testStdout bytes.Buffer
+		testStderr bytes.Buffer
+	)
+	_, err := testStderr.WriteString("123\n456")
+	require.NoError(t, err)
+	l := &Logger{
+		Info:              &dockerlogger.Info{},
+		Stream:            &dummyClient{t: t, mockErr: errors.New("dummy client error")},
+		bufferSizeInBytes: DefaultBufSizeInBytes,
+		maxReadBytes:      defaultMaxReadBytes,
+		Stdout:            &testStdout,
+		Stderr:            &testStderr,
+	}
+	err = l.Start(
+		context.TODO(),
+		&dummyCleanupTime,
+		func() error { return nil },
+	)
+	require.NoError(t, err)
+	require.Equal(t, uint64(2), atomic.LoadUint64(&logFailureCount))
 }
