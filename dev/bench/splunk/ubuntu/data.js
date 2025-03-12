@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737148312323,
+  "lastUpdate": 1741821063019,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -3046,6 +3046,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 68846,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "niyatim@amazon.com",
+            "name": "niyatim",
+            "username": "niyatim23"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "49325187b4190c5da974f2c1f84d0bc89c99b340",
+          "message": "update go-versions",
+          "timestamp": "2025-03-12T18:07:51-05:00",
+          "tree_id": "b811a3fe4c5b4eeea849d08fbe520f30b28e7ad2",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/49325187b4190c5da974f2c1f84d0bc89c99b340"
+        },
+        "date": 1741821062524,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8125654419,
+            "unit": "ns/op\t41306024 B/op\t   68742 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8125654419,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 41306024,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 68742,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
