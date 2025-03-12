@@ -30,7 +30,6 @@ linters:
   enable:
     - errname
     - errorlint
-    - exportloopref
     - forcetypeassert
     - gocritic
     - godot

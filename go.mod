@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -100,9 +100,9 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
@@ -127,4 +127,6 @@ require (
 
 replace github.com/docker/docker v20.10.13+incompatible => github.com/dharmadheeraj/moby v20.10.14-0.20220615184823-6b50baca60ea+incompatible
 
-go 1.21
+go 1.23.0
+
+toolchain go1.23.4
