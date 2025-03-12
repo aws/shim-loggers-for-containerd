@@ -15,7 +15,7 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
-	"github.com/docker/go-units"
+	units "github.com/docker/go-units"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

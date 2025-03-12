@@ -8,7 +8,7 @@ package e2e
 import (
 	"github.com/containerd/containerd/cio"
 	"github.com/google/uuid"
-	"github.com/onsi/ginkgo/v2"
+	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
 
