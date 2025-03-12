@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.21', '1.22', '1.23' ]
+        go: [ '1.23', '1.24' ]
         os: [ ubuntu-latest, windows-latest ]
 
     name: Unit Tests / ${{ matrix.os }} / Go ${{ matrix.go }}
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.21', '1.22', '1.23' ]
+        go: [ '1.23', '1.24' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
     name: E2E tests / awslogs / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.21', '1.22', '1.23' ]
+        go: [ '1.23', '1.24' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
     name: E2E tests / fluentd / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.21', '1.22', '1.23' ]
+        go: [ '1.23', '1.24' ]
         os: [ ubuntu-latest ] # TODO: Add Windows e2e tests: https://github.com/aws/shim-loggers-for-containerd/issues/68
     name: E2E tests / splunk / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
