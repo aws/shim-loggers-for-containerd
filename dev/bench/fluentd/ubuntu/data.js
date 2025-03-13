@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741839445769,
+  "lastUpdate": 1741839467071,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3334,6 +3334,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 69845,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "macedonv@amazon.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "346a924db328f540389a6e51d3d303c2318fe8a5",
+          "message": "ci: add git secrets scanning\n\nThis change adds a GitHub Actions job to validate git secrets are not\nsubmitted to version control.\n\nSigned-off-by: Austin Vazquez <macedonv@amazon.com>",
+          "timestamp": "2025-03-12T23:16:22-05:00",
+          "tree_id": "9d53f2505127f9c3dd10a9007e620429cb446461",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/346a924db328f540389a6e51d3d303c2318fe8a5"
+        },
+        "date": 1741839466776,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 9882232300,
+            "unit": "ns/op\t39819000 B/op\t   70248 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 9882232300,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 39819000,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 70248,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
