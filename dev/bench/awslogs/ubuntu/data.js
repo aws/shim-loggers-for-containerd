@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741982633879,
+  "lastUpdate": 1741982796851,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3430,6 +3430,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 71049,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "2c46160bef15f7cbc09a91534e37d510773e8995",
+          "message": "chore(deps): bump github.com/spf13/pflag from 1.0.5 to 1.0.6\n\nBumps [github.com/spf13/pflag](https://github.com/spf13/pflag) from 1.0.5 to 1.0.6.\n- [Release notes](https://github.com/spf13/pflag/releases)\n- [Commits](https://github.com/spf13/pflag/compare/v1.0.5...v1.0.6)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/spf13/pflag\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-14T15:03:53-05:00",
+          "tree_id": "19d0529d870e4862a498ec5fef1aaab5ffce2587",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/2c46160bef15f7cbc09a91534e37d510773e8995"
+        },
+        "date": 1741982796432,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9733041270,
+            "unit": "ns/op\t42780848 B/op\t   71966 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9733041270,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 42780848,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 71966,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
