@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741982544560,
+  "lastUpdate": 1741982712574,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3430,6 +3430,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 69587,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "2c46160bef15f7cbc09a91534e37d510773e8995",
+          "message": "chore(deps): bump github.com/spf13/pflag from 1.0.5 to 1.0.6\n\nBumps [github.com/spf13/pflag](https://github.com/spf13/pflag) from 1.0.5 to 1.0.6.\n- [Release notes](https://github.com/spf13/pflag/releases)\n- [Commits](https://github.com/spf13/pflag/compare/v1.0.5...v1.0.6)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/spf13/pflag\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-14T15:03:53-05:00",
+          "tree_id": "19d0529d870e4862a498ec5fef1aaab5ffce2587",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/2c46160bef15f7cbc09a91534e37d510773e8995"
+        },
+        "date": 1741982711629,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8359262247,
+            "unit": "ns/op\t40333488 B/op\t   69648 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8359262247,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 40333488,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 69648,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
