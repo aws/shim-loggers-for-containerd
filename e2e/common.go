@@ -22,6 +22,8 @@ const (
 
 	// LogDriverTypeKey is the key of log driver type.
 	LogDriverTypeKey = "--log-driver"
+	// ModeKey is the key of log driver mode.
+	ModeKey = "--mode"
 	// AwslogsDriverName is the name of awslogs driver.
 	AwslogsDriverName = "awslogs"
 	// FluentdDriverName is the name of fluentd driver.

@@ -44,9 +44,6 @@ const (
 	// The value of maximumBytesPerEvent is adopted from Docker. Reference:
 	// https://github.com/moby/moby/blob/19.03/daemon/logger/awslogs/cloudwatchlogs.go#L58
 	maximumBytesPerEvent = 262144 - perEventBytes
-
-	// The max size of CloudWatch events is 256kb.
-	defaultAwsBufSizeInBytes = 256 * 1024
 )
 
 // Args represents AWSlogs driver arguments.
@@ -110,7 +107,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	if la.globalArgs.Mode == logger.NonBlockingMode {
 		debug.SendEventsToLog(logger.DaemonName, "Starting log streaming for non-blocking mode awslogs driver",
 			debug.INFO, 0)
-		l = logger.NewBufferedLogger(l, defaultAwsBufSizeInBytes, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
+		l = logger.NewBufferedLogger(l, maximumBytesPerEvent, la.globalArgs.MaxBufferSize, la.globalArgs.ContainerID)
 	}
 
 	// Start awslogs driver
