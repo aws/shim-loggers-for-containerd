@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742269931992,
+  "lastUpdate": 1742306179535,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -3526,6 +3526,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 69812,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "b007240f9e40d5acc8b38c265cdc41c06b9c861c",
+          "message": "chore(deps): bump github.com/spf13/viper from 1.19.0 to 1.20.0\n\nBumps [github.com/spf13/viper](https://github.com/spf13/viper) from 1.19.0 to 1.20.0.\n- [Release notes](https://github.com/spf13/viper/releases)\n- [Commits](https://github.com/spf13/viper/compare/v1.19.0...v1.20.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/spf13/viper\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-18T08:53:05-05:00",
+          "tree_id": "37bd26eda89013b5a132749390a0e17fa60bf6aa",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/b007240f9e40d5acc8b38c265cdc41c06b9c861c"
+        },
+        "date": 1742306179197,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8170486994,
+            "unit": "ns/op\t27487232 B/op\t   70026 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8170486994,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 27487232,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 70026,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
