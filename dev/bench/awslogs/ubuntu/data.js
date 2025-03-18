@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742269924860,
+  "lastUpdate": 1742306158800,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3526,6 +3526,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 70945,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "b007240f9e40d5acc8b38c265cdc41c06b9c861c",
+          "message": "chore(deps): bump github.com/spf13/viper from 1.19.0 to 1.20.0\n\nBumps [github.com/spf13/viper](https://github.com/spf13/viper) from 1.19.0 to 1.20.0.\n- [Release notes](https://github.com/spf13/viper/releases)\n- [Commits](https://github.com/spf13/viper/compare/v1.19.0...v1.20.0)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/spf13/viper\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-18T08:53:05-05:00",
+          "tree_id": "37bd26eda89013b5a132749390a0e17fa60bf6aa",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/b007240f9e40d5acc8b38c265cdc41c06b9c861c"
+        },
+        "date": 1742306158246,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 8857800647,
+            "unit": "ns/op\t26045600 B/op\t   71251 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 8857800647,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 26045600,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 71251,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
