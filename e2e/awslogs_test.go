@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -277,6 +278,27 @@ var testAwslogs = func() {
 			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, testAwslogsStream, []string{testLog})
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+		})
+		ginkgo.It("should verify that a 256KiB+1byte log sent to the awslogs driver is split into two log events", func() {
+			testLogCmd := `"$(yes A | tr -d \"\\n\" | head -c 262145)"`
+			want1 := strings.Repeat("A", 256*1024-26)
+			want2 := strings.Repeat("A", 27)
+			args := map[string]string{
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
+				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
+				awslogsRegionKey:              testAwslogsRegion,
+				awslogsGroupKey:               testAwslogsGroup,
+				awslogsStreamKey:              nonExistentAwslogsStream,
+				awslogsEndpointKey:            testAwslogsEndpoint,
+				ModeKey:                       "non-blocking",
+			}
+			creator := cio.BinaryIO(*Binary, args)
+			err := SendTestLogByContainerd(creator, testLogCmd)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{want1, want2})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 	})
