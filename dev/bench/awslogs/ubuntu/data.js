@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741982796851,
+  "lastUpdate": 1742269924860,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3478,6 +3478,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 71966,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "55906459+austinvazquez@users.noreply.github.com",
+            "name": "Austin Vazquez",
+            "username": "austinvazquez"
+          },
+          "distinct": true,
+          "id": "1532819356ebb035fa0be18c27d8a4fd9e72ace6",
+          "message": "chore(deps): bump github.com/containerd/containerd from 1.7.26 to 1.7.27\n\nBumps [github.com/containerd/containerd](https://github.com/containerd/containerd) from 1.7.26 to 1.7.27.\n- [Release notes](https://github.com/containerd/containerd/releases)\n- [Changelog](https://github.com/containerd/containerd/blob/main/RELEASES.md)\n- [Commits](https://github.com/containerd/containerd/compare/v1.7.26...v1.7.27)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/containerd/containerd\n  dependency-type: direct:production\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-17T22:49:05-05:00",
+          "tree_id": "935fa001c0cb2937a750de40b325380cdc778020",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/1532819356ebb035fa0be18c27d8a4fd9e72ace6"
+        },
+        "date": 1742269923878,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9323998050,
+            "unit": "ns/op\t41708008 B/op\t   70945 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9323998050,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 41708008,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 70945,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
