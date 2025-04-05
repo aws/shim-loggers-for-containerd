@@ -9,6 +9,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -32,6 +34,7 @@ const (
 	awslogsCreateStreamKey        = "--awslogs-create-stream"
 	awslogsMultilinePatternKey    = "--awslogs-multiline-pattern"
 	awslogsDatetimeFormatKey      = "--awslogs-datetime-format"
+	awslogsLogFormatKey           = "--awslogs-format"
 	testEcsLocalEndpointPort      = "51679"
 	testAwslogsCredentialEndpoint = ":" + testEcsLocalEndpointPort + "/creds"
 	testAwslogsRegion             = "us-east-1"
@@ -40,6 +43,7 @@ const (
 	testAwslogsGroup              = "test-shim-logger"
 	nonExistentAwslogsGroup       = "non-existent-group"
 	testAwslogsEndpoint           = "http://localhost.localstack.cloud:4566" // Recommended endpoint:
+	testAwslogsJSONEmf            = "json/emf"
 	//nolint:lll // url
 	// https://docs.localstack.cloud/getting-started/faq/#is-using-localhostlocalstackcloud4566-to-set-as-the-endpoint-for-aws-services-recommended
 	testAwslogsMultilinePattern = "TEST"
@@ -277,6 +281,30 @@ var testAwslogs = func() {
 			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, testAwslogsStream, []string{testLog})
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+		})
+		ginkgo.It("should set the header 'x-amzn-logs-format' to have value 'json/emf' "+
+			"when LogsFormatHeader is configured with 'json/emf'", func() {
+			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gomega.Expect(r.Header.Get("x-amzn-logs-format")).To(gomega.Equal("json/emf"))
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer mockServer.Close()
+
+			testLog := testLogPrefix + uuid.New().String()
+			args := map[string]string{
+				LogDriverTypeKey:              AwslogsDriverName,
+				ContainerIDKey:                TestContainerID,
+				ContainerNameKey:              TestContainerName,
+				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
+				awslogsRegionKey:              testAwslogsRegion,
+				awslogsGroupKey:               testAwslogsGroup,
+				awslogsStreamKey:              nonExistentAwslogsStream,
+				awslogsLogFormatKey:           testAwslogsJSONEmf,
+				awslogsEndpointKey:            mockServer.URL,
+			}
+			creator := cio.BinaryIO(*Binary, args)
+			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
 	})

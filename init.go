@@ -106,6 +106,7 @@ func initAWSLogsOpts() {
 	pflag.String(awslogs.MultilinePatternKey, "", "Support multiline pattern for debug")
 	pflag.String(awslogs.DatetimeFormatKey, "", "Multiline pattern in strftime format")
 	pflag.String(awslogs.EndpointKey, "", "The CloudWatch endpoint to use")
+	pflag.String(awslogs.LogFormatKey, "", "Explicitly set the json/emf header for PutLogEvents")
 }
 
 // initFluentdOpts initialize fluentd driver specified options.

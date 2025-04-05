@@ -37,6 +37,11 @@ const (
 	CredentialsEndpointKey = "awslogs-credentials-endpoint" //nolint:gosec // not credentials
 	// EndpointKey is the AWS logging endpoint.
 	EndpointKey = "awslogs-endpoint"
+	// LogFormatKey is used to explicitly set EMF header.
+	LogFormatKey = "awslogs-format"
+	// JSONEmfLogFormat currently only 'json/emf' is supported.
+	// See: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html
+	JSONEmfLogFormat = "json/emf"
 
 	// There are 26 bytes additional bytes for each log event:
 	// See more details in: http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html
@@ -63,6 +68,7 @@ type Args struct {
 	MultilinePattern string
 	DatetimeFormat   string
 	Endpoint         string
+	LogsFormatHeader string
 }
 
 // LoggerArgs stores global logger args and awslogs specific args.
@@ -84,6 +90,10 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 	defer debug.DeferFuncForRunLogDriver()
 
 	loggerConfig := getAWSLogsConfig(la.args)
+	if err := validateLogOptCompatability(loggerConfig); err != nil {
+		debug.ErrLogger = fmt.Errorf("incompatible logger options: %w", err)
+		return debug.ErrLogger
+	}
 	info := logger.NewInfo(
 		la.globalArgs.ContainerID,
 		la.globalArgs.ContainerName,
@@ -159,6 +169,33 @@ func getAWSLogsConfig(args *Args) map[string]string {
 	if endpoint != "" {
 		config[EndpointKey] = endpoint
 	}
+	logsFormatHeader := args.LogsFormatHeader
+	if logsFormatHeader != "" {
+		config[LogFormatKey] = logsFormatHeader
+	}
 
 	return config
+}
+
+func validateLogOptCompatability(cfg map[string]string) error {
+	_, datetimeFormatKeyExists := cfg[DatetimeFormatKey]
+	_, multilinePatternKeyExists := cfg[MultilinePatternKey]
+
+	if cfg[LogFormatKey] != "" {
+		// Only json/emf is supported at the moment.
+		if cfg[LogFormatKey] != JSONEmfLogFormat {
+			return fmt.Errorf("unsupported log format '%s'", cfg[LogFormatKey])
+		}
+		if datetimeFormatKeyExists || multilinePatternKeyExists {
+			return fmt.Errorf(
+				"you cannot configure log opt '%s' or '%s' when log opt '%s' is set to '%s'",
+				DatetimeFormatKey,
+				MultilinePatternKey,
+				LogFormatKey,
+				JSONEmfLogFormat,
+			)
+		}
+	}
+
+	return nil
 }
