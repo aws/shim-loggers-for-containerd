@@ -150,6 +150,7 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 		MultilinePattern:    viper.GetString(awslogs.MultilinePatternKey),
 		DatetimeFormat:      viper.GetString(awslogs.DatetimeFormatKey),
 		Endpoint:            viper.GetString(awslogs.EndpointKey),
+		LogsFormatHeader:    viper.GetString(awslogs.LogFormatKey),
 	}, nil
 }
 
