@@ -46,8 +46,10 @@ func TestTracingLogRouting(t *testing.T) {
 	logDestinationFileName = tmpDest.Name()
 
 	l := &Logger{
-		Info:              &dockerlogger.Info{},
-		Stream:            &dummyClient{t},
+		Info: &dockerlogger.Info{},
+		Stream: &dummyClient{
+			t: t,
+		},
 		bufferSizeInBytes: DefaultBufSizeInBytes,
 		maxReadBytes:      defaultMaxReadBytes,
 		Stdout:            &testStdout,

@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -41,6 +42,12 @@ var (
 // better way to verify what happened in the TestSendLogs test, which has a goroutine.
 type dummyClient struct {
 	t *testing.T
+
+	// logCallFailAtIndex is used to signal when the `Log` method will fail. Use 0 to disable it.
+	logCallFailAtIndex uint64
+	// logCallSucceedAtIndex is used to signal when the `Log` method will succeed.
+	logCallSucceedAtIndex uint64
+	logCallTimes          uint64
 }
 
 // Log implements customized workflow used for testing purpose.
@@ -48,6 +55,17 @@ type dummyClient struct {
 // tmp test file, which makes sure the function itself accepts and "logging" the message
 // correctly.
 func (d *dummyClient) Log(msg *dockerlogger.Message) error {
+	logCallTimes := atomic.LoadUint64(&(d.logCallTimes))
+	logCallFailsAt := atomic.LoadUint64(&d.logCallFailAtIndex)
+	logCallSucceedAt := atomic.LoadUint64(&d.logCallSucceedAtIndex)
+
+	if logCallTimes >= logCallFailsAt && logCallTimes < logCallSucceedAt && logCallFailsAt != 0 {
+		currentLogCallTimes := atomic.AddUint64(&d.logCallTimes, 1)
+		return fmt.Errorf("fail `Log` intentionally at logCallTimes %d", currentLogCallTimes)
+	}
+
+	atomic.AddUint64(&d.logCallTimes, 1)
+
 	var b []byte
 	_, err := os.Stat(logDestinationFileName)
 	if err != nil {
@@ -154,8 +172,10 @@ func TestSendLogs(t *testing.T) {
 		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			l := &Logger{
-				Info:              &dockerlogger.Info{},
-				Stream:            &dummyClient{t},
+				Info: &dockerlogger.Info{},
+				Stream: &dummyClient{
+					t: t,
+				},
 				bufferSizeInBytes: tc.bufferSizeInBytes,
 				maxReadBytes:      tc.maxReadBytes,
 			}
@@ -206,4 +226,70 @@ func TestNewInfo(t *testing.T) {
 	}
 	info := NewInfo(testContainerID, testContainerName, WithConfig(config))
 	require.Equal(t, config, info.Config)
+}
+
+// TestPipeNotBroken verifies the pipe is NOT broken even if the call `Log` to the log driver fails sometimes.
+func TestPipeNotBroken(t *testing.T) {
+	logCallFailAtIndex := uint64(1)
+	logCallSucceedAtIndex := uint64(5)
+	l := &Logger{
+		Info: &dockerlogger.Info{},
+		Stream: &dummyClient{
+			t: t,
+			// only first call to the method `Log` of the log driver will succeed
+			logCallFailAtIndex:    logCallFailAtIndex,
+			logCallSucceedAtIndex: logCallSucceedAtIndex,
+			logCallTimes:          0,
+		},
+		bufferSizeInBytes: 8,
+		maxReadBytes:      4,
+	}
+
+	msgFromIOSource := "First line to write" // 19 chars with 8 char buffer becomes 3 split messages
+
+	// Create a tmp file that used to mock the io pipe where the logger reads log
+	// messages from.
+	tmpIOSource, err := os.CreateTemp("", "")
+	require.NoError(t, err)
+	defer os.Remove(tmpIOSource.Name()) //nolint:errcheck // testing only
+	var testPipe bytes.Buffer
+	_, err = testPipe.WriteString(msgFromIOSource + "\n")
+	require.NoError(t, err)
+
+	// Create a tmp file that used to inside customized dummy Log function where the
+	// logger sends log messages to.
+	tmpDest, err := os.CreateTemp("", "")
+	require.NoError(t, err)
+	defer os.Remove(tmpDest.Name()) //nolint:errcheck // testing only
+	logDestinationFileName = tmpDest.Name()
+
+	var errGroup errgroup.Group
+	errGroup.Go(func() error {
+		return l.sendLogs(context.TODO(), &testPipe, dummySource, &dummyCleanupTime)
+	})
+	err = errGroup.Wait()
+	require.NoError(t, err)
+
+	// Verify that the log destination received full msg.
+	file, err := os.Open(logDestinationFileName) //nolint:gosec // testing only
+	require.NoError(t, err)
+	defer file.Close() //nolint:errcheck // testing only
+
+	scanner := bufio.NewScanner(file)
+	receivedMsgInDest := ""
+	lines := 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		var msg dockerlogger.Message
+		err = json.Unmarshal([]byte(line), &msg)
+		t.Logf("Received msg: %v", string(msg.Line))
+		receivedMsgInDest += string(msg.Line)
+		require.NoError(t, err)
+		lines++
+	}
+	require.Equal(t, 3, lines)
+	require.Equal(t, receivedMsgInDest, msgFromIOSource)
+
+	err = scanner.Err()
+	require.NoError(t, err)
 }
