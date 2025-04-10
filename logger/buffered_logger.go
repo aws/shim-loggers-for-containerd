@@ -248,7 +248,11 @@ func (bl *bufferedLogger) sendLogMessageToDestination() error {
 
 	err = bl.Log(msg)
 	if err != nil {
-		return fmt.Errorf("failed to send logs to destination: %w", err)
+		// If we return a non-empty error here, it will cause the goroutine exits.
+		// As a result, it won't consume logs from the buffer and no more logs will be sent to destination.
+		debug.SendEventsToLog(DaemonName,
+			fmt.Sprintf("[BUFFER] Failed to proxy msg to the log driver : %s", err),
+			debug.ERROR, 0)
 	}
 
 	return nil

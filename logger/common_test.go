@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -228,24 +229,27 @@ func TestNewInfo(t *testing.T) {
 	require.Equal(t, config, info.Config)
 }
 
-// TestPipeNotBroken verifies the pipe is NOT broken even if the call `Log` to the log driver fails sometimes.
+// TestPipeNotBroken verified the pipe will NOT be broken even if sometimes the call
+// to the log driver fails.
 func TestPipeNotBroken(t *testing.T) {
 	logCallFailAtIndex := uint64(1)
-	logCallSucceedAtIndex := uint64(5)
+	logCallSucceedAtIndex := uint64(3)
+	logCallTimes := uint64(0)
+
 	l := &Logger{
 		Info: &dockerlogger.Info{},
 		Stream: &dummyClient{
-			t: t,
-			// only first call to the method `Log` of the log driver will succeed
+			t:                     t,
 			logCallFailAtIndex:    logCallFailAtIndex,
 			logCallSucceedAtIndex: logCallSucceedAtIndex,
-			logCallTimes:          0,
+			logCallTimes:          logCallTimes,
 		},
 		bufferSizeInBytes: 8,
 		maxReadBytes:      4,
 	}
 
-	msgFromIOSource := "First line to write" // 19 chars with 8 char buffer becomes 3 split messages
+	// 60 chars with 8 char buffer becomes 8 split messages.
+	msgFromIOSource := "First line to write Second line to write Third line to write"
 
 	// Create a tmp file that used to mock the io pipe where the logger reads log
 	// messages from.
@@ -270,25 +274,27 @@ func TestPipeNotBroken(t *testing.T) {
 	err = errGroup.Wait()
 	require.NoError(t, err)
 
-	// Verify that the log destination received full msg.
+	// Verify that the log destination received partial msg only.
 	file, err := os.Open(logDestinationFileName) //nolint:gosec // testing only
 	require.NoError(t, err)
 	defer file.Close() //nolint:errcheck // testing only
 
 	scanner := bufio.NewScanner(file)
-	receivedMsgInDest := ""
 	lines := 0
+	var receivedMsgInDst strings.Builder
 	for scanner.Scan() {
 		line := scanner.Text()
 		var msg dockerlogger.Message
 		err = json.Unmarshal([]byte(line), &msg)
 		t.Logf("Received msg: %v", string(msg.Line))
-		receivedMsgInDest += string(msg.Line)
+		receivedMsgInDst.WriteString(string(msg.Line))
 		require.NoError(t, err)
 		lines++
 	}
-	require.Equal(t, 3, lines)
-	require.Equal(t, receivedMsgInDest, msgFromIOSource)
+
+	// 6 lines will be received by log driver as we fail 2 calls intentionally.
+	require.Equal(t, 6, lines)
+	require.Equal(t, receivedMsgInDst.String(), "First lind line to write Third line to write")
 
 	err = scanner.Err()
 	require.NoError(t, err)

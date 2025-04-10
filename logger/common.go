@@ -232,7 +232,7 @@ func (l *Logger) sendLogs(
 	source string,
 	cleanupTime *time.Duration,
 ) error {
-	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDestUntilSucceeds); err != nil {
+	if err := l.Read(ctx, f, source, l.bufferSizeInBytes, l.sendLogMsgToDest); err != nil {
 		err := fmt.Errorf("failed to read logs from %s pipe: %w", source, err)
 		debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 		return err
@@ -491,8 +491,8 @@ func bufferIsFull(buf []byte, head, bytesInBuffer int) bool {
 	return head == 0 && bytesInBuffer == len(buf)
 }
 
-// sendLogMsgToDestUntilSucceeds sends a single line of log message to destination.
-func (l *Logger) sendLogMsgToDestUntilSucceeds(
+// sendLogMsgToDest sends a single line of log message to destination.
+func (l *Logger) sendLogMsgToDest(
 	line []byte,
 	source string,
 	isPartialMsg, isLastPartial bool,
@@ -510,23 +510,16 @@ func (l *Logger) sendLogMsgToDestUntilSucceeds(
 	if isPartialMsg {
 		message.PLogMetaData = &types.PartialLogMetaData{ID: partialID, Ordinal: partialOrdinal, Last: isLastPartial}
 	}
+	err := l.Log(message)
+	if err != nil {
+		// If we return a non-empty error here, it will cause the goroutine exits. As a result, it won't consume logs from stdout/stderr
+		// and the task container is unable to write logs to stdout/stderr and the application maybe blocked.
+		debug.SendEventsToLog(l.Info.ContainerID,
+			fmt.Sprintf("[Pipe %s] Failed to proxy msg to the log driver : %s", source, err),
+			debug.ERROR, 0)
+	}
 
-	// Retry the call to the log driver infinitely in blocking mode.
-	// If we return a non-empty error here, it will cause the goroutine exits. As a result, it won't consume logs from stdout/stderr
-	// and the task container is unable to write new logs to stdout/stderr and the application maybe blocked.
-	err := retryWithExponentialBackoff(
-		func() error {
-			err := l.Log(message)
-			if err != nil {
-				err = fmt.Errorf("failed to call the log driver to log msg for container %s: %w. will retry", l.Info.ContainerName, err)
-				debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 0)
-			}
-			return err
-		},
-		100*time.Millisecond, // initialBackoff
-		30*time.Second,       // maxBackoff
-	)
-	return err
+	return nil
 }
 
 // Log sends logs to destination.

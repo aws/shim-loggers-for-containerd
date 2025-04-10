@@ -25,7 +25,7 @@ $(AWS_CONTAINERD_LOGGERS_BINARY):
 
 .PHONY: test-unit
 test-unit: $(SOURCES)
-	go test -tags unit -race -timeout 60s -cover $(shell go list ./... | grep -v e2e) --count=1
+	go test -tags unit -race -timeout 30s -cover $(shell go list ./... | grep -v e2e) --count=1
 
 .PHONY: test-e2e
 test-e2e:
