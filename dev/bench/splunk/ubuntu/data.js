@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742569093030,
+  "lastUpdate": 1744301544513,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -3718,6 +3718,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 70263,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "treyrichbourg@gmail.com",
+            "name": "treyrichbourg",
+            "username": "treyrichbourg"
+          },
+          "committer": {
+            "email": "47723536+Shubhranshu153@users.noreply.github.com",
+            "name": "Subhransu",
+            "username": "Shubhranshu153"
+          },
+          "distinct": true,
+          "id": "ca44c30fb31f1e07fe1c98730b31f658800c2426",
+          "message": "feat: add support for awslogs-format",
+          "timestamp": "2025-04-10T09:09:13-07:00",
+          "tree_id": "f9a7936716cecaf2fdb7cbd2a3c093611b687999",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/ca44c30fb31f1e07fe1c98730b31f658800c2426"
+        },
+        "date": 1744301544119,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 7886962824,
+            "unit": "ns/op\t21709984 B/op\t   70038 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 7886962824,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 21709984,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 70038,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
