@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1744301431717,
+  "lastUpdate": 1744326620792,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -3766,6 +3766,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 70443,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "xingzhen@amazon.com",
+            "name": "Xing Zheng",
+            "username": "xxx0624"
+          },
+          "committer": {
+            "email": "xingzheng.cs@gmail.com",
+            "name": "xingzhen",
+            "username": "xxx0624"
+          },
+          "distinct": true,
+          "id": "9d950b0146af7637800c2643d06865a2ca750d52",
+          "message": "Ignore the error from the log driver",
+          "timestamp": "2025-04-10T16:09:04-07:00",
+          "tree_id": "177525052ea3909109d3c16ab23e2bef1683daf3",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/9d950b0146af7637800c2643d06865a2ca750d52"
+        },
+        "date": 1744326620243,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8478914702,
+            "unit": "ns/op\t19709800 B/op\t   69988 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8478914702,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 19709800,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 69988,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
