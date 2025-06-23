@@ -14,6 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -333,4 +335,36 @@ func testIsFlagPassedYes(t *testing.T) {
 	os.Args = append(os.Args, "--"+testFlag+"=")
 	pflag.Parse()
 	require.True(t, isFlagPassed("test-flag"))
+}
+
+func TestGetFluentdArgs(t *testing.T) {
+	for _, tc := range []struct {
+		writeTimeoutValue string
+		name              string
+		expectedArgs      *fluentd.Args
+	}{
+		{
+			writeTimeoutValue: "1s",
+			name:              "overwrite works",
+			expectedArgs: &fluentd.Args{
+				AsyncConnect:       "false",
+				SubsecondPrecision: "false",
+				WriteTimeout:       "1s"},
+		},
+		{
+			writeTimeoutValue: "",
+			name:              "default works",
+			expectedArgs: &fluentd.Args{
+				AsyncConnect:       "false",
+				SubsecondPrecision: "false",
+				WriteTimeout:       "5s"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			defer viper.Reset()
+			viper.Set(fluentd.WriteTimeoutKey, tc.writeTimeoutValue)
+			args := getFluentdArgs()
+			assert.DeepEqual(t, args, tc.expectedArgs)
+		})
+	}
 }

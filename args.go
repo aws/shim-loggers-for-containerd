@@ -25,6 +25,11 @@ const (
 	defaultCleanupTime   = "5s"
 	blockingMode         = "blocking"
 	nonBlockingMode      = "non-blocking"
+	// defaultFluentdWriteTimeout is the default timeout for writing log events to the fluentd socket.
+	// It's being set to a rather conservative value of 5s since the communication is over a unix
+	// domain socket file and 5s is way more than enough for sending a single log event.
+	// 16KiB size payloads are expected to be written in a range of 100-500ms. 5s is 10x that.
+	defaultFluentdWriteTimeout = 5 * time.Second
 )
 
 // getGlobalArgs get arguments that used for any log drivers.
@@ -171,12 +176,20 @@ func getFluentdArgs() *fluentd.Args {
 		bufferLimit = strconv.Itoa(buffer)
 	}
 
+	writeTimeoutVal := viper.GetDuration(fluentd.WriteTimeoutKey)
+	writeTimeout := writeTimeoutVal.String()
+	// If write timeout is not set, use default value.
+	if writeTimeoutVal == 0 {
+		writeTimeout = defaultFluentdWriteTimeout.String()
+	}
+
 	return &fluentd.Args{
 		Address:            address,
 		Tag:                tag,
 		AsyncConnect:       asyncConnect,
 		SubsecondPrecision: subsecondPrecision,
 		BufferLimit:        bufferLimit,
+		WriteTimeout:       writeTimeout,
 	}
 }
 
