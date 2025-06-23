@@ -27,6 +27,8 @@ const (
 	SubsecondPrecisionKey = "fluentd-sub-second-precision"
 	// BufferLimitKey specifies the buffer limit configuration key for fluentd.
 	BufferLimitKey = "fluentd-buffer-limit"
+	// WriteTimeoutKey specifies the write timeout configuration key for fluentd.
+	WriteTimeoutKey = "fluentd-write-timeout"
 
 	// Convert input parameter "fluentd-tag" to the fluentd parameter "tag".
 	// This is to distinguish between the "tag" parameter from the splunk input.
@@ -41,6 +43,7 @@ type Args struct {
 	Tag                string
 	SubsecondPrecision string
 	BufferLimit        string
+	WriteTimeout       string
 }
 
 // LoggerArgs stores global logger args and fluentd specific args.
@@ -115,6 +118,7 @@ func getFluentdConfig(args *Args) map[string]string {
 	config[AsyncConnectKey] = args.AsyncConnect
 	config[SubsecondPrecisionKey] = args.SubsecondPrecision
 	config[BufferLimitKey] = args.BufferLimit
+	config[WriteTimeoutKey] = args.WriteTimeout
 
 	return config
 }

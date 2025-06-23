@@ -18,6 +18,7 @@ const (
 	testTag                = "testTag"
 	testSubsecondPrecision = "true"
 	testBufferLimit        = "12345"
+	testWriteTimeout       = "1s"
 )
 
 var (
@@ -27,6 +28,7 @@ var (
 		SubsecondPrecision: testSubsecondPrecision,
 		Tag:                testTag,
 		BufferLimit:        testBufferLimit,
+		WriteTimeout:       testWriteTimeout,
 	}
 )
 
@@ -37,6 +39,7 @@ func TestGetFluentdConfig(t *testing.T) {
 		SubsecondPrecisionKey: testSubsecondPrecision,
 		tagKey:                testTag,
 		BufferLimitKey:        testBufferLimit,
+		WriteTimeoutKey:       testWriteTimeout,
 	}
 
 	config := getFluentdConfig(args)
