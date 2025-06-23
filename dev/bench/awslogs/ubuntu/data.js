@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1747275148584,
+  "lastUpdate": 1750719546713,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4246,6 +4246,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 71374,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "6ba0f849bba786cedcb150881fdebfefed7cfb74",
+          "message": "fluentd: set default timeout for writes\n\nSet a default value for fluentd write timeout. This helps the client\nexit the write operation with an error if the server is unresponsive.\n\nSigned-off-by: Anirudh Aithal <aithal@amazon.com>",
+          "timestamp": "2025-06-23T15:56:14-07:00",
+          "tree_id": "2bccb3374358a8580c9de9d1e010b3bbc0d3d9b0",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/6ba0f849bba786cedcb150881fdebfefed7cfb74"
+        },
+        "date": 1750719545659,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9176182487,
+            "unit": "ns/op\t18505400 B/op\t   71070 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9176182487,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 18505400,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 71070,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
