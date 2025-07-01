@@ -20,7 +20,7 @@ const (
 	// AddressKey specifies the address configuration for fluentd.
 	AddressKey = "fluentd-address"
 	// AsyncConnectKey specifies the async connect configuration key for fluentd.
-	AsyncConnectKey = "fluentd-async-connect"
+	AsyncConnectKey = "fluentd-async"
 	// FluentdTagKey specifies the tag configuration key for fluentd.
 	FluentdTagKey = "fluentd-tag"
 	// SubsecondPrecisionKey specifies the sub-second precision configuration key for fluentd.

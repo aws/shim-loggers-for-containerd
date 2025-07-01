@@ -21,7 +21,7 @@ import (
 const (
 	fluentdLogDirName            = "./../fluentd-logs"
 	fluentdAddressKey            = "--fluentd-address"
-	fluentdAsyncConnectKey       = "--fluentd-async-connect"
+	fluentdAsyncConnectKey       = "--fluentd-async"
 	fluentdSubSecondPrecisionKey = "--fluentd-sub-second-precision"
 	fluentdBufferLimitKey        = "--fluentd-buffer-limit"
 	fluentdTagKey                = "--fluentd-tag"
