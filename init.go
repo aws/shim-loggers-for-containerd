@@ -23,7 +23,6 @@ const (
 	// LogDriver options.
 	logDriverTypeKey  = "log-driver"
 	awslogsDriverName = "awslogs"
-	fluentdDriverName = "fluentd"
 
 	// Verbose mode option.
 	verboseKey = "verbose"
