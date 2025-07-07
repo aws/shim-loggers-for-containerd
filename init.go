@@ -21,8 +21,7 @@ const (
 	maxBufferSizeKey = "max-buffer-size"
 
 	// LogDriver options.
-	logDriverTypeKey  = "log-driver"
-	awslogsDriverName = "awslogs"
+	logDriverTypeKey = "log-driver"
 
 	// Verbose mode option.
 	verboseKey = "verbose"

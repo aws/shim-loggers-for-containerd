@@ -107,34 +107,6 @@ var testAwslogs = func() {
 			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
-		ginkgo.It("should send logs to awslogs log driver with respecting datatime format and ignoring multiline pattern "+
-			"when both datetime format and multiline pattern are set", func() {
-			firstLineLog := "[May 01, 2017 19:00:01] " + testLogPrefix + uuid.New().String()
-			secondLineLog := "[May 01, 2017 19:00:04] " + testLogPrefix + uuid.New().String()
-			thirdLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
-			fourthLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())
-			args := map[string]string{
-				LogDriverTypeKey:              AwslogsDriverName,
-				ContainerIDKey:                TestContainerID,
-				ContainerNameKey:              TestContainerName,
-				awslogsCredentialsEndpointKey: testAwslogsCredentialEndpoint,
-				awslogsRegionKey:              testAwslogsRegion,
-				awslogsGroupKey:               testAwslogsGroup,
-				awslogsStreamKey:              nonExistentAwslogsStream,
-				awslogsEndpointKey:            testAwslogsEndpoint,
-				awslogsMultilinePatternKey:    "^" + testAwslogsMultilinePattern,
-				awslogsDatetimeFormatKey:      testAwslogsDatetimeFormat,
-			}
-			creator := cio.BinaryIO(*Binary, args)
-			// The last matched line cannot be logged with multiline pattern. Append a pattern for now.
-			// TODO: Investigate and fix. https://github.com/aws/shim-loggers-for-containerd/issues/78
-			err := SendTestLogByContainerd(creator, fmt.Sprintf("%s\n%s\n%s\n%s\n%s", firstLineLog,
-				secondLineLog, thirdLineLog, fourthLineLog, "[May 01, 2017 19:00:05]"))
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{fmt.Sprintf("%s\n", firstLineLog),
-				fmt.Sprintf("%s\n%s\n%s\n", secondLineLog, thirdLineLog, fourthLineLog)})
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
-		})
 		ginkgo.It("should send logs to awslogs log driver with respecting multiline pattern "+
 			"when multiline pattern is set", func() {
 			firstLineLog := fmt.Sprintf("%s %s", testAwslogsMultilinePattern, testLogPrefix+uuid.New().String())

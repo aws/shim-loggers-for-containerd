@@ -13,10 +13,13 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	dockerawslogs "github.com/docker/docker/daemon/logger/awslogs"
 )
 
 const (
+	// DriverName is the name of the awslogs log driver.
+	DriverName = "awslogs"
 	// awslogs driver options.
 
 	// RegionKey specifies the AWS logging region.
@@ -89,9 +92,9 @@ func InitLogger(globalArgs *logger.GlobalArgs, awslogsArgs *Args) *LoggerArgs {
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
-	loggerConfig := getAWSLogsConfig(la.args)
-	if err := validateLogOptCompatability(loggerConfig); err != nil {
-		debug.ErrLogger = fmt.Errorf("incompatible logger options: %w", err)
+	loggerConfig, err := getAWSLogsConfig(la.args)
+	if err != nil {
+		debug.ErrLogger = fmt.Errorf("unable to validate log options: %w", err)
 		return debug.ErrLogger
 	}
 	info := logger.NewInfo(
@@ -141,7 +144,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 }
 
 // getAWSLogsConfig sets values for awslogs config.
-func getAWSLogsConfig(args *Args) map[string]string {
+func getAWSLogsConfig(args *Args) (map[string]string, error) {
 	config := make(map[string]string)
 	// Required arguments
 	config[GroupKey] = args.Group
@@ -174,28 +177,9 @@ func getAWSLogsConfig(args *Args) map[string]string {
 		config[LogFormatKey] = logsFormatHeader
 	}
 
-	return config
-}
-
-func validateLogOptCompatability(cfg map[string]string) error {
-	_, datetimeFormatKeyExists := cfg[DatetimeFormatKey]
-	_, multilinePatternKeyExists := cfg[MultilinePatternKey]
-
-	if cfg[LogFormatKey] != "" {
-		// Only json/emf is supported at the moment.
-		if cfg[LogFormatKey] != JSONEmfLogFormat {
-			return fmt.Errorf("unsupported log format '%s'", cfg[LogFormatKey])
-		}
-		if datetimeFormatKeyExists || multilinePatternKeyExists {
-			return fmt.Errorf(
-				"you cannot configure log opt '%s' or '%s' when log opt '%s' is set to '%s'",
-				DatetimeFormatKey,
-				MultilinePatternKey,
-				LogFormatKey,
-				JSONEmfLogFormat,
-			)
-		}
+	err := dockerlogger.ValidateLogOpts(DriverName, config)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	return config, nil
 }

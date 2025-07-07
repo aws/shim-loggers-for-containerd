@@ -76,7 +76,7 @@ func run() error {
 	logDriver := globalArgs.LogDriver
 	debug.SendEventsToLog(logger.DaemonName, "Driver: "+logDriver, debug.INFO, 0)
 	switch logDriver {
-	case awslogsDriverName:
+	case awslogs.DriverName:
 		if err := runAWSLogsDriver(globalArgs); err != nil {
 			return fmt.Errorf("unable to run awslogs driver: %w", err)
 		}
