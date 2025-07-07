@@ -33,10 +33,8 @@ var (
 		CredentialsEndpoint: testCredentialsEndpoint,
 		CreateGroup:         testCreateGroup,
 		CreateStream:        testCreateStream,
-		MultilinePattern:    testMultilinePattern,
 		DatetimeFormat:      testDatetimeFormat,
 		Endpoint:            testEndpoint,
-		LogsFormatHeader:    testJSONEmfLogformat,
 	}
 )
 
@@ -49,7 +47,6 @@ var (
 		CreateGroup:         testCreateGroup,
 		CreateStream:        testCreateStream,
 		MultilinePattern:    testMultilinePattern,
-		DatetimeFormat:      testDatetimeFormat,
 		Endpoint:            testEndpoint,
 	}
 )
@@ -91,13 +88,12 @@ func TestGetAWSLogsConfig(t *testing.T) {
 		CredentialsEndpointKey: testCredentialsEndpoint,
 		CreateGroupKey:         testCreateGroup,
 		CreateStreamKey:        testCreateStream,
-		MultilinePatternKey:    testMultilinePattern,
 		DatetimeFormatKey:      testDatetimeFormat,
 		EndpointKey:            testEndpoint,
-		LogFormatKey:           testJSONEmfLogformat,
 	}
 
-	config := getAWSLogsConfig(args)
+	config, err := getAWSLogsConfig(args)
+	require.NoError(t, err)
 	require.Equal(t, expectedConfig, config)
 }
 
@@ -112,38 +108,44 @@ func TestGetAWSLogsConfigWithoutFormatHeader(t *testing.T) {
 		CreateGroupKey:         testCreateGroup,
 		CreateStreamKey:        testCreateStream,
 		MultilinePatternKey:    testMultilinePattern,
-		DatetimeFormatKey:      testDatetimeFormat,
 		EndpointKey:            testEndpoint,
 	}
 
-	config := getAWSLogsConfig(argsWithoutHeader)
+	config, err := getAWSLogsConfig(argsWithoutHeader)
+	require.NoError(t, err)
 	require.Equal(t, expectedConfig, config)
+}
+
+// TestGetAWSLogsConfigValidationError tests that getAWSLogsConfig returns an error when ValidateLogOpts fails.
+func TestGetAWSLogsConfigValidationError(t *testing.T) {
+	invalidArgs := &Args{
+		Group:               testGroup,
+		Region:              testRegion,
+		Stream:              testStream,
+		CredentialsEndpoint: testCredentialsEndpoint,
+		CreateGroup:         testCreateGroup,
+		// Specifying both 'awslogs-datetime-format' and 'awslogs-multiline-pattern' at the same time is an
+		// invalid config.
+		DatetimeFormat:   testDatetimeFormat,
+		MultilinePattern: testMultilinePattern,
+		Endpoint:         testEndpoint,
+	}
+
+	config, err := getAWSLogsConfig(invalidArgs)
+	require.Error(t, err)
+	require.Nil(t, config)
 }
 
 // TestLogFormatHeaderIsNotCompatibleWithDatetimeOrMultilineFormat tests if validateLogOptCompatability function
 // correctly validates that LogFormatKey cannot be configured with DatetimeFormatKey or MultilineFormatKey.
 func TestLogFormatHeaderIsNotCompatibleWithDatetimeOrMultilineFormat(t *testing.T) {
-	expectedConfig := map[string]string{
-		GroupKey:               testGroup,
-		RegionKey:              testRegion,
-		StreamKey:              testStream,
-		CredentialsEndpointKey: testCredentialsEndpoint,
-		CreateGroupKey:         testCreateGroup,
-		CreateStreamKey:        testCreateStream,
-		DatetimeFormatKey:      testDatetimeFormat,
-		EndpointKey:            testEndpoint,
-		LogFormatKey:           testJSONEmfLogformat,
-	}
-
-	config := getAWSLogsConfig(argsWithoutMultiline)
-	require.Equal(t, expectedConfig, config)
-	err := validateLogOptCompatability(config)
+	_, err := getAWSLogsConfig(argsWithoutMultiline)
 	require.EqualError(t, err,
 		"you cannot configure log opt 'awslogs-datetime-format' or "+
 			"'awslogs-multiline-pattern' when log opt 'awslogs-format' is set to 'json/emf'")
 }
 
-// TestLogFormatHeaderIsNotCompatibleWithDatetimeOrMultilineFormat tests if validateLogOptCompatability function
+// TestValidateLogOptsDoesntErrorWithGoodConfig tests if validateLogOptCompatability function
 // correctly validates that LogFormatKey cannot be configured with DatetimeFormatKey or MultilineFormatKey.
 func TestValidateLogOptsDoesntErrorWithGoodConfig(t *testing.T) {
 	expectedConfig := map[string]string{
@@ -157,8 +159,7 @@ func TestValidateLogOptsDoesntErrorWithGoodConfig(t *testing.T) {
 		EndpointKey:            testEndpoint,
 	}
 
-	config := getAWSLogsConfig(argsValid)
-	require.Equal(t, expectedConfig, config)
-	err := validateLogOptCompatability(config)
+	config, err := getAWSLogsConfig(argsValid)
 	require.NoError(t, err)
+	require.Equal(t, expectedConfig, config)
 }
