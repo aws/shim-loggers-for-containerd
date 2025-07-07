@@ -80,7 +80,7 @@ func run() error {
 		if err := runAWSLogsDriver(globalArgs); err != nil {
 			return fmt.Errorf("unable to run awslogs driver: %w", err)
 		}
-	case fluentdDriverName:
+	case fluentd.DriverName:
 		runFluentdDriver(globalArgs)
 	case splunk.DriverName:
 		if err := runSplunkDriver(globalArgs); err != nil {

@@ -42,6 +42,19 @@ func TestGetFluentdConfig(t *testing.T) {
 		WriteTimeoutKey:       testWriteTimeout,
 	}
 
-	config := getFluentdConfig(args)
+	config, err := getFluentdConfig(args)
+	require.NoError(t, err)
 	require.Equal(t, expectedConfig, config)
+}
+
+// TestGetFluentdConfigValidationError tests that getFluentdConfig returns an error when ValidateLogOpts fails.
+func TestGetFluentdConfigValidationError(t *testing.T) {
+	invalidArgs := &Args{
+		Address:      "invalid-address-format", // Invalid address format to trigger validation error
+		AsyncConnect: "invalid-bool",           // Invalid boolean value
+	}
+
+	config, err := getFluentdConfig(invalidArgs)
+	require.Error(t, err)
+	require.Nil(t, config)
 }

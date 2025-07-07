@@ -13,10 +13,13 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	dockerfluentd "github.com/docker/docker/daemon/logger/fluentd"
 )
 
 const (
+	// DriverName is the name of the fluentd log driver.
+	DriverName = "fluentd"
 	// AddressKey specifies the address configuration for fluentd.
 	AddressKey = "fluentd-address"
 	// AsyncConnectKey specifies the async connect configuration key for fluentd.
@@ -65,7 +68,11 @@ func InitLogger(globalArgs *logger.GlobalArgs, fluentdArgs *Args) *LoggerArgs {
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
-	loggerConfig := getFluentdConfig(la.args)
+	loggerConfig, err := getFluentdConfig(la.args)
+	if err != nil {
+		debug.ErrLogger = fmt.Errorf("unable to validate log options: %w", err)
+		return debug.ErrLogger
+	}
 	info := logger.NewInfo(
 		la.globalArgs.ContainerID,
 		la.globalArgs.ContainerName,
@@ -111,7 +118,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 }
 
 // getFluentdConfig sets values for fluentd config.
-func getFluentdConfig(args *Args) map[string]string {
+func getFluentdConfig(args *Args) (map[string]string, error) {
 	config := make(map[string]string)
 	config[tagKey] = args.Tag
 	config[AddressKey] = args.Address
@@ -120,5 +127,9 @@ func getFluentdConfig(args *Args) map[string]string {
 	config[BufferLimitKey] = args.BufferLimit
 	config[WriteTimeoutKey] = args.WriteTimeout
 
-	return config
+	err := dockerlogger.ValidateLogOpts(DriverName, config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }
