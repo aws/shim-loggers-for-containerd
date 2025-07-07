@@ -156,10 +156,6 @@ func getAWSLogsConfig(args *Args) (map[string]string, error) {
 	if createGroup != "" {
 		config[CreateGroupKey] = createGroup
 	}
-	createStream := args.CreateStream
-	if createStream != "" {
-		config[CreateStreamKey] = createStream
-	}
 	multilinePattern := args.MultilinePattern
 	if multilinePattern != "" {
 		config[MultilinePatternKey] = multilinePattern
@@ -178,8 +174,20 @@ func getAWSLogsConfig(args *Args) (map[string]string, error) {
 	}
 
 	err := dockerlogger.ValidateLogOpts(DriverName, config)
+	// If there was an error validating log opts return an error here with an empty config.
 	if err != nil {
 		return nil, err
 	}
+	// This is a temporary workaround until the upstream issue https://github.com/moby/moby/issues/50346 is fixed.
+	// For now, ValidateLogOpts throws an error if "awslogs-create-stream" is present in the config. Ignore that error
+	// for the time being.
+	// TODO: Move this block before invoking 'ValidateLogOpts' once the upstream issue is fixed.
+	// The alternative to explicitly catch the unknown options error. But, then we miss out on executing rest of the
+	// validation logic in 'ValidateLogOpts'.
+	createStream := args.CreateStream
+	if createStream != "" {
+		config[CreateStreamKey] = createStream
+	}
+
 	return config, nil
 }
