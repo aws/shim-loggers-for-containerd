@@ -82,7 +82,7 @@ func run() error {
 		}
 	case fluentdDriverName:
 		runFluentdDriver(globalArgs)
-	case splunkDriverName:
+	case splunk.DriverName:
 		if err := runSplunkDriver(globalArgs); err != nil {
 			return fmt.Errorf("unable to run splunk driver: %w", err)
 		}

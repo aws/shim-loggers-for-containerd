@@ -24,7 +24,6 @@ const (
 	logDriverTypeKey  = "log-driver"
 	awslogsDriverName = "awslogs"
 	fluentdDriverName = "fluentd"
-	splunkDriverName  = "splunk"
 
 	// Verbose mode option.
 	verboseKey = "verbose"

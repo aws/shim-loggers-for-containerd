@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
+	dockerlogger "github.com/docker/docker/daemon/logger"
 	dockersplunk "github.com/docker/docker/daemon/logger/splunk"
 
 	"github.com/aws/shim-loggers-for-containerd/debug"
@@ -18,6 +19,9 @@ import (
 
 // splunk driver argument keys.
 const (
+	// DriverName is the name of the splunk log driver.
+	DriverName = "splunk"
+
 	// Required.
 
 	TokenKey = "splunk-token"
@@ -89,7 +93,11 @@ func InitLogger(globalArgs *logger.GlobalArgs, dockerConfigs *logger.DockerConfi
 func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, ready func() error) error {
 	defer debug.DeferFuncForRunLogDriver()
 
-	loggerConfig := getSplunkConfig(la.args)
+	loggerConfig, err := getSplunkConfig(la.args)
+	if err != nil {
+		debug.ErrLogger = fmt.Errorf("unable to validate log options: %w", err)
+		return debug.ErrLogger
+	}
 	info := logger.NewInfo(
 		la.globalArgs.ContainerID,
 		la.globalArgs.ContainerName,
@@ -137,7 +145,7 @@ func (la *LoggerArgs) RunLogDriver(ctx context.Context, config *logging.Config, 
 }
 
 // getSplunkConfig sets values for splunk config.
-func getSplunkConfig(arg *Args) map[string]string {
+func getSplunkConfig(arg *Args) (map[string]string, error) {
 	config := make(map[string]string)
 	// Required arguments
 	config[TokenKey] = arg.Token
@@ -185,5 +193,10 @@ func getSplunkConfig(arg *Args) map[string]string {
 	if arg.EnvRegex != "" {
 		config[EnvRegexKey] = arg.EnvRegex
 	}
-	return config
+
+	err := dockerlogger.ValidateLogOpts(DriverName, config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }

@@ -74,6 +74,7 @@ func TestGetSplunkConfig(t *testing.T) {
 		EnvKey:                testEnv,
 		EnvRegexKey:           testEnvRegex,
 	}
-	config := getSplunkConfig(testArg)
+	config, err := getSplunkConfig(testArg)
+	require.NoError(t, err)
 	require.Equal(t, expectedConfig, config)
 }
