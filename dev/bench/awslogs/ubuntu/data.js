@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750719546713,
+  "lastUpdate": 1752014129688,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4294,6 +4294,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 71070,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "38423f49349d4d818f1a7a326f59f19d4fa842a9",
+          "message": "awslogs: explicitly handle CreateStreamKey validaton error\n\nThere's a bug upstream, where a validation error is returned for\n\"awslogs-create-stream\". Explcitly handle that and ignore it for the\ntime being,\n\nReferences:\n- https://github.com/moby/moby/blob/83264918d3e1c61341511e360a7277150b914b3f/daemon/logger/awslogs/cloudwatchlogs.go#L739\n- https://github.com/moby/moby/issues/50346\n\nSigned-off-by: Anirudh Aithal <aithal@amazon.com>",
+          "timestamp": "2025-07-08T15:32:24-07:00",
+          "tree_id": "532b2a4a5b68b7d3279d223cc86009bb96c0eadf",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/38423f49349d4d818f1a7a326f59f19d4fa842a9"
+        },
+        "date": 1752014128640,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9100053729,
+            "unit": "ns/op\t21076312 B/op\t   69751 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9100053729,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 21076312,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 69751,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
