@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750719451435,
+  "lastUpdate": 1752014027595,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4294,6 +4294,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 69933,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "38423f49349d4d818f1a7a326f59f19d4fa842a9",
+          "message": "awslogs: explicitly handle CreateStreamKey validaton error\n\nThere's a bug upstream, where a validation error is returned for\n\"awslogs-create-stream\". Explcitly handle that and ignore it for the\ntime being,\n\nReferences:\n- https://github.com/moby/moby/blob/83264918d3e1c61341511e360a7277150b914b3f/daemon/logger/awslogs/cloudwatchlogs.go#L739\n- https://github.com/moby/moby/issues/50346\n\nSigned-off-by: Anirudh Aithal <aithal@amazon.com>",
+          "timestamp": "2025-07-08T15:32:24-07:00",
+          "tree_id": "532b2a4a5b68b7d3279d223cc86009bb96c0eadf",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/38423f49349d4d818f1a7a326f59f19d4fa842a9"
+        },
+        "date": 1752014027148,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8592999839,
+            "unit": "ns/op\t28623592 B/op\t   68769 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8592999839,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 28623592,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 68769,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
