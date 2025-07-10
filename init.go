@@ -4,6 +4,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/spf13/pflag"
 
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
@@ -116,6 +118,7 @@ func initFluentdOpts() {
 	pflag.Bool(fluentd.SubsecondPrecisionKey, true, "Ensures event logs are generated in nanosecond resolution.")
 	pflag.Int(fluentd.BufferLimitKey, -1, "The number of events buffered on the memory")
 	pflag.String(fluentd.FluentdTagKey, "", "The tag used to identify log messages")
+	pflag.Duration(fluentd.WriteTimeoutKey, 5*time.Second, "Write timeout value for Fluentd writes")
 }
 
 // initSplunkOpts initialize splunk driver specified options.

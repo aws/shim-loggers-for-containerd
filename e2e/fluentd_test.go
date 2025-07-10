@@ -25,6 +25,7 @@ const (
 	fluentdSubSecondPrecisionKey = "--fluentd-sub-second-precision"
 	fluentdBufferLimitKey        = "--fluentd-buffer-limit"
 	fluentdTagKey                = "--fluentd-tag"
+	fluentdWriteTimeoutKey       = "--fluentd-write-timeout"
 	testFluentdTag               = "test-tag"
 	timePattern                  = `^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9][+-](0[0-9]|1[0-3]):[0-5][0-9]$` //nolint:lll // regex
 )
@@ -98,6 +99,20 @@ var testFluentd = func() {
 			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 			validateTestLogsInFluentd(fluentdLogDirName, testLog, testFluentdTag)
+		})
+		ginkgo.It("should send logs to fluentd log driver with write timeout set", func() {
+			testLog := testLogPrefix + uuid.New().String()
+			args := map[string]string{
+				LogDriverTypeKey:       FluentdDriverName,
+				ContainerIDKey:         TestContainerID,
+				ContainerNameKey:       TestContainerName,
+				fluentdAsyncConnectKey: "true",
+				fluentdWriteTimeoutKey: "5s",
+			}
+			creator := cio.BinaryIO(*Binary, args)
+			err := SendTestLogByContainerd(creator, testLog)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			validateTestLogsInFluentd(fluentdLogDirName, testLog, TestContainerID)
 		})
 	})
 }
