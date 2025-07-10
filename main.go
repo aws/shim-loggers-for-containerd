@@ -30,7 +30,15 @@ func init() {
 }
 
 func main() {
-	pflag.Parse()
+	// Ensure that we don't panic or exit out without logging if there are issues parsing
+	// flags. Those tend to be hard to debug.
+	pflag.CommandLine.Init(logger.DaemonName, pflag.ContinueOnError)
+	// pflag.Parse() will panic out if there are issues parsing flags. Using CommandLine.Parse()
+	// gives us a chance to gracefully handle the error.
+	if err := pflag.CommandLine.Parse(os.Args[1:]); err != nil {
+		debug.SendEventsToLog(logger.DaemonName, err.Error(), debug.ERROR, 1)
+		os.Exit(1)
+	}
 	if err := run(); err != nil {
 		debug.SendEventsToLog(logger.DaemonName, err.Error(), debug.ERROR, 1)
 		os.Exit(1)
