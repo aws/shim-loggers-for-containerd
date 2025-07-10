@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752014125337,
+  "lastUpdate": 1752185371409,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for splunk": [
@@ -4342,6 +4342,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkSplunk - allocs/op",
             "value": 68709,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "6834e59ae781cc6bb642b9777ab93721355e85df",
+          "message": "fix: handle flag parsing errors and add missing fluentd write timeout flag\n\nReplace pflag.Parse() with pflag.CommandLine.Parse() to catch and handle\nflag parsing errors instead of panicking. Add missing pflag definition\nfor fluentd-write-timeout in init.go. This improves debugging by\nensuring error messages are logged before exit.\n\nSigned-off-by: Anirudh Aithal <aithal@amazon.com>",
+          "timestamp": "2025-07-10T14:51:30-07:00",
+          "tree_id": "2c831d38e4b675c0693c77ab5ed055fe9b5904e2",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/6834e59ae781cc6bb642b9777ab93721355e85df"
+        },
+        "date": 1752185370407,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkSplunk",
+            "value": 8118278584,
+            "unit": "ns/op\t21549136 B/op\t   68833 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - ns/op",
+            "value": 8118278584,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - B/op",
+            "value": 21549136,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkSplunk - allocs/op",
+            "value": 68833,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
