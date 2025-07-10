@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752014129688,
+  "lastUpdate": 1752184474874,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4342,6 +4342,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 69751,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "6834e59ae781cc6bb642b9777ab93721355e85df",
+          "message": "fix: handle flag parsing errors and add missing fluentd write timeout flag\n\nReplace pflag.Parse() with pflag.CommandLine.Parse() to catch and handle\nflag parsing errors instead of panicking. Add missing pflag definition\nfor fluentd-write-timeout in init.go. This improves debugging by\nensuring error messages are logged before exit.\n\nSigned-off-by: Anirudh Aithal <aithal@amazon.com>",
+          "timestamp": "2025-07-10T14:51:30-07:00",
+          "tree_id": "2c831d38e4b675c0693c77ab5ed055fe9b5904e2",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/6834e59ae781cc6bb642b9777ab93721355e85df"
+        },
+        "date": 1752184474302,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9140411020,
+            "unit": "ns/op\t19684984 B/op\t   69845 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9140411020,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 19684984,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 69845,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
