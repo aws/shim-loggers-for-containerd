@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.14.0
+	golang.org/x/sync v0.17.0
 	gotest.tools v2.2.0+incompatible
 )
 
@@ -126,6 +126,4 @@ require (
 
 replace github.com/docker/docker v20.10.13+incompatible => github.com/dharmadheeraj/moby v20.10.14-0.20220615184823-6b50baca60ea+incompatible
 
-go 1.23.0
-
-toolchain go1.23.4
+go 1.24.0
