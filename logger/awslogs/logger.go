@@ -60,18 +60,18 @@ const (
 // Args represents AWSlogs driver arguments.
 type Args struct {
 	// Required arguments.
-	Group               string
-	Region              string
-	Stream              string
-	CredentialsEndpoint string
+	Group  string
+	Region string
+	Stream string
 
 	// Optional arguments.
-	CreateGroup      string
-	CreateStream     string
-	MultilinePattern string
-	DatetimeFormat   string
-	Endpoint         string
-	LogsFormatHeader string
+	CredentialsEndpoint string
+	CreateGroup         string
+	CreateStream        string
+	MultilinePattern    string
+	DatetimeFormat      string
+	Endpoint            string
+	LogsFormatHeader    string
 }
 
 // LoggerArgs stores global logger args and awslogs specific args.
@@ -150,8 +150,11 @@ func getAWSLogsConfig(args *Args) (map[string]string, error) {
 	config[GroupKey] = args.Group
 	config[RegionKey] = args.Region
 	config[StreamKey] = args.Stream
-	config[CredentialsEndpointKey] = args.CredentialsEndpoint
 	// Optional arguments
+	credentialsEndpoint := args.CredentialsEndpoint
+	if credentialsEndpoint != "" {
+		config[CredentialsEndpointKey] = credentialsEndpoint
+	}
 	createGroup := args.CreateGroup
 	if createGroup != "" {
 		config[CreateGroupKey] = createGroup

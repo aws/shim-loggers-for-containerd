@@ -163,3 +163,23 @@ func TestValidateLogOptsDoesntErrorWithGoodConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedConfig, config)
 }
+
+// TestGetAWSLogsConfigMinimal tests that getAWSLogsConfig correctly handles
+// minimal configuration with only required fields.
+func TestGetAWSLogsConfigMinimal(t *testing.T) {
+	minimalArgs := &Args{
+		Group:  testGroup,
+		Region: testRegion,
+		Stream: testStream,
+	}
+
+	expectedConfig := map[string]string{
+		GroupKey:  testGroup,
+		RegionKey: testRegion,
+		StreamKey: testStream,
+	}
+
+	config, err := getAWSLogsConfig(minimalArgs)
+	require.NoError(t, err)
+	require.Equal(t, expectedConfig, config)
+}
