@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
 
 	"github.com/spf13/pflag"
@@ -365,6 +366,50 @@ func TestGetFluentdArgs(t *testing.T) {
 			viper.Set(fluentd.WriteTimeoutKey, tc.writeTimeoutValue)
 			args := getFluentdArgs()
 			assert.DeepEqual(t, args, tc.expectedArgs)
+		})
+	}
+}
+
+func TestGetAWSLogsArgs(t *testing.T) {
+	const (
+		testGroup  = "test-log-group"
+		testRegion = "us-west-2"
+		testStream = "test-log-stream"
+	)
+
+	for _, tc := range []struct {
+		name                        string
+		credentialsEndpoint         string
+		expectedCredentialsEndpoint string
+	}{
+		{
+			name:                        "credentials endpoint not provided",
+			credentialsEndpoint:         "",
+			expectedCredentialsEndpoint: "",
+		},
+		{
+			name:                        "credentials endpoint provided",
+			credentialsEndpoint:         "http://localhost:8080/credentials",
+			expectedCredentialsEndpoint: "http://localhost:8080/credentials",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			defer viper.Reset()
+
+			viper.Set(awslogs.GroupKey, testGroup)
+			viper.Set(awslogs.RegionKey, testRegion)
+			viper.Set(awslogs.StreamKey, testStream)
+
+			if tc.credentialsEndpoint != "" {
+				viper.Set(awslogs.CredentialsEndpointKey, tc.credentialsEndpoint)
+			}
+
+			args, err := getAWSLogsArgs()
+			require.NoError(t, err)
+			assert.Equal(t, testGroup, args.Group)
+			assert.Equal(t, testRegion, args.Region)
+			assert.Equal(t, testStream, args.Stream)
+			assert.Equal(t, tc.expectedCredentialsEndpoint, args.CredentialsEndpoint)
 		})
 	}
 }

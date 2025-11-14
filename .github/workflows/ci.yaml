@@ -90,6 +90,13 @@ jobs:
       - name: start ecs local endpoint
         shell: bash
         run: scripts/start-ecs-local-endpoint
+      - name: setup aws credentials for root user
+        shell: bash
+        run: |
+          sudo mkdir -p /root/.aws
+          sudo aws configure set aws_access_key_id test --profile default
+          sudo aws configure set aws_secret_access_key test --profile default
+          sudo aws configure set region us-east-1 --profile default
       - name: ip forwarding # awslogs driver hardcodes "169.254.170.2" as the aws credential endpoint ip so need to forward to local endpoint
         shell: bash
         run: sudo scripts/ip-forwarding

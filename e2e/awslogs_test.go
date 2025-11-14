@@ -279,6 +279,26 @@ var testAwslogs = func() {
 			err := SendTestLogByContainerd(creator, testLog)
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		})
+		ginkgo.It("should send logs to awslogs log driver with existing log group and non-existent log stream "+
+			"when CredentialsEndpoint is omitted", func() {
+			testLog := testLogPrefix + uuid.New().String()
+			args := map[string]string{
+				LogDriverTypeKey:       AwslogsDriverName,
+				ContainerIDKey:         TestContainerID,
+				ContainerNameKey:       TestContainerName,
+				awslogsRegionKey:       testAwslogsRegion,
+				awslogsGroupKey:        testAwslogsGroup,
+				awslogsStreamKey:       nonExistentAwslogsStream,
+				awslogsEndpointKey:     testAwslogsEndpoint,
+				awslogsCreateGroupKey:  "false",
+				awslogsCreateStreamKey: "true",
+			}
+			creator := cio.BinaryIO(*Binary, args)
+			err := SendTestLogByContainerd(creator, testLog)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			err = validateTestLogsInAwslogs(cwClient, testAwslogsGroup, nonExistentAwslogsStream, []string{testLog})
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+		})
 	})
 }
 
