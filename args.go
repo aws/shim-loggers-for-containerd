@@ -140,16 +140,12 @@ func getAWSLogsArgs() (*awslogs.Args, error) {
 	if err != nil {
 		return nil, err
 	}
-	credentialsEndpoint, err := getRequiredValue(awslogs.CredentialsEndpointKey)
-	if err != nil {
-		return nil, err
-	}
 
 	return &awslogs.Args{
 		Group:               group,
 		Region:              region,
 		Stream:              stream,
-		CredentialsEndpoint: credentialsEndpoint,
+		CredentialsEndpoint: viper.GetString(awslogs.CredentialsEndpointKey),
 		CreateGroup:         viper.GetString(awslogs.CreateGroupKey),
 		CreateStream:        viper.GetString(awslogs.CreateStreamKey),
 		MultilinePattern:    viper.GetString(awslogs.MultilinePatternKey),
