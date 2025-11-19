@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752184375574,
+  "lastUpdate": 1763524053471,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4390,6 +4390,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 68605,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "committer": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "distinct": true,
+          "id": "1a2e87dd1a7b20c3b3d8f2061db3e23960eb6998",
+          "message": "fix: accept splunk terms",
+          "timestamp": "2025-11-18T19:46:10-08:00",
+          "tree_id": "b6a1c90bea5e9d801049c7eb4f9a0cf5e5dc2b1b",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/1a2e87dd1a7b20c3b3d8f2061db3e23960eb6998"
+        },
+        "date": 1763524052429,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8374879662,
+            "unit": "ns/op\t27072616 B/op\t   68896 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8374879662,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 27072616,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 68896,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
