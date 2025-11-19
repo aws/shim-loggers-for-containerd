@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763524053471,
+  "lastUpdate": 1763563059765,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4438,6 +4438,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 68896,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "villalta.jose@gmail.com",
+            "name": "Jose A. Villalta Jr.",
+            "username": "JoseVillalta"
+          },
+          "distinct": true,
+          "id": "1a8eb8cf6d480bedd982105b668721bb2b839699",
+          "message": "chore(deps): bump github.com/containerd/containerd from 1.7.27 to 1.7.29\n\nBumps [github.com/containerd/containerd](https://github.com/containerd/containerd) from 1.7.27 to 1.7.29.\n- [Release notes](https://github.com/containerd/containerd/releases)\n- [Changelog](https://github.com/containerd/containerd/blob/main/RELEASES.md)\n- [Commits](https://github.com/containerd/containerd/compare/v1.7.27...v1.7.29)\n\n---\nupdated-dependencies:\n- dependency-name: github.com/containerd/containerd\n  dependency-version: 1.7.29\n  dependency-type: direct:production\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-11-19T06:36:06-08:00",
+          "tree_id": "b7e7c952a0eba715f7d6b2ea617b667da0815dfe",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/1a8eb8cf6d480bedd982105b668721bb2b839699"
+        },
+        "date": 1763563058697,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8828987637,
+            "unit": "ns/op\t23371264 B/op\t   68982 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8828987637,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 23371264,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 68982,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
