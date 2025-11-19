@@ -152,13 +152,42 @@ jobs:
           SPLUNK_PORT=8089
           SPLUNK_IMAGE=splunk/splunk
           CONTAINER_ID=$(docker run -d -p $SPLUNK_PORT:8089 -p 8088:8088 \
+          -e "SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com" \
           -e "SPLUNK_START_ARGS=--accept-license" \
           -e "SPLUNK_PASSWORD=$SPLUNK_PASSWORD" \
           -e "SPLUNK_HEC_TOKEN=abcd1234" \
           $SPLUNK_IMAGE)
           
+          echo "Splunk container ID: $CONTAINER_ID"
+          
           : # Splunk can only receives requests after becoming healthy
-          until [ $(docker inspect $CONTAINER_ID --format ‘{{.State.Health.Status}}’) == ‘healthy’ ]; do sleep 10s; done;
+          : # Wait up to 5 minutes for the container to become healthy
+          TIMEOUT=300
+          ELAPSED=0
+          INTERVAL=10
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            HEALTH_STATUS=$(docker inspect $CONTAINER_ID --format '{{.State.Health.Status}}')
+            echo "Health status after ${ELAPSED}s: $HEALTH_STATUS"
+            
+            if [ "$HEALTH_STATUS" == "healthy" ]; then
+              echo "Splunk container is healthy"
+              break
+            fi
+            
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          
+          : # Check if we timed out
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "ERROR: Splunk container failed to become healthy within ${TIMEOUT} seconds"
+            echo "Container logs:"
+            docker logs $CONTAINER_ID
+            echo "Container inspect:"
+            docker inspect $CONTAINER_ID
+            exit 1
+          fi
           
           curl -L -k -u admin:$SPLUNK_PASSWORD \
           -X POST https://localhost:$SPLUNK_PORT/services/admin/token-auth/tokens_auth \
