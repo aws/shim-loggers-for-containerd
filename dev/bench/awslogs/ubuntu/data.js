@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752184474874,
+  "lastUpdate": 1763524151584,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4390,6 +4390,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 69845,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "committer": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "distinct": true,
+          "id": "1a2e87dd1a7b20c3b3d8f2061db3e23960eb6998",
+          "message": "fix: accept splunk terms",
+          "timestamp": "2025-11-18T19:46:10-08:00",
+          "tree_id": "b6a1c90bea5e9d801049c7eb4f9a0cf5e5dc2b1b",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/1a2e87dd1a7b20c3b3d8f2061db3e23960eb6998"
+        },
+        "date": 1763524151034,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9602012334,
+            "unit": "ns/op\t25608128 B/op\t   70187 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9602012334,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 25608128,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 70187,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
