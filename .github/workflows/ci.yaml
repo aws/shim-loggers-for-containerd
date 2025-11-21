@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull latest awslabs/git-secrets repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
            repository: awslabs/git-secrets
            ref: 1.3.0
@@ -21,7 +21,7 @@ jobs:
       - name: Install git secrets from source
         run: sudo make install
         working-directory: git-secrets
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Scan repository for git secrets
         run: |
           git secrets --register-aws
@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
@@ -55,7 +55,7 @@ jobs:
     name: Unit Tests / ${{ matrix.os }} / Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
@@ -76,7 +76,7 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
@@ -109,7 +109,7 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
@@ -136,7 +136,7 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
@@ -207,7 +207,7 @@ jobs:
   go-mod-tidy-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -217,7 +217,7 @@ jobs:
   mdlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: avto-dev/markdown-lint@v1
         with:
           args: '**/*.md'
