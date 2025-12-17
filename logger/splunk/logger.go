@@ -24,8 +24,9 @@ const (
 
 	// Required.
 
-	TokenKey = "splunk-token"
-	URLKey   = "splunk-url"
+	TokenKey    = "splunk-token"
+	TokenEnvKey = "SPLUNK_TOKEN"
+	URLKey      = "splunk-url"
 
 	// Optional.
 
