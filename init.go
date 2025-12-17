@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
@@ -122,6 +123,10 @@ func initFluentdOpts() {
 // Argument usage taken from https://docs.docker.com/config/containers/logging/splunk/.
 func initSplunkOpts() {
 	pflag.String(splunk.TokenKey, "", "Splunk HTTP Event Collector token.")
+	// Bind environment variable to the token flag for secure credential passing.
+	// Error is discarded because BindEnv only fails when called with no arguments,
+	// which will never happen here.
+	_ = viper.BindEnv(splunk.TokenKey, splunk.TokenEnvKey)
 	pflag.String(splunk.URLKey, "", "Path to your Splunk Enterprise, self-service Splunk Cloud instance, "+
 		"or Splunk Cloud managed cluster (including port and scheme used by HTTP Event Collector).")
 	pflag.String(splunk.SourceKey, "", "Event source.")

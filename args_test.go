@@ -16,6 +16,7 @@ import (
 
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -410,6 +411,90 @@ func TestGetAWSLogsArgs(t *testing.T) {
 			assert.Equal(t, testRegion, args.Region)
 			assert.Equal(t, testStream, args.Stream)
 			assert.Equal(t, tc.expectedCredentialsEndpoint, args.CredentialsEndpoint)
+		})
+	}
+}
+
+// TestGetSplunkArgs tests getSplunkArgs with various token source configurations.
+func TestGetSplunkArgs(t *testing.T) {
+	const (
+		testURL      = "https://splunk.example.com:8088"
+		testEnvToken = "env-token-value" //nolint:gosec // not real credential
+		testCLIToken = "cli-token-value" //nolint:gosec // not real credential
+	)
+
+	for _, tc := range []struct {
+		name          string
+		envToken      string
+		cliToken      string
+		expectedToken string
+		expectError   bool
+	}{
+		{
+			name:          "token from environment variable only",
+			envToken:      testEnvToken,
+			cliToken:      "",
+			expectedToken: testEnvToken,
+			expectError:   false,
+		},
+		{
+			name:          "token from CLI argument only",
+			envToken:      "",
+			cliToken:      testCLIToken,
+			expectedToken: testCLIToken,
+			expectError:   false,
+		},
+		{
+			name:          "CLI takes precedence over environment variable",
+			envToken:      testEnvToken,
+			cliToken:      testCLIToken,
+			expectedToken: testCLIToken,
+			expectError:   false,
+		},
+		{
+			name:          "error when neither source provides token",
+			envToken:      "",
+			cliToken:      "",
+			expectedToken: "",
+			expectError:   true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			// Reset state before each test case.
+			viper.Reset()
+			pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+			initSplunkOpts()
+			_ = viper.BindPFlags(pflag.CommandLine)
+
+			defer func() {
+				_ = os.Unsetenv(splunk.TokenEnvKey)
+				viper.Reset()
+				pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
+			}()
+
+			// Set required URL.
+			viper.Set(splunk.URLKey, testURL)
+
+			// Set environment variable if provided.
+			if tc.envToken != "" {
+				_ = os.Setenv(splunk.TokenEnvKey, tc.envToken)
+			}
+
+			// Set CLI argument if provided.
+			if tc.cliToken != "" {
+				viper.Set(splunk.TokenKey, tc.cliToken)
+			}
+
+			args, err := getSplunkArgs()
+
+			if tc.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "splunk-token is required")
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expectedToken, args.Token)
+				assert.Equal(t, testURL, args.URL)
+			}
 		})
 	}
 }
