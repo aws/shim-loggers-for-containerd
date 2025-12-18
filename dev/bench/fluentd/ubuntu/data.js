@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1764780507716,
+  "lastUpdate": 1766087005362,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4534,6 +4534,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 68524,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "committer": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "distinct": true,
+          "id": "6fc6c15ae9229b402748c927ec18250eddc81b44",
+          "message": "feat: pass splunk token in env variable\n\nThis change adds the option to pass the Splunk token to the shim-logger\nin the SPLUNK_TOKEN environment variable, in addition to the existing\ncommand line argument. Environment variables are generally more secure,\nand recommended over argv.",
+          "timestamp": "2025-12-18T11:41:59-08:00",
+          "tree_id": "f8d4a5dcf426d9f8742ec91e33ab3ce2e2e720d6",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/6fc6c15ae9229b402748c927ec18250eddc81b44"
+        },
+        "date": 1766087004363,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8699469160,
+            "unit": "ns/op\t22743552 B/op\t   69008 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8699469160,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 22743552,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 69008,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
