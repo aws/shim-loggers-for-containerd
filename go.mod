@@ -8,7 +8,7 @@ require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/containerd/containerd v1.7.29
 	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
-	github.com/docker/docker v28.2.2+incompatible
+	github.com/docker/docker v28.3.3+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
