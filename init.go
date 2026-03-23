@@ -44,6 +44,9 @@ const (
 	ContainerImageNameKey = "container-image-name"
 	// ContainerEnvKey represents the key for the container's environment variables.
 	ContainerEnvKey = "container-env"
+
+	// ContainerEnvEndpointKey denotes the endpoint URL to fetch container environment variables.
+	ContainerEnvEndpointKey = "container-env-endpoint"
 	// ContainerLabelsKey represents the key for the container's labels.
 	ContainerLabelsKey = "container-labels"
 
@@ -84,6 +87,7 @@ func initDockerConfigOpts() {
 	pflag.String(ContainerImageIDKey, "", "Image id of the container")
 	pflag.String(ContainerImageNameKey, "", "Image name of the container")
 	pflag.String(ContainerEnvKey, "", "Environment variables of the container")
+	pflag.String(ContainerEnvEndpointKey, "", "Endpoint URL to fetch container environment variables.")
 	pflag.String(ContainerLabelsKey, "", "Labels of the container")
 }
 
@@ -123,6 +127,7 @@ func initFluentdOpts() {
 // Argument usage taken from https://docs.docker.com/config/containers/logging/splunk/.
 func initSplunkOpts() {
 	pflag.String(splunk.TokenKey, "", "Splunk HTTP Event Collector token.")
+	pflag.String(splunk.TokenEndpointKey, "", "Endpoint URL to fetch Splunk token.")
 	// Bind environment variable to the token flag for secure credential passing.
 	// Error is discarded because BindEnv only fails when called with no arguments,
 	// which will never happen here.

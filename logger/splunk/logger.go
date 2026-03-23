@@ -26,7 +26,9 @@ const (
 
 	TokenKey    = "splunk-token"
 	TokenEnvKey = "SPLUNK_TOKEN"
-	URLKey      = "splunk-url"
+	// TokenEndpointKey denotes the endpoint URL to fetch the Splunk token.
+	TokenEndpointKey = "splunk-token-endpoint" //nolint:gosec // not a credential
+	URLKey           = "splunk-url"
 
 	// Optional.
 

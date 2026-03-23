@@ -98,20 +98,9 @@ func getDockerConfigs() (*logger.DockerConfigs, error) {
 		}
 	}
 
-	containerEnvString := viper.GetString(ContainerEnvKey)
-	containerEnv := make([]string, 0)
-	if containerEnvString != "" {
-		containerEnvMap := make(map[string]string)
-		err := json.Unmarshal([]byte(containerEnvString), &containerEnvMap)
-		if err != nil {
-			return nil, err
-		}
-		// Docker logging use a slice to store the environment variables
-		// Each item is in the format of "key=value"
-		// ref: https://github.com/moby/moby/blob/c833222d54c00d64a0fc44c561a5973ecd414053/daemon/logger/loginfo.go#L60
-		for envKey, envVal := range containerEnvMap {
-			containerEnv = append(containerEnv, envKey+"="+envVal)
-		}
+	containerEnv, err := getContainerEnv()
+	if err != nil {
+		return nil, err
 	}
 
 	// Docker config variables are optional
@@ -191,7 +180,7 @@ func getFluentdArgs() *fluentd.Args {
 
 // getSplunkArgs gets Splunk specified arguments for Splunk log driver.
 func getSplunkArgs() (*splunk.Args, error) {
-	token, err := getRequiredValue(splunk.TokenKey)
+	token, err := getSplunkToken()
 	if err != nil {
 		return nil, err
 	}
@@ -219,6 +208,65 @@ func getSplunkArgs() (*splunk.Args, error) {
 		Env:                viper.GetString(splunk.EnvKey),
 		EnvRegex:           viper.GetString(splunk.EnvRegexKey),
 	}, nil
+}
+
+// getSplunkToken fetches the Splunk token from the endpoint if
+// --splunk-token-endpoint is set, otherwise falls back to the
+// --splunk-token / SPLUNK_TOKEN argument.
+func getSplunkToken() (string, error) {
+	splunkTokenEndpoint := viper.GetString(splunk.TokenEndpointKey)
+	if splunkTokenEndpoint != "" {
+		body, err := fetchFromEndpoint(splunkTokenEndpoint)
+		if err != nil {
+			return "", fmt.Errorf("unable to fetch splunk token from endpoint: %w", err)
+		}
+		var resp SplunkTokenResponse
+		if err := json.Unmarshal(body, &resp); err != nil {
+			return "", fmt.Errorf("failed to decode response from %s: %w", splunkTokenEndpoint, err)
+		}
+		if resp.Token == "" {
+			return "", fmt.Errorf("endpoint %s returned an empty splunk token", splunkTokenEndpoint)
+		}
+		return resp.Token, nil
+	}
+	return getRequiredValue(splunk.TokenKey)
+}
+
+// getContainerEnv fetches container environment variables from the endpoint
+// if --container-env-endpoint is set, otherwise falls back to the
+// --container-env argument.
+func getContainerEnv() ([]string, error) {
+	containerEnvEndpoint := viper.GetString(ContainerEnvEndpointKey)
+	if containerEnvEndpoint != "" {
+		body, err := fetchFromEndpoint(containerEnvEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("unable to fetch container env from endpoint: %w", err)
+		}
+		var resp ContainerEnvResponse
+		if err := json.Unmarshal(body, &resp); err != nil {
+			return nil, fmt.Errorf("failed to decode response from %s: %w", containerEnvEndpoint, err)
+		}
+		containerEnv := make([]string, 0, len(resp.Env))
+		for envKey, envVal := range resp.Env {
+			containerEnv = append(containerEnv, envKey+"="+envVal)
+		}
+		return containerEnv, nil
+	}
+
+	// Fall back to existing --container-env argument.
+	containerEnvString := viper.GetString(ContainerEnvKey)
+	if containerEnvString == "" {
+		return []string{}, nil
+	}
+	containerEnvMap := make(map[string]string)
+	if err := json.Unmarshal([]byte(containerEnvString), &containerEnvMap); err != nil {
+		return nil, err
+	}
+	containerEnv := make([]string, 0, len(containerEnvMap))
+	for envKey, envVal := range containerEnvMap {
+		containerEnv = append(containerEnv, envKey+"="+envVal)
+	}
+	return containerEnv, nil
 }
 
 // getRequiredValue parses required arguments or exits if any is missing.

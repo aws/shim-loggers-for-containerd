@@ -71,6 +71,7 @@ The following list of arguments apply to all of the shim logger binaries in this
 | container-image-id | No | The container image id. This is part of the docker config variables that can be logged by splunk log driver. |
 | container-image-name | No | The container image name. This is part of the docker config variables that can be logged by splunk log driver. |
 | container-env | No | The container environment variables map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
+| container-env-endpoint | No | Endpoint URL to fetch container environment variables. When set, the shim logger fetches the env from this endpoint instead of using `container-env`. The endpoint must return JSON in the form `{"env": {"KEY": "VALUE"}}`. |
 | container-labels | No | The container labels map in json format. This is part of the docker config variables that can be logged by splunk log driver. |
 
 ### Windows specific arguments
@@ -105,24 +106,25 @@ The following additional arguments are supported for the `awslogs` shim logger b
 The following additional arguments are supported for the `splunk` shim logger binary, which can be used to send container logs to [splunk](https://www.splunk.com/en_us/central-log-management.html).
 You can find a description of what these parameters are used for [here](https://docs.docker.com/config/containers/logging/splunk/).
 
-|Name|Required|
-|-|-|
-| splunk-token | Yes |
-| splunk-url | Yes |
-| splunk-source | No |
-| splunk-sourcetype | No |
-| splunk-index | No |
-| splunk-capath | No |
-| splunk-caname | No |
-| splunk-insecureskipverify | No |
-| splunk-format | No |
-| splunk-verify-connection | No |
-| splunk-gzip | No |
-| splunk-gzip-level | No |
-| splunk-tag | No |
-| labels | No |
-| env | No |
-| env-regex | No |
+|Name|Required|Description|
+|-|-|-|
+| splunk-token | Yes | Splunk HTTP Event Collector token. Not required when `splunk-token-endpoint` is set. |
+| splunk-token-endpoint | No | Endpoint URL to fetch the Splunk token. When set, the token is fetched from this endpoint instead of using `splunk-token`. The endpoint must return JSON in the form `{"token": "VALUE"}`. |
+| splunk-url | Yes | |
+| splunk-source | No | |
+| splunk-sourcetype | No | |
+| splunk-index | No | |
+| splunk-capath | No | |
+| splunk-caname | No | |
+| splunk-insecureskipverify | No | |
+| splunk-format | No | |
+| splunk-verify-connection | No | |
+| splunk-gzip | No | |
+| splunk-gzip-level | No | |
+| splunk-tag | No | |
+| labels | No | |
+| env | No | |
+| env-regex | No | |
 
 #### Fluentd
 

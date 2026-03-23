@@ -7,8 +7,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
@@ -497,4 +500,280 @@ func TestGetSplunkArgs(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestGetSplunkToken tests the getSplunkToken function with endpoint-based
+// fetching and fallback to the direct --splunk-token argument.
+// Not parallel: tests share viper global state.
+func TestGetSplunkToken(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupServer   func() *httptest.Server
+		setupViper    func(serverURL string)
+		expectedToken string
+		expectErr     bool
+		errContains   string
+	}{
+		{
+			name: "token fetched from endpoint",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					resp := SplunkTokenResponse{Token: "endpoint-token"}
+					_ = json.NewEncoder(w).Encode(resp)
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(splunk.TokenEndpointKey, serverURL)
+			},
+			expectedToken: "endpoint-token",
+			expectErr:     false,
+		},
+		{
+			name:        "fallback to direct token when endpoint not set",
+			setupServer: nil,
+			setupViper: func(_ string) {
+				viper.Set(splunk.TokenKey, "direct-token")
+			},
+			expectedToken: "direct-token",
+			expectErr:     false,
+		},
+		{
+			name: "error when endpoint returns non-200",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusNotFound)
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(splunk.TokenEndpointKey, serverURL)
+			},
+			expectErr:   true,
+			errContains: "unable to fetch splunk token from endpoint",
+		},
+		{
+			name: "error when endpoint returns invalid JSON",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					_, _ = fmt.Fprint(w, "not-json")
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(splunk.TokenEndpointKey, serverURL)
+			},
+			expectErr:   true,
+			errContains: "failed to decode response from",
+		},
+		{
+			name:        "error when neither endpoint nor direct arg is provided",
+			setupServer: nil,
+			setupViper:  func(_ string) {},
+			expectErr:   true,
+			errContains: "splunk-token is required",
+		},
+		{
+			name: "error when endpoint returns empty token",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					resp := SplunkTokenResponse{Token: ""}
+					_ = json.NewEncoder(w).Encode(resp)
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(splunk.TokenEndpointKey, serverURL)
+			},
+			expectErr:   true,
+			errContains: "returned an empty splunk token",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			defer viper.Reset()
+
+			var serverURL string
+			if tc.setupServer != nil {
+				server := tc.setupServer()
+				defer server.Close()
+				serverURL = server.URL
+			}
+			tc.setupViper(serverURL)
+
+			token, err := getSplunkToken()
+			if tc.expectErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expectedToken, token)
+			}
+		})
+	}
+}
+
+// TestGetSplunkArgsWithEndpoint tests that getSplunkArgs correctly uses the
+// token fetched from the endpoint when --splunk-token-endpoint is set.
+// Not parallel: tests share viper global state.
+func TestGetSplunkArgsWithEndpoint(t *testing.T) {
+	const testURL = "https://splunk.example.com:8088"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		resp := SplunkTokenResponse{Token: "endpoint-fetched-token"}
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+	defer viper.Reset()
+
+	viper.Set(splunk.TokenEndpointKey, server.URL)
+	viper.Set(splunk.URLKey, testURL)
+
+	args, err := getSplunkArgs()
+	require.NoError(t, err)
+	assert.Equal(t, "endpoint-fetched-token", args.Token)
+	assert.Equal(t, testURL, args.URL)
+}
+
+// TestGetContainerEnv tests the getContainerEnv function with endpoint-based
+// fetching and fallback to the direct --container-env argument.
+// Not parallel: tests share viper global state.
+func TestGetContainerEnv(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupServer func() *httptest.Server
+		setupViper  func(serverURL string)
+		expectedEnv map[string]struct{}
+		expectErr   bool
+		errContains string
+	}{
+		{
+			name: "env fetched from endpoint",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					resp := ContainerEnvResponse{Env: map[string]string{"KEY1": "val1", "KEY2": "val2"}}
+					_ = json.NewEncoder(w).Encode(resp)
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(ContainerEnvEndpointKey, serverURL)
+			},
+			expectedEnv: map[string]struct{}{
+				"KEY1=val1": {},
+				"KEY2=val2": {},
+			},
+			expectErr: false,
+		},
+		{
+			name:        "fallback to direct env when endpoint not set",
+			setupServer: nil,
+			setupViper: func(_ string) {
+				viper.Set(ContainerEnvKey, `{"env0":"envValue0","env1":"envValue1"}`)
+			},
+			expectedEnv: map[string]struct{}{
+				"env0=envValue0": {},
+				"env1=envValue1": {},
+			},
+			expectErr: false,
+		},
+		{
+			name:        "empty env when neither endpoint nor direct arg is provided",
+			setupServer: nil,
+			setupViper:  func(_ string) {},
+			expectedEnv: map[string]struct{}{},
+			expectErr:   false,
+		},
+		{
+			name: "error when endpoint returns non-200",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(http.StatusNotFound)
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(ContainerEnvEndpointKey, serverURL)
+			},
+			expectErr:   true,
+			errContains: "unable to fetch container env from endpoint",
+		},
+		{
+			name: "error when endpoint returns invalid JSON",
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					_, _ = fmt.Fprint(w, "not-json")
+				}))
+			},
+			setupViper: func(serverURL string) {
+				viper.Set(ContainerEnvEndpointKey, serverURL)
+			},
+			expectErr:   true,
+			errContains: "failed to decode response from",
+		},
+		{
+			name:        "error when direct env arg is malformed JSON",
+			setupServer: nil,
+			setupViper: func(_ string) {
+				viper.Set(ContainerEnvKey, "{invalidJson")
+			},
+			expectErr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			defer viper.Reset()
+
+			var serverURL string
+			if tc.setupServer != nil {
+				server := tc.setupServer()
+				defer server.Close()
+				serverURL = server.URL
+			}
+			tc.setupViper(serverURL)
+
+			env, err := getContainerEnv()
+			if tc.expectErr {
+				require.Error(t, err)
+				if tc.errContains != "" {
+					require.Contains(t, err.Error(), tc.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+				gotEnv := make(map[string]struct{})
+				for _, v := range env {
+					gotEnv[v] = struct{}{}
+				}
+				assert.DeepEqual(t, tc.expectedEnv, gotEnv)
+			}
+		})
+	}
+}
+
+// TestGetDockerConfigsWithEndpoint tests that getDockerConfigs correctly uses
+// the container env fetched from the endpoint when --container-env-endpoint
+// is set.
+// Not parallel: tests share viper global state.
+func TestGetDockerConfigsWithEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		resp := ContainerEnvResponse{Env: map[string]string{"KEY1": "val1", "KEY2": "val2"}}
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+	defer viper.Reset()
+
+	viper.Set(ContainerEnvEndpointKey, server.URL)
+	viper.Set(ContainerImageNameKey, testContainerImageName)
+	viper.Set(ContainerImageIDKey, testContainerImageID)
+
+	args, err := getDockerConfigs()
+	require.NoError(t, err)
+	assert.Equal(t, testContainerImageName, args.ContainerImageName)
+	assert.Equal(t, testContainerImageID, args.ContainerImageID)
+
+	gotEnv := make(map[string]struct{})
+	for _, v := range args.ContainerEnv {
+		gotEnv[v] = struct{}{}
+	}
+	expectedEnv := map[string]struct{}{
+		"KEY1=val1": {},
+		"KEY2=val2": {},
+	}
+	assert.DeepEqual(t, expectedEnv, gotEnv)
 }
