@@ -1,11 +1,22 @@
 #!/bin/bash
-# Copy from https://docs.localstack.cloud/user-guide/ci/github-actions/
+set -euo pipefail
 
-LOCALSTACK_VERSION=2.2.0
-pip install localstack==${LOCALSTACK_VERSION} awscli-local[ver1] # install LocalStack cli and awslocal
-docker pull localstack/localstack:${LOCALSTACK_VERSION}         # Make sure to pull the latest version of the image
-localstack start -d                       # Start LocalStack in the background
+# LocalStack CI setup.
+# See https://docs.localstack.cloud/user-guide/ci/github-actions/
+#
+# The official LocalStack/setup-localstack GitHub Action installs the latest
+# CLI, which requires a LocalStack account (as of CLI 2026.3.0+). We use this
+# manual script instead to pin the CLI version and avoid the account requirement.
+LOCALSTACK_VERSION=3.8.1
 
-echo "Waiting for LocalStack startup..."  # Wait 30 seconds for the LocalStack container
-localstack wait -t 30                     # to become ready before timing out
+pip install localstack==${LOCALSTACK_VERSION} awscli-local[ver1]
+docker pull localstack/localstack:${LOCALSTACK_VERSION}
+
+# Set IMAGE_NAME so LocalStack uses the already-pulled image directly
+# instead of downloading a second runtime image via Docker-in-Docker.
+export IMAGE_NAME="localstack/localstack:${LOCALSTACK_VERSION}"
+
+localstack start -d
+echo "Waiting for LocalStack startup..."
+localstack wait -t 30
 echo "Startup complete"
