@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766087005362,
+  "lastUpdate": 1774634556245,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4582,6 +4582,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 69008,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "committer": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "distinct": true,
+          "id": "bcd9025d23ef1c05b792596bd48cdb34a00987a5",
+          "message": "fix(ci): Resolve LocalStack startup failure in CI\n\nBump LocalStack from 2.2.0 to 3.8.1 and set IMAGE_NAME so LocalStack\nuses the already-pulled image directly instead of attempting a secondary\nDocker-in-Docker download that caused the container to crash on CI\nrunners.",
+          "timestamp": "2026-03-27T11:01:11-07:00",
+          "tree_id": "807b1884bff8cf90f13edd2bc486d7e2af182431",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/bcd9025d23ef1c05b792596bd48cdb34a00987a5"
+        },
+        "date": 1774634555830,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8375879504,
+            "unit": "ns/op\t26346448 B/op\t   68609 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8375879504,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 26346448,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 68609,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
