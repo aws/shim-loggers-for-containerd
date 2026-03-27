@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766087096285,
+  "lastUpdate": 1774634628180,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4582,6 +4582,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 70391,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "committer": {
+            "email": "willmyrs@amazon.com",
+            "name": "William Myers",
+            "username": "willmyrs"
+          },
+          "distinct": true,
+          "id": "bcd9025d23ef1c05b792596bd48cdb34a00987a5",
+          "message": "fix(ci): Resolve LocalStack startup failure in CI\n\nBump LocalStack from 2.2.0 to 3.8.1 and set IMAGE_NAME so LocalStack\nuses the already-pulled image directly instead of attempting a secondary\nDocker-in-Docker download that caused the container to crash on CI\nrunners.",
+          "timestamp": "2026-03-27T11:01:11-07:00",
+          "tree_id": "807b1884bff8cf90f13edd2bc486d7e2af182431",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/bcd9025d23ef1c05b792596bd48cdb34a00987a5"
+        },
+        "date": 1774634627749,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9348842411,
+            "unit": "ns/op\t21874808 B/op\t   69777 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9348842411,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 21874808,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 69777,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
