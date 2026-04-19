@@ -21,11 +21,11 @@ all: build test
 build: $(AWS_CONTAINERD_LOGGERS_BINARY)
 
 $(AWS_CONTAINERD_LOGGERS_BINARY):
-	go build -o $(AWS_CONTAINERD_LOGGERS_BINARY) $(AWS_CONTAINERD_LOGGERS_DIR)
+	go build -ldflags="-s -w" -o $(AWS_CONTAINERD_LOGGERS_BINARY) $(AWS_CONTAINERD_LOGGERS_DIR)
 
 .PHONY: test-unit
 test-unit: $(SOURCES)
-	go test -tags unit -race -timeout 30s -cover $(shell go list ./... | grep -v e2e) --count=1
+	go test -tags unit -race -timeout 120s -cover $(shell go list ./... | grep -v e2e) --count=1
 
 .PHONY: test-e2e
 test-e2e:

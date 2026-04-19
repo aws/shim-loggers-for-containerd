@@ -160,12 +160,14 @@ func (bl *bufferedLogger) saveLogMessagesToRingBuffer(
 
 	// No messages in the pipe, send signal to closed pipe channel.
 	debug.SendEventsToLog(DaemonName, fmt.Sprintf("Pipe %s is closed", source), debug.INFO, 1)
+	bl.buffer.lock.Lock()
 	bl.buffer.closedPipesCount++
 	// If both container pipes are closed, wake up the Dequeue goroutine which is waiting on wait.
 	if bl.buffer.closedPipesCount == expectedNumOfPipes {
 		bl.buffer.isClosed = true
 		bl.buffer.wait.Broadcast()
 	}
+	bl.buffer.lock.Unlock()
 
 	return nil
 }
@@ -213,7 +215,7 @@ func (bl *bufferedLogger) saveSingleLogMessageToRingBuffer(
 func (bl *bufferedLogger) sendLogMessagesToDestination(cleanupTime *time.Duration) error {
 	// Keep sending log message to destination defined by the underlying log driver until
 	// the ring buffer is closed.
-	for !bl.buffer.isClosed {
+	for !bl.buffer.closed() {
 		if err := bl.sendLogMessageToDestination(); err != nil {
 			debug.SendEventsToLog(DaemonName, err.Error(), debug.ERROR, 1)
 			return err
@@ -239,7 +241,7 @@ func (bl *bufferedLogger) sendLogMessagesToDestination(cleanupTime *time.Duratio
 func (bl *bufferedLogger) sendLogMessageToDestination() error {
 	msg, err := bl.buffer.Dequeue()
 	// Do an early return if ring buffer is closed.
-	if bl.buffer.isClosed {
+	if bl.buffer.closed() {
 		return nil
 	}
 	if err != nil {
@@ -285,6 +287,14 @@ func (bl *bufferedLogger) Log(message *dockerlogger.Message) error {
 // GetPipes gets pipes of container and its name that exposed by containerd.
 func (bl *bufferedLogger) GetPipes() (map[string]io.Reader, error) {
 	return bl.l.GetPipes()
+}
+
+// closed returns whether the ring buffer has been closed. It is safe to call
+// from any goroutine.
+func (b *ringBuffer) closed() bool {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	return b.isClosed
 }
 
 // Adopted from https://github.com/moby/moby/blob/master/daemon/logger/ring.go#L155
@@ -353,6 +363,7 @@ func (b *ringBuffer) Dequeue() (*dockerlogger.Message, error) {
 	// Get and remove the oldest message saved in buffer/queue from head and update
 	// the current used bytes of buffer.
 	msg := b.queue[0]
+	b.queue[0] = nil // allow GC to collect the dequeued message
 	b.queue = b.queue[1:]
 	b.curSizeInBytes -= len(msg.Line)
 
