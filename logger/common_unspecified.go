@@ -7,12 +7,12 @@ package logger
 
 import "errors"
 
-// UID not supported in Windows
-func setUID(id int) error {
+// UID not supported in Windows.
+func setUID(_ int) error {
 	return errors.New("UID not supported")
 }
 
-// GID not supported in Windows
-func setGID(id int) error {
+// GID not supported in Windows.
+func setGID(_ int) error {
 	return errors.New("GID not supported")
 }

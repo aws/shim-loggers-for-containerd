@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/cihub/seelog"
@@ -39,9 +40,12 @@ var (
 	logFileDir    string = filepath.Join(envProgramData, "Amazon/ECS/log/shim-logger")
 	containerName string
 	fileLogger    seelog.LoggerInterface
+	fileLoggerMu  sync.Mutex
 )
 
 func FlushLog() {
+	fileLoggerMu.Lock()
+	defer fileLoggerMu.Unlock()
 	fileLogger.Flush()
 }
 
@@ -49,14 +53,19 @@ func SendEventsToLog(logfileNameId string, msg string, msgType string, delay tim
 	filename := fmt.Sprintf("%s-%s.log", containerName, logfileNameId)
 	file := filepath.Join(logFileDir, filename)
 	configStr := fmt.Sprintf(SEE_LOG_CONFIG_TEMPLATE, file, int(MAX_FILE_SIZE*1000000), MAX_ROLLS)
+
+	fileLoggerMu.Lock()
 	fileLogger, _ = seelog.LoggerFromConfigAsString(configStr)
+	logger := fileLogger
+	fileLoggerMu.Unlock()
+
 	switch msgType {
 	case "err":
-		fileLogger.Error(msg)
+		logger.Error(msg)
 	case "info":
-		fileLogger.Info(msg)
+		logger.Info(msg)
 	case "debug":
-		fileLogger.Debug(msg)
+		logger.Debug(msg)
 	}
 	time.Sleep(delay * time.Second)
 }
