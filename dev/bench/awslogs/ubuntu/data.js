@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774634628180,
+  "lastUpdate": 1776827311514,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4630,6 +4630,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 69777,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nkpeters@amazon.com",
+            "name": "Nick Peters"
+          },
+          "committer": {
+            "email": "strategicpause@gmail.com",
+            "name": "Nick Peters",
+            "username": "strategicpause"
+          },
+          "distinct": true,
+          "id": "a9984a2dc417ab97aea8d3551a06278cbec25e3c",
+          "message": "perf: Reduce memory overhead via symbol stripping and pointer nil-out\n\nStrip debug symbols and DWARF info from the binary using -ldflags=\"-s -w\",\nreducing binary size by 33% (26 MiB to 17.5 MiB). Nil out dequeued message\npointers in the ring buffer to allow GC to reclaim them, reducing retained\nheap after drain from 107.6 MiB to 0.7 MiB.\n\nThe nil-out in Dequeue occurs after the message is copied to a local variable\nand before the slice is resliced, so the returned message is unaffected.\nExisting tests validate correct message delivery:\n- TestLogBufferEnqueueDequeue: asserts each dequeued message matches original\n- TestSendLogs: end-to-end pipe-to-destination content verification\n- TestPipeNotBroken: verifies message flow under intermittent Log failures\n\nFix pre-existing data race on ringBuffer.closedPipesCount and isClosed fields\naccessed from multiple goroutines without synchronization. Add closed() method\nthat reads isClosed under the mutex lock, and acquire the lock when updating\nclosedPipesCount and isClosed in saveLogMessagesToRingBuffer.\n\nFix pre-existing lint issues: unused parameters in setUID/setGID stubs\n(common_unspecified.go, common_windows.go) and integer overflow conversion\nwarning in readFromContainerPipe (common.go). Update golangci-lint from\nv1.54.0 to v1.62.2 for Go 1.24 compatibility.\n\nAdd scenario-based memory benchmark tests covering binary size, data\nintegrity through the ring buffer, pointer retention after drain, and\npeak heap under sustained throughput with slow destinations in both\nblocking and non-blocking modes.\n\nAdd memory optimization recommendations document covering these two\nimplemented changes and six future considerations.",
+          "timestamp": "2026-04-22T12:05:41+09:00",
+          "tree_id": "07c2a813d0ea47a70942d8b6d1d4353f8d666c86",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/a9984a2dc417ab97aea8d3551a06278cbec25e3c"
+        },
+        "date": 1776827310569,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9886829126,
+            "unit": "ns/op\t21802512 B/op\t   69443 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9886829126,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 21802512,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 69443,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
