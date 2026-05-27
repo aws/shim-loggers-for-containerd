@@ -39,6 +39,10 @@ test-e2e-for-awslogs:
 test-e2e-for-fluentd:
 	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "fluentd"
 
+.PHONY: test-e2e-for-json-file
+test-e2e-for-json-file:
+	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "json-file"
+
 .PHONY: test-e2e-for-splunk
 test-e2e-for-splunk:
 	go test -tags e2e -timeout 30m ./e2e -test.v -ginkgo.v --binary "$(AWS_CONTAINERD_LOGGERS_BINARY)" --log-driver "splunk" --splunk-token ${SPLUNK_TOKEN}

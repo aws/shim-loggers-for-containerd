@@ -26,6 +26,8 @@ const (
 	AwslogsDriverName = "awslogs"
 	// FluentdDriverName is the name of fluentd driver.
 	FluentdDriverName = "fluentd"
+	// JSONFileDriverName is the name of the json-file driver.
+	JSONFileDriverName = "json-file"
 	// SplunkDriverName is the name of splunk driver.
 	SplunkDriverName = "splunk"
 	// ContainerIDKey is the key of the container id.
@@ -44,6 +46,13 @@ const (
 
 // SendTestLogByContainerd sends a testLog to a specific shim logger by containerd.
 func SendTestLogByContainerd(creator cio.Creator, testLog string) error {
+	return SendCommandByContainerd(creator, fmt.Sprintf("printf \"%s\"", testLog))
+}
+
+// SendCommandByContainerd runs an arbitrary shell command in a container with the given
+// shim-logger creator. Use this when the test needs to control payload size or shape
+// beyond a single printf (e.g., to force log rotation).
+func SendCommandByContainerd(creator cio.Creator, shellCommand string) error {
 	// Create a new client connected to the containerd daemon
 	client, err := containerd.New(containerdAddress)
 	if err != nil {
@@ -59,7 +68,7 @@ func SendTestLogByContainerd(creator cio.Creator, testLog string) error {
 	} // Create a new container with the pulled image
 	container, err := client.NewContainer(ctx, TestContainerID, containerd.WithImage(image),
 		containerd.WithNewSnapshot("test-snapshot", image), containerd.WithNewSpec(oci.WithImageConfig(image),
-			oci.WithProcessArgs("/bin/sh", "-c", fmt.Sprintf("printf \"%s\"", testLog))))
+			oci.WithProcessArgs("/bin/sh", "-c", shellCommand)))
 	if err != nil {
 		return err
 	}
