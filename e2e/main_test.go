@@ -32,6 +32,9 @@ func TestShimLoggers(t *testing.T) {
 		if *LogDriver == FluentdDriverName || *LogDriver == "" {
 			testFluentd()
 		}
+		if *LogDriver == JSONFileDriverName || *LogDriver == "" {
+			testJSONFile()
+		}
 		if *LogDriver == SplunkDriverName || *LogDriver == "" {
 			testSplunk(*SplunkToken)
 		}
