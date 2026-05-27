@@ -13,6 +13,7 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/jsonfile"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	units "github.com/docker/go-units"
@@ -176,6 +177,57 @@ func getFluentdArgs() *fluentd.Args {
 		BufferLimit:        bufferLimit,
 		WriteTimeout:       writeTimeout,
 	}
+}
+
+// getJSONFileArgs gets json-file specified arguments for the json-file log driver.
+// log-path is required; everything else is optional and forwarded to moby's jsonfilelog
+// as-is. Note that moby validates option *keys* in ValidateLogOpts but defers value
+// validation (e.g., max-size format, max-file >= 1, compress requires max-file >= 2)
+// to writer construction in jsonfilelog.New.
+func getJSONFileArgs() (*jsonfile.Args, error) {
+	logPath, err := getRequiredValue(jsonfile.LogPathKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Why every viper read below is GetString — including for max-file (int) and
+	// compress (bool):
+	//
+	//  1. The wire to moby is a map[string]string. jsonfilelog.New(info logger.Info)
+	//     reads from info.Config which is typed map[string]string and parses each
+	//     value itself (units.FromHumanSize for max-size, strconv.Atoi for max-file,
+	//     strconv.ParseBool for compress). Holding the values as strings here means
+	//     zero conversion and zero round-trip risk on the way out.
+	//  2. We need to distinguish "unset" from "zero" so getJSONFileConfig can omit
+	//     unset keys from the config map. The runtime guardrails inside
+	//     jsonfilelog.New are written assuming missing-key-means-default. With
+	//     GetString, "" == unset and we get to that distinction for free. With
+	//     GetInt/GetBool, viper returns 0 / false for unset, which collide with a
+	//     legal explicit value: max-file=0 is illegal but compress=false is the
+	//     default, so we cannot tell unset from explicit-false. Tri-state would
+	//     require *string or a sentinel — more code for no payoff.
+	//  3. Validation is moby's job. moby owns the validator and the runtime
+	//     guardrails. If we typed the args ourselves, we'd be tempted to validate
+	//     ourselves and either duplicate moby's rules or quietly diverge from them.
+	//     Better to keep this layer dumb and let moby be the single source of truth.
+	//
+	// Trade-off: "--max-file 05" is forwarded verbatim to moby and "--compress yes"
+	// fails at writer-construction time with moby's error rather than at args-parse
+	// time with a friendlier one. The other drivers (splunk, fluentd) accept the
+	// same trade-off; doing better is a repo-wide refactor, not a json-file-specific
+	// one.
+	return &jsonfile.Args{
+		LogPath:      logPath,
+		MaxSize:      viper.GetString(jsonfile.MaxSizeKey),
+		MaxFile:      viper.GetString(jsonfile.MaxFileKey),
+		Compress:     viper.GetString(jsonfile.CompressKey),
+		Labels:       viper.GetString(jsonfile.JSONFileLabelsKey),
+		LabelsRegex:  viper.GetString(jsonfile.JSONFileLabelsRegexKey),
+		Env:          viper.GetString(jsonfile.JSONFileEnvKey),
+		EnvRegex:     viper.GetString(jsonfile.JSONFileEnvRegexKey),
+		Tag:          viper.GetString(jsonfile.JSONFileTagKey),
+		TagSpecified: isFlagPassed(jsonfile.JSONFileTagKey),
+	}, nil
 }
 
 // getSplunkArgs gets Splunk specified arguments for Splunk log driver.

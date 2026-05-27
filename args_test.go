@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/jsonfile"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/spf13/pflag"
@@ -776,4 +777,98 @@ func TestGetDockerConfigsWithEndpoint(t *testing.T) {
 		"KEY2=val2": {},
 	}
 	assert.DeepEqual(t, expectedEnv, gotEnv)
+}
+
+// TestGetJSONFileArgs covers the json-file driver's argument parsing:
+// log-path is required; everything else is optional and forwarded as-is to moby.
+// Also exercises the JSONFile* prefixed input-flag names and verifies they map to
+// the moby-side option keys correctly downstream.
+func TestGetJSONFileArgs(t *testing.T) {
+	const (
+		testLogPath     = "/var/log/ecs/json-file/abc/abc-json.log"
+		testMaxSize     = "10m"
+		testMaxFile     = "5"
+		testCompress    = "false"
+		testLabels      = "label0,label1"
+		testLabelsRegex = "^app\\..*"
+		testEnv         = "KEY1,KEY2"
+		testEnvRegex    = "^APP_.*"
+		testTag         = "{{.ImageName}}/{{.ID}}"
+	)
+
+	for _, tc := range []struct {
+		name        string
+		logPath     string
+		setOptional func()
+		expectErr   bool
+		assertArgs  func(t *testing.T, args *jsonfile.Args)
+	}{
+		{
+			name:      "log-path required",
+			logPath:   "",
+			expectErr: true,
+		},
+		{
+			name:    "log-path only — optional fields default to empty",
+			logPath: testLogPath,
+			assertArgs: func(t *testing.T, args *jsonfile.Args) {
+				assert.Equal(t, testLogPath, args.LogPath)
+				assert.Equal(t, "", args.MaxSize)
+				assert.Equal(t, "", args.MaxFile)
+				assert.Equal(t, "", args.Compress)
+				assert.Equal(t, "", args.Labels)
+				assert.Equal(t, "", args.LabelsRegex)
+				assert.Equal(t, "", args.Env)
+				assert.Equal(t, "", args.EnvRegex)
+				assert.Equal(t, "", args.Tag)
+				assert.Equal(t, false, args.TagSpecified)
+			},
+		},
+		{
+			name:    "all fields populated",
+			logPath: testLogPath,
+			setOptional: func() {
+				viper.Set(jsonfile.MaxSizeKey, testMaxSize)
+				viper.Set(jsonfile.MaxFileKey, testMaxFile)
+				viper.Set(jsonfile.CompressKey, testCompress)
+				viper.Set(jsonfile.JSONFileLabelsKey, testLabels)
+				viper.Set(jsonfile.JSONFileLabelsRegexKey, testLabelsRegex)
+				viper.Set(jsonfile.JSONFileEnvKey, testEnv)
+				viper.Set(jsonfile.JSONFileEnvRegexKey, testEnvRegex)
+				viper.Set(jsonfile.JSONFileTagKey, testTag)
+			},
+			assertArgs: func(t *testing.T, args *jsonfile.Args) {
+				assert.Equal(t, testLogPath, args.LogPath)
+				assert.Equal(t, testMaxSize, args.MaxSize)
+				assert.Equal(t, testMaxFile, args.MaxFile)
+				assert.Equal(t, testCompress, args.Compress)
+				assert.Equal(t, testLabels, args.Labels)
+				assert.Equal(t, testLabelsRegex, args.LabelsRegex)
+				assert.Equal(t, testEnv, args.Env)
+				assert.Equal(t, testEnvRegex, args.EnvRegex)
+				assert.Equal(t, testTag, args.Tag)
+				// Note: TagSpecified relies on isFlagPassed() inspecting pflag.CommandLine,
+				// not on viper.Set; we don't assert it here. See TestIsFlagPassed for that.
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			defer viper.Reset()
+
+			if tc.logPath != "" {
+				viper.Set(jsonfile.LogPathKey, tc.logPath)
+			}
+			if tc.setOptional != nil {
+				tc.setOptional()
+			}
+
+			args, err := getJSONFileArgs()
+			if tc.expectErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			tc.assertArgs(t, args)
+		})
+	}
 }

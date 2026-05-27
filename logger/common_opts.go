@@ -26,6 +26,15 @@ func WithConfig(m map[string]string) InfoOpt {
 	}
 }
 
+// WithLogPath sets the on-disk output file path for log drivers that write to a file
+// (e.g., json-file). The directory must already exist on the host; the shim-logger does
+// not create it.
+func WithLogPath(path string) InfoOpt {
+	return func(info *dockerlogger.Info) {
+		info.LogPath = path
+	}
+}
+
 // WithStdout sets log driver's stdout pipe.
 func WithStdout(stdout io.Reader) Opt {
 	return func(l *Logger) {

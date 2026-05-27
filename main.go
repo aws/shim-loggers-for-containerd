@@ -13,6 +13,7 @@ import (
 	"github.com/aws/shim-loggers-for-containerd/logger"
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/jsonfile"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 
 	"github.com/containerd/containerd/runtime/v2/logging"
@@ -26,6 +27,7 @@ func init() {
 	initDockerConfigOpts()
 	initAWSLogsOpts()
 	initFluentdOpts()
+	initJSONFileOpts()
 	initSplunkOpts()
 }
 
@@ -90,6 +92,10 @@ func run() error {
 		}
 	case fluentd.DriverName:
 		runFluentdDriver(globalArgs)
+	case jsonfile.DriverName:
+		if err := runJSONFileDriver(globalArgs); err != nil {
+			return fmt.Errorf("unable to run json-file driver: %w", err)
+		}
 	case splunk.DriverName:
 		if err := runSplunkDriver(globalArgs); err != nil {
 			return fmt.Errorf("unable to run splunk driver: %w", err)
@@ -116,6 +122,17 @@ func runFluentdDriver(globalArgs *logger.GlobalArgs) {
 	args := getFluentdArgs()
 	loggerArgs := fluentd.InitLogger(globalArgs, args)
 	logging.Run(loggerArgs.RunLogDriver)
+}
+
+func runJSONFileDriver(globalArgs *logger.GlobalArgs) error {
+	args, err := getJSONFileArgs()
+	if err != nil {
+		return fmt.Errorf("unable to get json-file specified arguments: %w", err)
+	}
+	loggerArgs := jsonfile.InitLogger(globalArgs, args)
+	logging.Run(loggerArgs.RunLogDriver)
+
+	return nil
 }
 
 func runSplunkDriver(globalArgs *logger.GlobalArgs) error {
