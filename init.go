@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/shim-loggers-for-containerd/logger/awslogs"
 	"github.com/aws/shim-loggers-for-containerd/logger/fluentd"
+	"github.com/aws/shim-loggers-for-containerd/logger/jsonfile"
 	"github.com/aws/shim-loggers-for-containerd/logger/splunk"
 )
 
@@ -65,7 +66,7 @@ func initCommonLogOpts() {
 	pflag.String(containerNameKey, "", "Name of the container")
 
 	// log driver options
-	pflag.String(logDriverTypeKey, "", "`awslogs`, `fluentd` or `splunk`")
+	pflag.String(logDriverTypeKey, "", "`awslogs`, `fluentd`, `json-file`, or `splunk`")
 
 	// mode options
 	pflag.String(modeKey, "", "Whether the writer is blocked or not blocked")
@@ -154,4 +155,19 @@ func initSplunkOpts() {
 		"included in message, if these variables are specified for container.")
 	pflag.String(splunk.EnvRegexKey, "", "Similar to and compatible with env. A regular expression to "+
 		"match logging-related environment variables. Used for advanced log tag options.")
+}
+
+// initJSONFileOpts initialize json-file driver specified options.
+// Argument usage taken from https://docs.docker.com/engine/logging/drivers/json-file/.
+func initJSONFileOpts() {
+	pflag.String(jsonfile.LogPathKey, "", "Path to the per-container output file. The directory must already exist on the host.")
+	pflag.String(jsonfile.MaxSizeKey, "", "Maximum size of the log file before it is rolled, e.g., \"10m\". Forwarded to moby as-is.")
+	pflag.String(jsonfile.MaxFileKey, "", "Maximum number of log files that can be present, e.g., \"5\". Forwarded to moby as-is.")
+	pflag.String(jsonfile.CompressKey, "",
+		"Whether to gzip-compress rotated log files. Default false. Requires max-file>=2 and max-size set if true.")
+	pflag.String(jsonfile.JSONFileLabelsKey, "", "Comma-separated list of label keys to include in the log envelope.")
+	pflag.String(jsonfile.JSONFileLabelsRegexKey, "", "Regex matching label keys to include in the log envelope.")
+	pflag.String(jsonfile.JSONFileEnvKey, "", "Comma-separated list of env var keys to include in the log envelope.")
+	pflag.String(jsonfile.JSONFileEnvRegexKey, "", "Regex matching env var keys to include in the log envelope.")
+	pflag.String(jsonfile.JSONFileTagKey, "", "Tag template for the log envelope (e.g., \"{{.ImageName}}/{{.ID}}\").")
 }
