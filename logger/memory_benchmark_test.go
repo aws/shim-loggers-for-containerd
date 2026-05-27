@@ -427,8 +427,12 @@ func TestMemoryScenario_LargeLines_NonBlocking_DefaultBuffer(t *testing.T) {
 		numMessages   = 1_000
 		// 1K messages × 62 KiB = ~62 MiB of data into a 10 MiB buffer.
 		// Peak heap reaches ~160 MiB (16x buffer) due to GC headroom and
-		// message struct overhead. With -race instrumentation, add ~30% headroom.
-		maxHeapBytes uint64 = 210 * 1024 * 1024
+		// message struct overhead. The -race instrumentation, the OS
+		// allocator, and the Go version all contribute additional jitter:
+		// observed peak on Windows + Go 1.24 + race is ~225 MiB. Threshold
+		// is set to 256 MiB (1.6x baseline) to absorb that jitter while
+		// still catching a real regression (e.g., a leak doubling heap).
+		maxHeapBytes uint64 = 256 * 1024 * 1024
 	)
 
 	heap := measurePeakHeap(t, lineSize, maxBufferSize, numMessages, 100*time.Microsecond)
