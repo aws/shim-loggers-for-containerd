@@ -1,6 +1,33 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+// Package main wires log-driver-specific arguments from viper (populated from
+// pflag at startup) into the typed Args structs each driver package consumes.
+//
+// Why every viper read in this file is GetString — even for fields that are
+// logically int (max-file) or bool (compress):
+//
+//  1. The wire to moby is map[string]string. moby's logger.Info.Config is
+//     typed map[string]string and each driver's New() parses values itself
+//     (units.FromHumanSize for max-size, strconv.Atoi for max-file,
+//     strconv.ParseBool for compress). Holding values as strings here means
+//     zero conversion and zero round-trip risk on the way out.
+//  2. We need to distinguish "unset" from "zero". The per-driver config
+//     builders (e.g., getJSONFileConfig) omit unset keys from the moby
+//     config map; with GetString, "" == unset and we get that distinction
+//     for free. With GetInt/GetBool, viper returns 0 / false for unset,
+//     which collide with legal explicit values: max-file=0 is illegal but
+//     compress=false is the default, so we cannot tell unset from
+//     explicit-false. Tri-state would require *string or sentinel values.
+//  3. Validation is the driver's job. moby owns the validators and the
+//     runtime guardrails. If we typed the args ourselves, we'd be tempted
+//     to validate ourselves and either duplicate moby's rules or quietly
+//     diverge from them. Better to keep this layer dumb.
+//
+// Trade-off: malformed values like "max-file 05" or "compress yes" are
+// forwarded verbatim and fail at writer-construction time inside moby
+// rather than at args-parse time with a friendlier error. All drivers in
+// this binary accept the same trade-off.
 package main
 
 import (
@@ -190,32 +217,9 @@ func getJSONFileArgs() (*jsonfile.Args, error) {
 		return nil, err
 	}
 
-	// Why every viper read below is GetString — including for max-file (int) and
-	// compress (bool):
-	//
-	//  1. The wire to moby is a map[string]string. jsonfilelog.New(info logger.Info)
-	//     reads from info.Config which is typed map[string]string and parses each
-	//     value itself (units.FromHumanSize for max-size, strconv.Atoi for max-file,
-	//     strconv.ParseBool for compress). Holding the values as strings here means
-	//     zero conversion and zero round-trip risk on the way out.
-	//  2. We need to distinguish "unset" from "zero" so getJSONFileConfig can omit
-	//     unset keys from the config map. The runtime guardrails inside
-	//     jsonfilelog.New are written assuming missing-key-means-default. With
-	//     GetString, "" == unset and we get to that distinction for free. With
-	//     GetInt/GetBool, viper returns 0 / false for unset, which collide with a
-	//     legal explicit value: max-file=0 is illegal but compress=false is the
-	//     default, so we cannot tell unset from explicit-false. Tri-state would
-	//     require *string or a sentinel — more code for no payoff.
-	//  3. Validation is moby's job. moby owns the validator and the runtime
-	//     guardrails. If we typed the args ourselves, we'd be tempted to validate
-	//     ourselves and either duplicate moby's rules or quietly diverge from them.
-	//     Better to keep this layer dumb and let moby be the single source of truth.
-	//
-	// Trade-off: "--max-file 05" is forwarded verbatim to moby and "--compress yes"
-	// fails at writer-construction time with moby's error rather than at args-parse
-	// time with a friendlier one. The other drivers (splunk, fluentd) accept the
-	// same trade-off; doing better is a repo-wide refactor, not a json-file-specific
-	// one.
+	// Optional fields: GetString returns "" when unset, which getJSONFileConfig
+	// uses to skip the key. See package-level comment in this file for why all
+	// values are read as strings (including ones that are logically int / bool).
 	return &jsonfile.Args{
 		LogPath:      logPath,
 		MaxSize:      viper.GetString(jsonfile.MaxSizeKey),

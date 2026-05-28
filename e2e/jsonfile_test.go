@@ -33,7 +33,7 @@ const (
 	// Relative path used here is resolved to an absolute path at test-setup time —
 	// the shim-logger is invoked by containerd and inherits a different CWD than the
 	// test runner, so a relative path would fail to resolve in the shim's context.
-	jsonFileLogDir   = "./../jsonfile-logs"
+	jsonFileLogDir   = "../jsonfile-logs"
 	jsonFileLogName  = TestContainerID + "-json.log"
 	expectedFileMode = 0o640
 )
@@ -176,6 +176,49 @@ var testJSONFile = func() {
 				"expected mode %#o, got %#o", expectedFileMode, info.Mode().Perm())
 		})
 
+		ginkgo.It("survives buffer pressure under non-blocking mode", func() {
+			// Non-blocking mode wraps the json-file writer in shim-logger's
+			// ringBuffer. With a tiny --max-buffer-size and a fast producer,
+			// the buffer fills and lines are dropped — that's moby/shim-logger
+			// contract. This spec doesn't assert *which* lines drop (timing-
+			// dependent); it asserts that:
+			//   (1) the shim-logger doesn't crash,
+			//   (2) the container task exits cleanly,
+			//   (3) every line that *did* land in the file is a valid Docker
+			//       envelope (no torn writes, no partial JSON).
+			//
+			// This exercises the NonBlockingMode wrapping in
+			// jsonfile.RunLogDriver, which is new in this PR.
+			args := map[string]string{
+				LogDriverTypeKey:    JSONFileDriverName,
+				ContainerIDKey:      TestContainerID,
+				ContainerNameKey:    TestContainerName,
+				jsonFileLogPathKey:  absLogFile,
+				"--mode":            "non-blocking",
+				"--max-buffer-size": "64k",
+			}
+			creator := cio.BinaryIO(*Binary, args)
+
+			// Emit ~200 KiB of output as fast as the shell can produce it.
+			// Each line is ~50 bytes; 4000 lines * ~50B = ~200 KiB. A 64 KiB
+			// buffer plus the writer draining means many lines will queue
+			// and some will be dropped.
+			err := SendCommandByContainerd(creator,
+				`for i in $(seq 1 4000); do echo "non-blocking-line-$i"; done`)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(),
+				"shim-logger should exit cleanly even when the buffer overflows")
+
+			// Whatever lines made it through must be well-formed envelopes.
+			// readEnvelopeLines fails fast on any unparseable line.
+			lines := readEnvelopeLines(absLogFile)
+			gomega.Expect(lines).ShouldNot(gomega.BeEmpty(),
+				"at least some lines should make it through even under buffer pressure")
+			for _, env := range lines {
+				gomega.Expect(env.Stream).Should(gomega.Equal("stdout"))
+				gomega.Expect(env.Time).ShouldNot(gomega.BeEmpty())
+			}
+		})
+
 		ginkgo.It("the binary fails fast when --log-path is missing", func() {
 			args := map[string]string{
 				LogDriverTypeKey: JSONFileDriverName,
@@ -236,7 +279,7 @@ func listLogFiles(dir, baseName string) []string {
 			continue
 		}
 		name := e.Name()
-		if name == baseName || strings.HasPrefix(name, baseName+".") || strings.HasPrefix(name, baseName+".gz") {
+		if name == baseName || strings.HasPrefix(name, baseName+".") {
 			matches = append(matches, name)
 		}
 	}
