@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776827235456,
+  "lastUpdate": 1779992914882,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4677,6 +4677,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 69697,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "e8076cb72767b8ecd3a738b182ba2754baac9b49",
+          "message": "Address PR review comments\n\n* args.go: trim the inline GetString-everywhere rationale on\n  getJSONFileArgs (~30 lines) to a 3-line summary; move the full\n  rationale to a package-level doc comment, since it applies equally\n  to splunk/fluentd's existing GetString patterns and isn't\n  json-file-specific. (per JoseVillalta@)\n\n* e2e/jsonfile_test.go: drop the leading './' on jsonFileLogDir;\n  '../jsonfile-logs' reads cleaner and the './' was a no-op.\n  (per JoseVillalta@)\n\n* e2e/jsonfile_test.go: drop the redundant '<base>.gz' clause in\n  listLogFiles — '<base>.<anything>' already matches '<base>.2.gz'\n  via HasPrefix(name, baseName+'.'). (per JoseVillalta@)\n\n* e2e/jsonfile_test.go: add a non-blocking-mode buffer-pressure\n  spec (#7). Configures --mode=non-blocking --max-buffer-size=64k,\n  produces ~200 KiB of output, asserts the binary exits cleanly and\n  every line that lands in the file is a valid Docker envelope. The\n  spec exercises the NonBlockingMode wrapping in jsonfile.RunLogDriver\n  introduced by this PR. Doesn't assert specific drop counts (timing-\n  dependent). (per xxx0624@)",
+          "timestamp": "2026-05-28T11:27:11-07:00",
+          "tree_id": "1bf892da851fd0998f828052541c424bfc6c96b0",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/e8076cb72767b8ecd3a738b182ba2754baac9b49"
+        },
+        "date": 1779992914225,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 9097628662,
+            "unit": "ns/op\t30466536 B/op\t   72901 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 9097628662,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 30466536,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 72901,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
