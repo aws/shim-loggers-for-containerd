@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779992914882,
+  "lastUpdate": 1781298240847,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4725,6 +4725,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 72901,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hoshmali@amazon.com",
+            "name": "Hoshank Mali"
+          },
+          "committer": {
+            "email": "xingzheng.cs@gmail.com",
+            "name": "Xing",
+            "username": "xxx0624"
+          },
+          "distinct": true,
+          "id": "d5a1c0485ebe860217f4dccf9bf58650667e0aea",
+          "message": "build: bump mapstructure/v2 to v2.4.0 to fix CVEs\n\nFixes GO-2025-3787 (GHSA-fv92-fjc5-jj9h) and GO-2025-3900\n(GHSA-2464-8j7c-4cjm), where sensitive information may leak in logs.\nGO-2025-3787 is reachable from the logger config-decoding path.\n\nVerified: make build and make test-unit pass; go directive unchanged.",
+          "timestamp": "2026-06-12T14:02:26-07:00",
+          "tree_id": "cc3b998d407bd0335591d9fba2560692b9de918f",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/d5a1c0485ebe860217f4dccf9bf58650667e0aea"
+        },
+        "date": 1781298240434,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 8930070115,
+            "unit": "ns/op\t30591304 B/op\t   72645 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 8930070115,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 30591304,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 72645,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
