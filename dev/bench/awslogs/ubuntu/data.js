@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779992993450,
+  "lastUpdate": 1781298304975,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4725,6 +4725,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 73484,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hoshmali@amazon.com",
+            "name": "Hoshank Mali"
+          },
+          "committer": {
+            "email": "xingzheng.cs@gmail.com",
+            "name": "Xing",
+            "username": "xxx0624"
+          },
+          "distinct": true,
+          "id": "d5a1c0485ebe860217f4dccf9bf58650667e0aea",
+          "message": "build: bump mapstructure/v2 to v2.4.0 to fix CVEs\n\nFixes GO-2025-3787 (GHSA-fv92-fjc5-jj9h) and GO-2025-3900\n(GHSA-2464-8j7c-4cjm), where sensitive information may leak in logs.\nGO-2025-3787 is reachable from the logger config-decoding path.\n\nVerified: make build and make test-unit pass; go directive unchanged.",
+          "timestamp": "2026-06-12T14:02:26-07:00",
+          "tree_id": "cc3b998d407bd0335591d9fba2560692b9de918f",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/d5a1c0485ebe860217f4dccf9bf58650667e0aea"
+        },
+        "date": 1781298304536,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 10127409692,
+            "unit": "ns/op\t28191624 B/op\t   73694 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 10127409692,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 28191624,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 73694,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
