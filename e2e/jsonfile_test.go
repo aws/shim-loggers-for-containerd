@@ -219,6 +219,36 @@ var testJSONFile = func() {
 			}
 		})
 
+		ginkgo.It("creates the per-container log directory if it does not exist", func() {
+			// Remove the directory that BeforeEach created, so the shim-logger
+			// must create it on its own. This reproduces the ECS MI scenario where
+			// only the parent (/var/log/ecs/json-file/) exists at boot.
+			gomega.Expect(os.RemoveAll(absLogDir)).Should(gomega.Succeed())
+
+			testLog := testLogPrefix + uuid.New().String()
+			args := map[string]string{
+				LogDriverTypeKey:   JSONFileDriverName,
+				ContainerIDKey:     TestContainerID,
+				ContainerNameKey:   TestContainerName,
+				jsonFileLogPathKey: absLogFile,
+			}
+			creator := cio.BinaryIO(*Binary, args)
+
+			err := SendTestLogByContainerd(creator, testLog)
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+			// Verify the directory was created by the shim-logger.
+			info, statErr := os.Stat(absLogDir)
+			gomega.Expect(statErr).ShouldNot(gomega.HaveOccurred())
+			gomega.Expect(info.IsDir()).Should(gomega.BeTrue())
+
+			// Verify logs were written successfully.
+			lines := readEnvelopeLines(absLogFile)
+			gomega.Expect(lines).ShouldNot(gomega.BeEmpty())
+			joined := joinEnvelopeLogs(lines)
+			gomega.Expect(joined).Should(gomega.ContainSubstring(testLog))
+		})
+
 		ginkgo.It("the binary fails fast when --log-path is missing", func() {
 			args := map[string]string{
 				LogDriverTypeKey: JSONFileDriverName,

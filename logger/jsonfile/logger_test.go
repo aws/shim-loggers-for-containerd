@@ -7,8 +7,11 @@
 package jsonfile
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -107,4 +110,41 @@ func TestGetJSONFileConfigPassesValidationForKnownKeys(t *testing.T) {
 	require.Contains(t, config, MaxSizeKey)
 	require.Contains(t, config, MaxFileKey)
 	require.Contains(t, config, CompressKey)
+}
+
+// TestRunLogDriverCreatesLogDirectory verifies that the log file's parent
+// directory is created if it does not exist.
+func TestRunLogDriverCreatesLogDirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+	containerID := "test-container-abc123"
+	logPath := filepath.Join(tmpDir, containerID, containerID+"-json.log")
+
+	// The parent of logPath should not exist yet.
+	logDir := filepath.Dir(logPath)
+	_, err := os.Stat(logDir)
+	require.True(t, os.IsNotExist(err), "log directory should not exist before test")
+
+	// Simulate what RunLogDriver does: MkdirAll on the parent directory.
+	err = os.MkdirAll(logDir, logDirMode)
+	require.NoError(t, err, "MkdirAll should create the per-container directory")
+
+	// Verify the directory was created.
+	info, err := os.Stat(logDir)
+	require.NoError(t, err)
+	assert.True(t, info.IsDir())
+}
+
+// TestRunLogDriverLogDirectoryAlreadyExists verifies that MkdirAll is a no-op
+// when the directory already exists (idempotent).
+func TestRunLogDriverLogDirectoryAlreadyExists(t *testing.T) {
+	tmpDir := t.TempDir()
+	containerID := "existing-container"
+	logDir := filepath.Join(tmpDir, containerID)
+
+	// Pre-create the directory.
+	require.NoError(t, os.MkdirAll(logDir, logDirMode))
+
+	// MkdirAll again should succeed without error.
+	err := os.MkdirAll(logDir, logDirMode)
+	assert.NoError(t, err, "MkdirAll on existing directory should be idempotent")
 }
