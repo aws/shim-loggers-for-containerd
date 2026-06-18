@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781298304975,
+  "lastUpdate": 1781800497814,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4772,6 +4772,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 73694,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "committer": {
+            "email": "aithal@amazon.com",
+            "name": "Anirudh Aithal",
+            "username": "aaithal"
+          },
+          "distinct": true,
+          "id": "443b7e52ef99e7bfd31b6b1e0c131c7118da6ef0",
+          "message": "fix(jsonfile): Create per-container log directory before opening log file\n\nThe json-file driver receives a log path whose parent directory may not\nexist yet. Without this fix, dockerjsonfilelog.New() fails with\n\"no such file or directory\" and the container exits immediately.\n\nAdd os.MkdirAll on the parent directory of the log path before opening\nthe file. The directory is created with mode 02750 (setgid + owner rwx,\ngroup rx) so that subdirectories and files inherit the parent's group\nownership when the parent has the setgid bit set.",
+          "timestamp": "2026-06-18T09:32:29-07:00",
+          "tree_id": "1dbc878553dbc4a722181ff4d4b065655d319ff4",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/443b7e52ef99e7bfd31b6b1e0c131c7118da6ef0"
+        },
+        "date": 1781800497068,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9847963548,
+            "unit": "ns/op\t27709608 B/op\t   74070 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9847963548,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 27709608,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 74070,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
