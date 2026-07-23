@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781800440162,
+  "lastUpdate": 1784845011745,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4820,6 +4820,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkFluentd - allocs/op",
             "value": 74240,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nkpeters@amazon.com",
+            "name": "Nick Peters"
+          },
+          "committer": {
+            "email": "strategicpause@gmail.com",
+            "name": "Nick Peters",
+            "username": "strategicpause"
+          },
+          "distinct": true,
+          "id": "01067928a074a0ba208729de815f6d9d61cedcaf",
+          "message": "chore: upgrade golangci-lint to v2.12.2 for Go 1.25 support\n\nUpgrade golangci-lint from v1.60.3 to v2.12.2 and migrate the config\nto v2 format. The previous version was built with Go 1.23 and cannot\nanalyze Go 1.25 code.\n\nChanges:\n- Migrate .golangci.yaml to v2 schema\n- Update GitHub Actions workflow to use golangci-lint-action v7\n- Remove unused //nolint:gosec directives (gosec no longer flags these)\n- Add //nolint:gosec where needed for G101 and G115 false positives",
+          "timestamp": "2026-07-23T15:15:23-07:00",
+          "tree_id": "26203753656b38eca1decae9d8eae945405be5e9",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/01067928a074a0ba208729de815f6d9d61cedcaf"
+        },
+        "date": 1784845010625,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkFluentd",
+            "value": 9275600170,
+            "unit": "ns/op\t25624184 B/op\t   66486 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - ns/op",
+            "value": 9275600170,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - B/op",
+            "value": 25624184,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkFluentd - allocs/op",
+            "value": 66486,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
