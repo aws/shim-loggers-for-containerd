@@ -65,6 +65,7 @@ func TestTracingLogRouting(t *testing.T) {
 	require.Equal(t, uint64(len(inputForStdout)+len(inputForStderr)), atomic.LoadUint64(&bytesReadFromSrc))
 	// Exclude the new line characters because they will be removed when sending logs to the log driver.
 	require.Equal(t,
+		//nolint:gosec // G115: values are small test constants, no overflow risk.
 		uint64(len(inputForStdout)+len(inputForStderr)-countOfNewLinesForStdout-countOfNewLinesForStderr),
 		atomic.LoadUint64(&bytesSentToDst))
 	require.Equal(t,

@@ -268,7 +268,7 @@ var testJSONFile = func() {
 // readEnvelopeLines parses every JSON-line in the given file as a jsonFileEnvelope.
 // Empty lines are skipped. The test fails fast on any parse error.
 func readEnvelopeLines(path string) []jsonFileEnvelope {
-	file, err := os.Open(path) //nolint:gosec // testing only
+	file, err := os.Open(path)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	defer file.Close() //nolint:errcheck // closing the file
 

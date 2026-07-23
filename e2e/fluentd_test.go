@@ -142,7 +142,7 @@ func validateTestLogsInFluentd(dirName string, testLog string, testTag string) {
 	})
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	gomega.Expect(fileName).ShouldNot(gomega.Equal(""))
-	file, err := os.Open(fileName) //nolint:gosec // testing only
+	file, err := os.Open(fileName)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	defer file.Close() //nolint:errcheck // closing the file
 	var lastLine string

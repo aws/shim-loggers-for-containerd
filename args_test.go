@@ -392,7 +392,7 @@ func TestGetAWSLogsArgs(t *testing.T) {
 			credentialsEndpoint:         "",
 			expectedCredentialsEndpoint: "",
 		},
-		{
+		{ //nolint:gosec // G101: test data, not real credentials
 			name:                        "credentials endpoint provided",
 			credentialsEndpoint:         "http://localhost:8080/credentials",
 			expectedCredentialsEndpoint: "http://localhost:8080/credentials",
