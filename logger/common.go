@@ -479,7 +479,7 @@ func readFromContainerPipe(pipe io.Reader, buf []byte, bytesInBuffer, maxReadByt
 			// Pipe is closed, set flag to true.
 			eof = true
 		}
-		atomic.AddUint64(&bytesReadFromSrc, uint64(readBytesFromPipe))
+		atomic.AddUint64(&bytesReadFromSrc, uint64(readBytesFromPipe)) //nolint:gosec // non-negative
 		bytesInBuffer += readBytesFromPipe
 	}
 

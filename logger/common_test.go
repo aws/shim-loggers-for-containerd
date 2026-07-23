@@ -72,15 +72,15 @@ func (d *dummyClient) Log(msg *dockerlogger.Message) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(logDestinationFileName, os.O_APPEND|os.O_RDWR, 0644) //nolint:gosec // testing only
+	f, err := os.OpenFile(logDestinationFileName, os.O_APPEND|os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("unable to open file %s to record log message: %w", logDestinationFileName, err)
 	}
 	defer f.Close() //nolint:errcheck // testing only
 	b, err = json.Marshal(msg)
 	require.NoError(d.t, err)
-	f.Write(b)            //nolint:errcheck,gosec // testing only
-	f.Write([]byte{'\n'}) //nolint:errcheck,gosec // testing only
+	f.Write(b)            //nolint:errcheck // testing only
+	f.Write([]byte{'\n'}) //nolint:errcheck // testing only
 
 	return nil
 }
@@ -93,7 +93,7 @@ func checkLogFile(t *testing.T, fileName string, expectedNumLines int,
 		lastPartialID      string
 		lastPartialOrdinal int
 	)
-	file, err := os.Open(fileName) //nolint:gosec // testing only
+	file, err := os.Open(fileName)
 	require.NoError(t, err)
 	defer file.Close() //nolint:errcheck // testing only
 
@@ -275,7 +275,7 @@ func TestPipeNotBroken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify that the log destination received partial msg only.
-	file, err := os.Open(logDestinationFileName) //nolint:gosec // testing only
+	file, err := os.Open(logDestinationFileName)
 	require.NoError(t, err)
 	defer file.Close() //nolint:errcheck // testing only
 

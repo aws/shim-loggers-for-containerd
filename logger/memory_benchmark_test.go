@@ -72,7 +72,7 @@ func TestBinarySize(t *testing.T) {
 	require.NoError(t, tmpBinary.Close())
 	defer func() { _ = os.Remove(tmpPath) }()
 
-	cmd := exec.Command("go", "build", "-o", tmpPath, ".") //nolint:gosec // build path is a temp file, not user input
+	cmd := exec.Command("go", "build", "-o", tmpPath, ".")
 	cmd.Dir = ".."
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "build failed: %s", string(out))

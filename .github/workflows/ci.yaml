@@ -38,13 +38,13 @@ jobs:
         with:
           go-version: '1.25'
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           # Pin the version in case all the builds start to fail at the same time.
           # There may not be an automatic way (e.g., dependabot) to update a specific parameter of a GitHub Action,
           # so we will just update it manually whenever it makes sense (e.g., a feature that we want is added).
-          version: v1.60.3
-          args: --build-tags e2e,unit --fix=false --timeout=5m --out-format=colored-line-number
+          version: v2.12.2
+          args: --build-tags e2e,unit
   unit-tests:
     strategy:
       fail-fast: false
