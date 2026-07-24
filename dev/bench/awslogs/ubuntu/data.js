@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784845086400,
+  "lastUpdate": 1784929174036,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4867,6 +4867,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 67097,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nkpeters@amazon.com",
+            "name": "Nick Peters"
+          },
+          "committer": {
+            "email": "strategicpause@gmail.com",
+            "name": "Nick Peters",
+            "username": "strategicpause"
+          },
+          "distinct": true,
+          "id": "f11f0997e055bcee3fe86ef362e3007e8bf977a5",
+          "message": "chore(deps): upgrade dependencies to fix vulncheck findings\n\nUpgrade github.com/containerd/containerd v1.7.29 to v1.7.34 to fix\nGO-2026-5378, GO-2026-5475, and GO-2026-5758.\n\nUpgrade github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10\nto v1.7.14 to fix GO-2026-5764 (EventStream decoder DoS).\n\nUpgrade google.golang.org/grpc v1.72.2 to v1.82.1 to fix GO-2026-4762\n(authorization bypass via missing leading slash).\n\nUpgrade go.opentelemetry.io/otel v1.35.0 to v1.44.0 to fix GO-2026-5506\n(baggage header extraction DoS).",
+          "timestamp": "2026-07-24T14:36:52-07:00",
+          "tree_id": "f344bf93a4765eae2b83c60f4236e4a2350c24d1",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/f11f0997e055bcee3fe86ef362e3007e8bf977a5"
+        },
+        "date": 1784929173668,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 9813459166,
+            "unit": "ns/op\t18207520 B/op\t   64767 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 9813459166,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 18207520,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 64767,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
