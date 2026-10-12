@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784929174036,
+  "lastUpdate": 1791847387187,
   "repoUrl": "https://github.com/aws/shim-loggers-for-containerd",
   "entries": {
     "Benchmark for awslogs": [
@@ -4914,6 +4914,53 @@ window.BENCHMARK_DATA = {
           {
             "name": "BenchmarkAwslogs - allocs/op",
             "value": 64767,
+            "unit": "allocs/op",
+            "extra": "1 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hoshmali@amazon.com",
+            "name": "Hoshank Mali"
+          },
+          "committer": {
+            "email": "55555210+sondavidb@users.noreply.github.com",
+            "name": "David Son",
+            "username": "sondavidb"
+          },
+          "distinct": true,
+          "id": "2e530c1f13e5977f39e6413de147388d460f60a6",
+          "message": "ci: lint with Go 1.27 and golangci-lint v2.14.0\n\ngolangci-lint v2.14.0 is built with go1.27.0, so the lint job can move\nto the latest Go release. No new findings with --build-tags e2e,unit.",
+          "timestamp": "2026-10-12T18:59:18-04:00",
+          "tree_id": "bdc220f1b42a2a26bccfb4ad6811e5a54c827fdc",
+          "url": "https://github.com/aws/shim-loggers-for-containerd/commit/2e530c1f13e5977f39e6413de147388d460f60a6"
+        },
+        "date": 1791847386071,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkAwslogs",
+            "value": 14048186076,
+            "unit": "ns/op\t16730608 B/op\t   65182 allocs/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - ns/op",
+            "value": 14048186076,
+            "unit": "ns/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - B/op",
+            "value": 16730608,
+            "unit": "B/op",
+            "extra": "1 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkAwslogs - allocs/op",
+            "value": 65182,
             "unit": "allocs/op",
             "extra": "1 times\n4 procs"
           }
